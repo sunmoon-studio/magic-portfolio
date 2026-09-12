@@ -506,7 +506,10 @@
     }
 
     if (data.career && data.career.length) {
-      html += '<h3 class="resume-h3">职业经历</h3><div class="timeline">';
+      /* careerSummary：职业经历的开场总述（如"21 年三段路"），可选字段 */
+      html += '<h3 class="resume-h3">职业经历</h3>' +
+        (data.careerSummary ? '<p class="resume-intro">' + esc(data.careerSummary) + '</p>' : '') +
+        '<div class="timeline">';
       data.career.forEach(function (j) {
         html += '<div class="tl-item"><div class="tl-period">' + esc(j.period) + '</div>' +
           '<div class="tl-body"><div class="tl-role">' + esc(j.role) + '</div>' +
