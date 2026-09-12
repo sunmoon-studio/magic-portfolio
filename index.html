@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Magic · 作品集</title>
+  <!-- 字体自托管（assets/fonts/），不请求 Google Fonts：国内访问不通，会导致访客看到备用字体。 -->
+  <!-- ⚠️ 署名字体 Parisienne 除外：手写签名体不做子集（全量仅 88KB，按需加载更合理） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/style.css?v=20260912-cloud1">
+</head>
+<body>
+  <!-- JS 被禁用/加载失败时：门是 fixed 覆盖层，必须整个撤掉，否则会永远挡住整站。 -->
+  <noscript><style>.gate{display:none!important}.gate-run{display:none!important}</style></noscript>
+  <section class="gate" id="gate" aria-label="门厅">
+    <div class="gate-veil" aria-hidden="true"></div>
+    <canvas class="gate-canvas" id="gateCanvas" aria-hidden="true"></canvas>
+    <div class="gate-motto">
+      <h1 class="gate-zh">一切都是最好的安排</h1>
+      <p class="gate-en">Everything is exactly as it should be.</p>
+      <p class="gate-sign">— Magic</p>
+    </div>
+    <div class="gate-hint" aria-hidden="true"><span>向下滚动 · 开启</span></div>
+  </section>
+  <script>window.SITE = 'real';</script>
+  <script src="assets/crypto.js?v=20260912-cloud1"></script>
+  <script src="works.js?v=20260912-cloud1"></script>
+  <script src="resume.enc.js?v=20260912-cloud1"></script>
+  <script src="assets/app.js?v=20260912-cloud1"></script>
+</body>
+</html>

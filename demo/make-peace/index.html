@@ -1,0 +1,1889 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>主动的人先享受世界</title>
+<style>
+/* ============ RESET & VARIABLES ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg1:#1a1028; --bg2:#231440; --bg3:#1a1248;
+  --glass-bg:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.12);
+  --glass-bg2:rgba(255,255,255,0.08); --glass-border2:rgba(255,255,255,0.18);
+  --gold:#f0c060; --pink:#e8a0c8; --lavender:#c4b5fd;
+  --text:#e8e0f0; --text2:#b8a8d0; --text3:#8a7aa0;
+  --danger:#ff6b6b; --success:#6bdf8c;
+  --radius:16px; --radius-sm:10px; --radius-xs:6px;
+  --font-main:'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;font-family:var(--font-main);color:var(--text);background:linear-gradient(160deg,var(--bg1),var(--bg2),var(--bg3));-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
+
+/* ============ BACKGROUND CANVAS ============ */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+
+/* ============ APP CONTAINER ============ */
+#app{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1;padding:16px;}
+
+/* ============ PROGRESS BAR ============ */
+#progressBar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,0.06);z-index:100;}
+#progressFill{height:100%;background:linear-gradient(90deg,var(--pink),var(--gold));transition:width 0.5s cubic-bezier(0.4,0,0.2,1);width:0%;border-radius:0 2px 2px 0;}
+#levelDots{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:99;}
+.levelDot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);transition:all 0.4s;}
+.levelDot.done{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+.levelDot.current{background:var(--pink);box-shadow:0 0 12px var(--pink);transform:scale(1.4);}
+
+/* ============ AUDIO TOGGLE ============ */
+#audioToggle{position:fixed;top:14px;right:14px;z-index:200;width:38px;height:38px;border-radius:50%;background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.3s;color:var(--text);}
+#audioToggle:hover{background:var(--glass-bg2);transform:scale(1.05);}
+#audioToggle.muted{opacity:0.5;}
+#audioToggle.muted::after{content:'';position:absolute;width:2px;height:22px;background:var(--danger);border-radius:1px;transform:rotate(-45deg);}
+
+/* ============ SETTINGS GEAR ============ */
+#settingsGear{position:fixed;top:14px;left:14px;z-index:200;width:38px;height:38px;border-radius:50%;background:var(--glass-bg);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.3s;color:var(--text);}
+#settingsGear:hover{background:var(--glass-bg2);}
+#settingsGear:active{transform:rotate(90deg);}
+#settingsGear.hidden{display:none;}
+
+/* ============ GLASS PANEL BASE ============ */
+.glass-panel{background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius);padding:28px 24px;width:100%;max-width:420px;position:relative;overflow:hidden;}
+.glass-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);}
+.panel-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.panel-subtitle{font-size:13px;color:var(--text2);text-align:center;margin-bottom:24px;line-height:1.6;}
+
+/* ============ SETTINGS PANEL ============ */
+#settingsOverlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+#settingsOverlay.active{opacity:1;pointer-events:auto;}
+#settingsPanel{width:100%;max-width:420px;max-height:85vh;overflow-y:auto;background:rgba(30,18,50,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border2);border-radius:var(--radius);padding:24px;position:relative;transform:translateY(20px);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+#settingsOverlay.active #settingsPanel{transform:translateY(0);}
+#shareOverlay{position:fixed;inset:0;z-index:320;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+#shareOverlay.active{opacity:1;pointer-events:auto;}
+#sharePanel{width:100%;max-width:420px;background:rgba(30,18,50,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--glass-border2);border-radius:var(--radius);padding:24px;position:relative;transform:translateY(20px);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+#shareOverlay.active #sharePanel{transform:translateY(0);}
+#sharePanel h3{font-size:20px;margin-bottom:16px;text-align:center;background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#sharePanel .share-tip{font-size:13px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:16px;}
+#shareLinkBox{font-size:12px;color:var(--text2);background:rgba(255,255,255,0.06);border:1px solid var(--glass-border);border-radius:var(--radius-xs);padding:10px 12px;word-break:break-all;line-height:1.5;margin-bottom:18px;cursor:pointer;user-select:all;transition:border-color 0.3s;}
+#shareLinkBox:hover{border-color:var(--gold);}
+#sharePanel .settings-buttons{display:flex;gap:10px;margin-top:0;}
+#sharePanel .settings-buttons .btn{flex:1;}
+#settingsPanel h3{font-size:20px;margin-bottom:20px;text-align:center;background:linear-gradient(135deg,var(--gold),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#settingsPanel label{display:block;font-size:13px;color:var(--text2);margin-bottom:5px;margin-top:14px;}
+#settingsPanel label:first-of-type{margin-top:0;}
+#settingsPanel input[type=text],#settingsPanel textarea,#settingsPanel select{width:100%;padding:10px 14px;border-radius:var(--radius-xs);border:1px solid var(--glass-border);background:rgba(255,255,255,0.06);color:var(--text);font-size:14px;font-family:var(--font-main);outline:none;transition:border-color 0.3s;}
+#settingsPanel input:focus,#settingsPanel textarea:focus,#settingsPanel select:focus{border-color:var(--gold);}
+#settingsPanel textarea{resize:vertical;min-height:60px;}
+#settingsPanel select{appearance:none;-webkit-appearance:none;cursor:pointer;}
+#settingsPanel select option{background:#1a1028;color:var(--text);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin:14px 0;}
+.toggle-row span{font-size:14px;color:var(--text);}
+.toggle-switch{width:46px;height:26px;border-radius:13px;background:rgba(255,255,255,0.12);position:relative;cursor:pointer;transition:background 0.3s;}
+.toggle-switch.on{background:var(--gold);}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform 0.3s;}
+.toggle-switch.on::after{transform:translateX(20px);}
+.coupon-inputs{margin-top:8px;display:none;}
+.coupon-inputs.show{display:block;}
+.coupon-inputs input{margin-bottom:6px;}
+.settings-buttons{display:flex;gap:10px;margin-top:20px;}
+.settings-buttons button{flex:1;}
+
+/* ============ BUTTONS ============ */
+.btn{padding:12px 28px;border-radius:24px;border:none;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.25s;font-family:var(--font-main);position:relative;overflow:hidden;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),#e8a040);color:#1a1028;box-shadow:0 4px 20px rgba(240,192,96,0.3);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(240,192,96,0.4);}
+.btn-primary:active{transform:translateY(0);box-shadow:0 2px 12px rgba(240,192,96,0.2);}
+.btn-secondary{background:var(--glass-bg2);color:var(--text);border:1px solid var(--glass-border);}
+.btn-secondary:hover{background:rgba(255,255,255,0.12);}
+.btn-danger{background:rgba(255,107,107,0.15);color:var(--danger);border:1px solid rgba(255,107,107,0.3);}
+.btn-danger:hover{background:rgba(255,107,107,0.25);}
+.btn-lg{padding:16px 40px;font-size:17px;border-radius:30px;}
+.btn-sm{padding:8px 18px;font-size:13px;}
+
+/* ============ LEVEL CONTAINERS ============ */
+#levelContainer{position:relative;width:100%;max-width:420px;min-height:320px;display:flex;align-items:center;justify-content:center;}
+.level{position:absolute;width:100%;opacity:0;transform:translateY(30px);pointer-events:none;transition:all 0.5s cubic-bezier(0.4,0,0.2,1);}
+.level.active{opacity:1;transform:translateY(0);pointer-events:auto;position:relative;}
+.level.exit-left{opacity:0;transform:translateX(-40px);}
+.level.exit-right{opacity:0;transform:translateX(40px);}
+
+/* ============ LEVEL: WELCOME ============ */
+.welcome-msg{text-align:center;}
+.welcome-icon{font-size:56px;margin-bottom:16px;animation:welcomeBounce 1.5s ease-in-out infinite;}
+@keyframes welcomeBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.welcome-title{font-size:26px;font-weight:700;margin-bottom:8px;line-height:1.4;}
+.welcome-desc{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:28px;}
+
+/* ============ LEVEL 1: BUBBLES ============ */
+#bubbleField{position:relative;width:100%;height:340px;overflow:hidden;}
+.bubble{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.3);transition:transform 0.1s;z-index:2;}
+.bubble::after{content:'';position:absolute;top:12%;left:18%;width:30%;height:20%;border-radius:50%;background:rgba(255,255,255,0.25);transform:rotate(-30deg);}
+.bubble:active{transform:scale(0.85);}
+.bubble.popping{animation:bubblePop 0.4s ease-out forwards;}
+@keyframes bubblePop{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.6}100%{transform:scale(0);opacity:0}}
+.bubble-particle{position:absolute;border-radius:50%;pointer-events:none;animation:particleFly 0.7s ease-out forwards;}
+@keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+
+/* ============ LEVEL 2: WALL ============ */
+#wallContainer{position:relative;width:100%;text-align:center;}
+#wallGlow{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(240,192,96,0.3),transparent 70%);opacity:0;transition:opacity 0.8s;pointer-events:none;border-radius:50%;}
+#wallGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:2;}
+.wall-brick{padding:16px 8px;background:linear-gradient(180deg,rgba(100,80,140,0.5),rgba(60,40,80,0.7));border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-xs);cursor:pointer;font-size:13px;color:rgba(255,255,255,0.5);transition:all 0.3s;display:flex;align-items:center;justify-content:center;text-align:center;min-height:56px;position:relative;}
+.wall-brick:hover{background:linear-gradient(180deg,rgba(120,90,160,0.5),rgba(80,50,100,0.7));border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);}
+.wall-brick:active{transform:scale(0.95);}
+.wall-brick.crumbling{animation:brickCrumble 0.6s ease-out forwards;}
+@keyframes brickCrumble{0%{transform:scale(1);opacity:1}30%{transform:scale(1.1);opacity:0.8}100%{transform:scale(0.3) rotate(10deg);opacity:0}}
+.wall-brick.crumbled{opacity:0;pointer-events:none;transform:scale(0);}
+#wallAllDown{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;opacity:0;pointer-events:none;transition:opacity 0.8s 0.3s;}
+#wallAllDown.show{opacity:1;pointer-events:auto;}
+#wallAllDown .result-text{font-size:20px;font-weight:700;text-align:center;line-height:1.6;}
+
+/* ============ LEVEL 3: SCRATCH CARD ============ */
+#scratchContainer{position:relative;display:flex;flex-direction:column;align-items:center;gap:16px;}
+#scratchWrapper{position:relative;width:300px;height:220px;border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+#scratchReveal{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,rgba(40,20,60,0.95),rgba(30,15,50,0.95));z-index:1;text-align:center;font-size:14px;line-height:1.8;color:var(--text);}
+#scratchReveal .reveal-to{font-size:16px;font-weight:600;margin-bottom:8px;color:var(--gold);}
+#scratchCanvas{position:absolute;inset:0;z-index:2;cursor:pointer;touch-action:none;}
+#scratchPercent{font-size:13px;color:var(--text2);}
+#scratchHint{font-size:12px;color:var(--text3);animation:blink 1.5s ease-in-out infinite;}
+#scratchNextBtn{display:none;margin-top:12px;padding:10px 32px;font-size:15px;font-weight:600;border:none;border-radius:25px;background:linear-gradient(135deg,var(--gold),#e0a830);color:#1a1028;cursor:pointer;transition:all 0.3s;animation:fadeInUp 0.5s;}
+#scratchNextBtn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(240,192,96,0.3);}
+#scratchNextBtn:active{transform:translateY(0);}
+@keyframes blink{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ============ LEVEL 4: COMPENSATION ============ */
+#couponContainer{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;}
+.coupon-card{width:100%;padding:18px 20px;background:var(--glass-bg2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;text-align:center;}
+.coupon-card:hover{border-color:var(--gold);background:rgba(240,192,96,0.08);transform:translateY(-2px);}
+.coupon-card:active{transform:translateY(0);}
+.coupon-card.selected{border-color:var(--gold);background:rgba(240,192,96,0.12);box-shadow:0 0 20px rgba(240,192,96,0.15);}
+.coupon-card .coupon-icon{font-size:28px;margin-bottom:6px;}
+.coupon-card .coupon-text{font-size:14px;color:var(--text);line-height:1.5;}
+.coupon-badge{position:absolute;top:8px;right:10px;font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(240,192,96,0.2);color:var(--gold);}
+
+/* ============ LEVEL 5: RECONCILIATION ============ */
+#typewriterBox{width:100%;min-height:180px;padding:20px;background:var(--glass-bg2);border:1px solid var(--glass-border);border-radius:var(--radius-sm);font-size:15px;line-height:2;white-space:pre-wrap;position:relative;margin-bottom:20px;max-height:280px;overflow-y:auto;}
+#typewriterBox .cursor{display:inline-block;width:2px;height:16px;background:var(--gold);animation:cursorBlink 0.7s step-end infinite;vertical-align:text-bottom;margin-left:2px;}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.recon-buttons{display:flex;gap:16px;justify-content:center;margin-top:12px;opacity:0;transform:translateY(20px);transition:all 0.5s 0.3s;}
+.recon-buttons.show{opacity:1;transform:translateY(0);}
+.btn-recon{min-width:100px;padding:14px 32px;border-radius:28px;font-size:16px;font-weight:700;border:none;cursor:pointer;transition:all 0.3s;font-family:var(--font-main);}
+.btn-recon-forgive{background:linear-gradient(135deg,var(--success),#4ade80);color:#fff;box-shadow:0 4px 20px rgba(107,223,140,0.3);}
+.btn-recon-forgive:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(107,223,140,0.4);}
+.btn-recon-refuse{background:linear-gradient(135deg,#f87171,#ef4444);color:#fff;box-shadow:0 4px 20px rgba(248,113,113,0.3);}
+.btn-recon-refuse:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(248,113,113,0.4);}
+#refuseMsg{text-align:center;margin-top:16px;padding:16px;border-radius:var(--radius-sm);background:var(--glass-bg2);border:1px solid var(--glass-border);font-size:14px;line-height:1.8;display:none;animation:fadeInUp 0.5s;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ EFFECTS CANVAS ============ */
+#fxCanvas{position:fixed;inset:0;z-index:400;pointer-events:none;}
+
+/* ============ RESPONSE CARD OVERLAY ============ */
+#cardOverlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:0;pointer-events:none;transition:opacity 0.5s;}
+#cardOverlay.show{opacity:1;pointer-events:auto;}
+#cardPreview{max-width:360px;width:90%;border-radius:var(--radius);overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,0.5);}
+#cardPreview img{width:100%;display:block;}
+.card-actions{display:flex;gap:12px;}
+.card-actions button{min-width:120px;}
+
+/* ============ ANIMATIONS ============ */
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-8px) rotate(1deg)}66%{transform:translateY(-4px) rotate(-1deg)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(240,192,96,0.1)}50%{box-shadow:0 0 40px rgba(240,192,96,0.25)}}
+@keyframes stampDown{0%{transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0}50%{transform:translate(-50%,-50%) scale(0.9) rotate(2deg);opacity:1}70%{transform:translate(-50%,-50%) scale(1.05) rotate(-1deg)}100%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1}}
+
+/* ============ FOOTER SIGNATURE ============ */
+#footerSig{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:50;font-size:11px;color:rgba(255,255,255,0.15);pointer-events:none;font-style:italic;letter-spacing:0.5px;}
+
+/* ============ MOBILE RESPONSIVE ============ */
+@media(max-width:480px){
+  .glass-panel{padding:20px 16px;border-radius:var(--radius-sm);}
+  .panel-title{font-size:19px;}
+  #wallGrid{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .wall-brick{padding:12px 6px;font-size:12px;min-height:48px;}
+  #scratchWrapper{width:260px;height:190px;}
+  #typewriterBox{font-size:14px;padding:14px;}
+  .btn-recon{padding:12px 24px;font-size:15px;min-width:80px;}
+  .btn-lg{padding:14px 32px;font-size:16px;}
+  #levelDots{gap:6px;}
+  .levelDot{width:7px;height:7px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Background particles -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- Effects canvas (fireworks, stamp) -->
+<canvas id="fxCanvas"></canvas>
+
+<!-- Audio toggle -->
+<div id="audioToggle" title="音效开关">🔊</div>
+
+<!-- Settings gear -->
+<div id="settingsGear" title="自定义设置">⚙️</div>
+
+<!-- Progress dots -->
+<div id="levelDots"></div>
+
+<!-- Progress bar -->
+<div id="progressBar"><div id="progressFill"></div></div>
+
+<!-- Settings overlay -->
+<div id="settingsOverlay">
+  <div id="settingsPanel">
+    <h3>⚙️ 自定义设置</h3>
+    <label>你们的关系</label>
+    <select id="cfgRelationship">
+      <option value="love">💕 爱情</option>
+      <option value="friend">🤝 友情</option>
+      <option value="family">🏠 亲情</option>
+    </select>
+    <label>你的昵称（哄人者）</label>
+    <input type="text" id="cfgSender" placeholder="例如：想你的人" maxlength="12">
+    <label>TA的昵称（被哄者）</label>
+    <input type="text" id="cfgReceiver" placeholder="例如：小仙女" maxlength="12">
+    <label>矛盾原因（可选）</label>
+    <input type="text" id="cfgReason" placeholder="例如：昨晚没回消息" maxlength="30">
+    <label>语气风格</label>
+    <select id="cfgTone">
+      <option value="gentle">🌸 温柔治愈</option>
+      <option value="coquettish">😝 撒娇可爱</option>
+      <option value="direct">💪 直球真诚</option>
+    </select>
+    <div class="toggle-row">
+      <span>🗂️ 加入「补偿承诺」关卡</span>
+      <div class="toggle-switch" id="cfgCouponToggle" onclick="toggleCouponSwitch()"></div>
+    </div>
+    <div class="coupon-inputs" id="couponInputs">
+      <input type="text" id="cfgCoupon1" placeholder="补偿券 1：例如「陪你打一局游戏」券" maxlength="30">
+      <input type="text" id="cfgCoupon2" placeholder="补偿券 2" maxlength="30">
+      <input type="text" id="cfgCoupon3" placeholder="补偿券 3" maxlength="30">
+    </div>
+    <label>你想对TA说的话（会显示在回应卡片上）</label>
+    <textarea id="cfgMessage" placeholder="写下你想说的话..." maxlength="120"></textarea>
+    <div class="settings-buttons">
+      <button class="btn btn-secondary" onclick="closeSettings()">取消</button>
+      <button class="btn btn-primary" onclick="applySettings()">✅ 生成分享链接</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share link result overlay -->
+<div id="shareOverlay">
+  <div id="sharePanel">
+    <h3>🔗 链接已生成</h3>
+    <p class="share-tip">链接已复制到剪贴板，发给TA吧～<br>想提前看看TA打开后的样子？点下面 👇</p>
+    <div id="shareLinkBox" onclick="copyShareLink()"></div>
+    <div class="settings-buttons">
+      <button class="btn btn-primary" onclick="previewReceiver()">👀 预览TA看到的页面</button>
+      <button class="btn btn-secondary" onclick="closeShare()">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- Response card overlay -->
+<div id="cardOverlay">
+  <div id="cardPreview"><img id="cardImage" src="" alt="回应卡片"></div>
+  <div style="color:rgba(255,255,255,0.45);font-size:13px;margin-top:10px;text-align:center;line-height:1.6;">👆 长按上方图片即可保存到相册<br>然后发给思思 💛</div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <div id="levelContainer">
+    <!-- Level 0: Welcome -->
+    <div class="level active" id="level0">
+      <div class="glass-panel">
+        <div class="welcome-msg">
+          <div class="welcome-icon" id="welcomeIcon">💌</div>
+          <div class="welcome-title" id="welcomeTitle">你收到了一份<br>特别的小惊喜</div>
+          <div class="welcome-desc" id="welcomeDesc">TA用心准备了一个小旅程<br>希望能让你开心一点 💫</div>
+          <button class="btn btn-primary btn-lg" onclick="startGame()">✨ 开始吧</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level 1: Bubbles -->
+    <div class="level" id="level1">
+      <div class="glass-panel">
+        <div class="panel-title">🫧 把不开心统统戳破</div>
+        <div class="panel-subtitle">戳破这些气泡，把坏情绪都放走~</div>
+        <div id="bubbleField"></div>
+      </div>
+    </div>
+
+    <!-- Level 2: Wall -->
+    <div class="level" id="level2">
+      <div class="glass-panel">
+        <div class="panel-title">🧱 推倒这堵心墙</div>
+        <div class="panel-subtitle">每推倒一层，光就会透进来多一些</div>
+        <div id="wallContainer">
+          <div id="wallGlow"></div>
+          <div id="wallGrid"></div>
+          <div id="wallAllDown">
+            <div class="result-text" style="font-size:36px;margin-bottom:12px;">☀️</div>
+            <div class="result-text">心墙倒了<br>光进来了</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level 3: Scratch Card -->
+    <div class="level" id="level3">
+      <div class="glass-panel">
+        <div class="panel-title">✨ 刮开看看</div>
+        <div class="panel-subtitle">用手指轻轻刮开，TA想说的话藏在下面</div>
+        <div id="scratchContainer">
+          <div id="scratchWrapper">
+            <div id="scratchReveal">
+              <div class="reveal-to" id="scratchTo"></div>
+              <div id="scratchMessage"></div>
+            </div>
+            <canvas id="scratchCanvas"></canvas>
+          </div>
+          <div id="scratchPercent">已刮开 0%</div>
+          <div id="scratchHint">👆 用手指刮开涂层</div>
+          <button id="scratchNextBtn" onclick="scratchGoNext()">继续看 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level 4: Compensation (optional) -->
+    <div class="level" id="level4">
+      <div class="glass-panel">
+        <div class="panel-title">🎫 选一张补偿券</div>
+        <div class="panel-subtitle">TA为你准备了几张小承诺，选一张你喜欢的~</div>
+        <div id="couponContainer"></div>
+      </div>
+    </div>
+
+    <!-- Level 5: Reconciliation -->
+    <div class="level" id="level5">
+      <div class="glass-panel">
+        <div class="panel-title">💌 TA想对你说</div>
+        <div id="typewriterBox"></div>
+        <div class="recon-buttons" id="reconButtons">
+          <button class="btn-recon btn-recon-forgive" onclick="chooseForgive()">和好</button>
+          <button class="btn-recon btn-recon-refuse" onclick="chooseRefuse()">不原谅</button>
+        </div>
+        <div id="refuseMsg"></div>
+        <div id="responseInput" style="display:none;margin-top:20px;text-align:center;">
+          <div style="margin-bottom:12px;font-size:14px;color:#c8b8e0;">写一句想对TA说的话吧：</div>
+          <textarea id="responseText" placeholder="你的回应..." maxlength="100" style="width:100%;min-height:72px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:var(--glass-bg2);color:#e8e0f0;font-size:14px;resize:none;outline:none;font-family:inherit;"></textarea>
+          <button class="btn btn-primary" onclick="submitResponse()" style="margin-top:12px;">✨ 生成回应卡片</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer signature -->
+<div id="footerSig">Created by M.C.</div>
+
+<script>
+/* ================================================================
+   主动的人先享受世界 V2 - Complete Application
+   ================================================================ */
+
+// ==================== CONFIGURATION ====================
+const DEFAULT_CONFIG = {
+  relationship: 'love',
+  senderName: 'TA',
+  receiverName: '你',
+  conflictReason: '',
+  tone: 'gentle',
+  compensationEnabled: false,
+  coupons: ['请你吃大餐券','陪你看电影券','无条件原谅券'],
+  senderMessage: '',
+};
+
+let CFG = { ...DEFAULT_CONFIG };
+let isSenderMode = true; // true when no config in URL
+let gameStarted = false;
+let currentLevel = 0;
+let totalLevels = 5;
+let refusalCount = 0;
+let maxRefusals = 3;
+let selectedCoupon = -1;
+
+// ==================== URL HASH PARSER ====================
+function loadConfigFromHash() {
+  const hash = window.location.hash.slice(1);
+  if (!hash) { isSenderMode = true; return false; }
+  try {
+    const json = decodeURIComponent(escape(atob(hash)));
+    const parsed = JSON.parse(json);
+    CFG = { ...DEFAULT_CONFIG, ...parsed };
+    isSenderMode = false;
+    totalLevels = CFG.compensationEnabled ? 5 : 4;
+    return true;
+  } catch(e) { isSenderMode = true; return false; }
+}
+
+function buildConfigHash() {
+  const obj = { ...CFG };
+  const json = JSON.stringify(obj);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function updateShareURL() {
+  const hash = buildConfigHash();
+  // 在线时直接用当前页面地址（两个站点各自正确）；本地 file:// 打开时用本地地址
+  let base;
+  if (window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null') {
+    base = window.location.href.split('#')[0];
+  } else {
+    base = window.location.origin + window.location.pathname;
+  }
+  const url = base + '#' + hash;
+  try { window.history.replaceState({}, '', '#' + hash); } catch (e) {}
+  return url;
+}
+
+// ==================== AUDIO ENGINE ====================
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+    this.bgmNodes = [];
+    this.bgmPlaying = false;
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+    try {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.initialized = true;
+    } catch(e) { console.warn('Audio not supported'); }
+  }
+
+  ensureCtx() {
+    if (!this.initialized) this.init();
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  }
+
+  playNote(freq, duration, type='sine', vol=0.15, delay=0) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime + delay;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + duration);
+  }
+
+  playNoise(duration, vol=0.1, delay=0) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime + delay;
+    const bufSize = this.ctx.sampleRate * duration;
+    const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const gain = this.ctx.createGain();
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2000;
+    filter.Q.value = 0.5;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    src.start(t);
+  }
+
+  // Sound effects
+  sfxBubblePop() {
+    this.ensureCtx();
+    this.playNoise(0.08, 0.12);
+    this.playNote(800, 0.1, 'sine', 0.1);
+    this.playNote(1200, 0.06, 'sine', 0.06, 0.02);
+  }
+
+  sfxBrickCrumble() {
+    this.ensureCtx();
+    this.playNoise(0.12, 0.08);
+    this.playNote(200, 0.2, 'triangle', 0.08);
+  }
+
+  sfxWallDown() {
+    this.ensureCtx();
+    this.playNote(150, 0.5, 'triangle', 0.12);
+    setTimeout(() => {
+      this.playNote(300, 0.4, 'sine', 0.1, 0);
+      this.playNote(400, 0.4, 'sine', 0.08, 0.08);
+      this.playNote(600, 0.3, 'sine', 0.06, 0.16);
+    }, 300);
+  }
+
+  sfxScratch() {
+    this.ensureCtx();
+    if (this._scratchTimeout) return;
+    this.playNoise(0.05, 0.03);
+    this._scratchTimeout = setTimeout(() => { this._scratchTimeout = null; }, 80);
+  }
+
+  sfxScratchDone() {
+    this.ensureCtx();
+    this.playNote(500, 0.15, 'sine', 0.1);
+    this.playNote(700, 0.15, 'sine', 0.08, 0.08);
+    this.playNote(1000, 0.2, 'sine', 0.06, 0.16);
+  }
+
+  sfxCouponSelect() {
+    this.ensureCtx();
+    this.playNote(600, 0.1, 'sine', 0.08);
+    this.playNote(800, 0.1, 'sine', 0.08, 0.05);
+    this.playNote(1000, 0.12, 'sine', 0.06, 0.1);
+  }
+
+  sfxTypewriter() {
+    this.ensureCtx();
+    this.playNote(1200, 0.03, 'square', 0.02);
+  }
+
+  sfxForgive() {
+    this.ensureCtx();
+    const notes = [523,659,784,1047];
+    notes.forEach((n,i) => this.playNote(n,0.3,'sine',0.1,i*0.12));
+  }
+
+  sfxRefuse() {
+    this.ensureCtx();
+    this.playNote(400, 0.2, 'sawtooth', 0.08);
+    setTimeout(() => {
+      this.playNote(300, 0.3, 'triangle', 0.08);
+      this.playNote(250, 0.4, 'triangle', 0.06, 0.1);
+    }, 200);
+  }
+
+  sfxStamp() {
+    this.ensureCtx();
+    this.playNoise(0.15, 0.15);
+    this.playNote(80, 0.3, 'triangle', 0.2);
+  }
+
+  sfxClick() {
+    this.ensureCtx();
+    this.playNote(800, 0.04, 'sine', 0.05);
+  }
+
+  // ========== Background Music: Light Lyrical Piano ==========
+  // Chord progression: Cmaj7 → G/B → Am7 → Fmaj7 (warm, bittersweet loop)
+  // Each cycle = 8 beats (2 beats per chord) at ~72 BPM ≈ 6.67s per cycle
+  
+  startBGM() {
+    this.ensureCtx();
+    if (!this.ctx || this.muted || this.bgmPlaying) return;
+    const doStart = () => {
+      if (this.muted || this.bgmPlaying || !this.ctx) return;
+      this.bgmPlaying = true;
+      this._bmIdx = 0;
+      this._playBGMChord();
+    };
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().then(doStart).catch(doStart);
+    } else {
+      doStart();
+    }
+  }
+
+  // Chord definitions: [root, third, fifth, seventh, melody notes...]
+  // Cmaj7 = C E G B,  G/B = B D G,  Am7 = A C E G,  Fmaj7 = F A C E
+  _bgmChords() { return [
+    { bass:131, notes:[262,330,392,494], arp:[523,392,330,262,392,494,523,659] },   // Cmaj7 with arp
+    { bass:196, notes:[247,294,392],     arp:[494,392,294,247,392,494,587,494] },    // G/B 
+    { bass:220, notes:[220,262,330,392], arp:[440,330,262,220,330,392,440,523] },    // Am7
+    { bass:175, notes:[349,440,523],     arp:[523,440,349,262,349,440,523,587] },    // Fmaj7
+  ];}
+
+  _playBGMChord() {
+    if (!this.bgmPlaying || this.muted || !this.ctx) return;
+    const chords = this._bgmChords();
+    const chord = chords[this._bmIdx % 4];
+    const t = this.ctx.currentTime;
+    const beat = 1.67; // ~72 BPM, one chord = 2 beats = 3.34s
+    
+    // Layer 1: Bass note (soft, warm)
+    const bOsc = this.ctx.createOscillator();
+    const bGain = this.ctx.createGain();
+    bOsc.type = 'sine';
+    bOsc.frequency.value = chord.bass;
+    bGain.gain.setValueAtTime(0, t);
+    bGain.gain.linearRampToValueAtTime(0.06, t + 0.1);
+    bGain.gain.exponentialRampToValueAtTime(0.001, t + beat * 2);
+    bOsc.connect(bGain); bGain.connect(this.ctx.destination);
+    bOsc.start(t); bOsc.stop(t + beat * 2);
+
+    // Layer 2: Chord pad (triangle wave, gentle)
+    chord.notes.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const delay = 0.05 * i;
+      gain.gain.setValueAtTime(0, t + delay);
+      gain.gain.linearRampToValueAtTime(0.025, t + delay + 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + beat * 2);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(t + delay); osc.stop(t + beat * 2);
+    });
+
+    // Layer 3: Arpeggiated melody (bell-like, the "singing" part)
+    chord.arp.forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const noteStart = t + (beat * 2 / chord.arp.length) * i;
+      const noteLen = 0.3;
+      gain.gain.setValueAtTime(0, noteStart);
+      gain.gain.linearRampToValueAtTime(0.07, noteStart + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, noteStart + noteLen);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(noteStart); osc.stop(noteStart + noteLen + 0.1);
+    });
+
+    this._bmIdx++;
+    this._bgmTimer = setTimeout(() => this._playBGMChord(), beat * 2 * 1000);
+  }
+
+  stopBGM() {
+    this.bgmPlaying = false;
+    if (this._bgmTimer) clearTimeout(this._bgmTimer);
+    if (this._padTimer) clearTimeout(this._padTimer);
+  }
+
+  // Removed old playPad() — chord progression handles the pad layer internally
+
+  stopAll() {
+    this.stopBGM();
+    if (this.ctx) {
+      this.ctx.close().catch(()=>{});
+      this.ctx = null;
+      this.initialized = false;
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    if (this.muted) {
+      this.stopBGM();
+    } else if (gameStarted) {
+      this.startBGM();
+    }
+    updateAudioToggleUI();
+    vibrate(15);
+  }
+}
+
+const audio = new AudioEngine();
+
+function updateAudioToggleUI() {
+  const btn = document.getElementById('audioToggle');
+  btn.textContent = audio.muted ? '🔇' : '🔊';
+  if (audio.muted) btn.classList.add('muted');
+  else btn.classList.remove('muted');
+}
+
+document.getElementById('audioToggle').addEventListener('click', () => {
+  audio.ensureCtx();
+  audio.toggleMute();
+});
+
+// ==================== VIBRATION ====================
+function vibrate(ms) {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch(e) {}
+  }
+}
+
+function vibratePattern(pattern) {
+  if (navigator.vibrate) {
+    try { navigator.vibrate(pattern); } catch(e) {}
+  }
+}
+
+// ==================== BACKGROUND PARTICLES ====================
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgParticles = [];
+
+function initBgParticles() {
+  bgCanvas.width = window.innerWidth;
+  bgCanvas.height = window.innerHeight;
+  bgParticles = [];
+  const count = Math.floor((bgCanvas.width * bgCanvas.height) / 15000);
+  for (let i = 0; i < count; i++) {
+    bgParticles.push({
+      x: Math.random() * bgCanvas.width,
+      y: Math.random() * bgCanvas.height,
+      r: Math.random() * 2 + 0.5,
+      speed: Math.random() * 0.3 + 0.1,
+      opacity: Math.random() * 0.4 + 0.1,
+      hue: Math.random() < 0.5 ? 40 : 320,
+      pulse: Math.random() * Math.PI * 2,
+      pulseSpeed: Math.random() * 0.02 + 0.005,
+    });
+  }
+}
+
+function drawBgParticles() {
+  bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+  for (const p of bgParticles) {
+    p.y -= p.speed;
+    if (p.y < -10) { p.y = bgCanvas.height + 10; p.x = Math.random() * bgCanvas.width; }
+    p.pulse += p.pulseSpeed;
+    const alpha = p.opacity + Math.sin(p.pulse) * 0.15;
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `hsla(${p.hue},60%,70%,${alpha})`;
+    bgCtx.fill();
+  }
+  requestAnimationFrame(drawBgParticles);
+}
+
+initBgParticles();
+drawBgParticles();
+window.addEventListener('resize', initBgParticles);
+
+// ==================== GAME STATE & UI ====================
+const levelContainer = document.getElementById('levelContainer');
+const levels = [];
+for (let i = 0; i <= 5; i++) levels[i] = document.getElementById('level' + i);
+
+function showLevel(n) {
+  levels.forEach((l, i) => {
+    if (i === n) {
+      l.classList.add('active');
+      l.classList.remove('exit-left', 'exit-right');
+    } else if (i < n) {
+      l.classList.remove('active', 'exit-right');
+      l.classList.add('exit-left');
+    } else {
+      l.classList.remove('active', 'exit-left');
+      l.classList.add('exit-right');
+    }
+  });
+  currentLevel = n;
+  updateProgress();
+  updateDots();
+}
+
+function updateProgress() {
+  const pct = (currentLevel / totalLevels) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateDots() {
+  const dots = document.getElementById('levelDots');
+  let html = '';
+  for (let i = 1; i <= totalLevels; i++) {
+    let cls = 'levelDot';
+    if (i < currentLevel) cls += ' done';
+    else if (i === currentLevel) cls += ' current';
+    html += `<div class="${cls}"></div>`;
+  }
+  dots.innerHTML = html;
+}
+
+// ==================== SETTINGS PANEL ====================
+const settingsOverlay = document.getElementById('settingsOverlay');
+const settingsGear = document.getElementById('settingsGear');
+
+document.getElementById('settingsGear').addEventListener('click', () => {
+  audio.ensureCtx();
+  audio.sfxClick();
+  vibrate(10);
+  openSettings();
+});
+
+function openSettings() {
+  // Populate fields
+  document.getElementById('cfgRelationship').value = CFG.relationship;
+  document.getElementById('cfgSender').value = CFG.senderName;
+  document.getElementById('cfgReceiver').value = CFG.receiverName;
+  document.getElementById('cfgReason').value = CFG.conflictReason;
+  document.getElementById('cfgTone').value = CFG.tone;
+  document.getElementById('cfgMessage').value = CFG.senderMessage;
+  const couponToggle = document.getElementById('cfgCouponToggle');
+  if (CFG.compensationEnabled) {
+    couponToggle.classList.add('on');
+    document.getElementById('couponInputs').classList.add('show');
+  } else {
+    couponToggle.classList.remove('on');
+    document.getElementById('couponInputs').classList.remove('show');
+  }
+  document.getElementById('cfgCoupon1').value = CFG.coupons[0] || '';
+  document.getElementById('cfgCoupon2').value = CFG.coupons[1] || '';
+  document.getElementById('cfgCoupon3').value = CFG.coupons[2] || '';
+  settingsOverlay.classList.add('active');
+}
+
+function closeSettings() {
+  settingsOverlay.classList.remove('active');
+  vibrate(10);
+}
+
+function toggleCouponSwitch() {
+  const sw = document.getElementById('cfgCouponToggle');
+  sw.classList.toggle('on');
+  document.getElementById('couponInputs').classList.toggle('show', sw.classList.contains('on'));
+  vibrate(10);
+}
+
+function applySettings() {
+  CFG.relationship = document.getElementById('cfgRelationship').value;
+  CFG.senderName = document.getElementById('cfgSender').value || DEFAULT_CONFIG.senderName;
+  CFG.receiverName = document.getElementById('cfgReceiver').value || DEFAULT_CONFIG.receiverName;
+  CFG.conflictReason = document.getElementById('cfgReason').value;
+  CFG.tone = document.getElementById('cfgTone').value;
+  CFG.senderMessage = document.getElementById('cfgMessage').value || '';
+
+  const couponEnabled = document.getElementById('cfgCouponToggle').classList.contains('on');
+  CFG.compensationEnabled = couponEnabled;
+  CFG.coupons = [
+    document.getElementById('cfgCoupon1').value || '补偿券 1',
+    document.getElementById('cfgCoupon2').value || '补偿券 2',
+    document.getElementById('cfgCoupon3').value || '补偿券 3',
+  ];
+
+  totalLevels = CFG.compensationEnabled ? 5 : 4;
+
+  // Update URL
+  const url = updateShareURL();
+  closeSettings();
+
+  // Copy to clipboard
+  copyToClipboard(url);
+
+  // Update welcome screen
+  updateWelcomeScreen();
+
+  // Show share result panel (with receiver preview entry)
+  showShareResult(url);
+
+  audio.sfxClick();
+  vibrate(20);
+}
+
+// ==================== SHARE RESULT PANEL ====================
+let lastShareUrl = '';
+
+function showShareResult(url) {
+  lastShareUrl = url;
+  const box = document.getElementById('shareLinkBox');
+  // Show a shortened version for readability, full URL on click-select
+  box.textContent = url.length > 90 ? url.slice(0, 90) + '…' : url;
+  box.title = '点击全选复制';
+  document.getElementById('shareOverlay').classList.add('active');
+}
+
+function closeShare() {
+  document.getElementById('shareOverlay').classList.remove('active');
+  audio.sfxClick();
+  vibrate(10);
+}
+
+function copyShareLink() {
+  if (lastShareUrl) {
+    copyToClipboard(lastShareUrl);
+    showToast('✅ 链接已复制！发给TA吧~');
+  }
+}
+
+function previewReceiver() {
+  if (!lastShareUrl) return;
+  audio.sfxClick();
+  vibrate(10);
+  const w = window.open(lastShareUrl, '_blank');
+  if (!w) {
+    // Popup blocked — guide the user to copy the link instead
+    copyToClipboard(lastShareUrl);
+    showToast('浏览器拦截了新窗口，链接已复制，请粘贴到新标签页打开');
+  }
+}
+
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch(e) {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  Object.assign(toast.style, {
+    position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+    padding:'12px 24px',borderRadius:'24px',
+    background:'rgba(0,0,0,0.8)',color:'#fff',fontSize:'14px',
+    zIndex:'999',pointerEvents:'none',transition:'opacity 0.5s',
+    backdropFilter:'blur(10px)',border:'1px solid rgba(255,255,255,0.1)',
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+  setTimeout(() => { toast.remove(); }, 2600);
+}
+
+// Close settings on overlay click
+settingsOverlay.addEventListener('click', (e) => {
+  if (e.target === settingsOverlay) closeSettings();
+});
+
+// ==================== RELATIONSHIP-BASED CONTENT ====================
+function getContent() {
+  const r = CFG.relationship;
+  const t = CFG.tone;
+
+  const contentMap = {
+    love: {
+      welcomeIcon: '💌',
+      welcomeLine: `${CFG.senderName} 给你准备了一个小惊喜`,
+      welcomeDesc: 'TA用心准备了一个小旅程<br>希望能让你开心一点 💫',
+      bubbles: ['不理你了！','气死我了！','你都不哄我！','哼！','烦人！','走开！','不想说话！','大坏蛋！'],
+      wallBricks: ['不想理你','你走开','烦死了','别碰我','我还在生气','不想说话','你自己想','冷战中','哼！'],
+      wallDownMsg: '心墙倒了\n光进来了',
+      forgiveDefaultMsg: '我就知道你会原谅我～\n以后吵架我先低头！🫶',
+      scratchTo: `致 ${CFG.receiverName}：`,
+      scratchMsg: `其实我生气，是因为我在乎你。\n你对我很重要，所以你的每一句话、每一个动作，我都会在意。\n谢谢你来哄我。`,
+      letterPrefix: `亲爱的 ${CFG.receiverName}，`,
+      letterBody: `\n写下这些字的时候，我脑子里全是我们的回忆。\n\n我知道这次是我做得不够好，让你难过了。\n每次看到你不开心，我心里比谁都难受。\n\n其实你笑起来的样子，是我见过最好看的风景。\n所以，可以再对我笑一次吗？\n\n—— ${CFG.senderName}`,
+    },
+    friend: {
+      welcomeIcon: '🤝',
+      welcomeLine: `${CFG.senderName} 发来了一份和解邀请`,
+      welcomeDesc: 'TA说有些话想跟你说<br>点开看看呗 👀',
+      bubbles: ['不回消息！','放我鸽子！','友尽三分钟！','哼！','你完了！','绝交！','生气！','友尽了！'],
+      wallBricks: ['消息免打扰','友尽了','别找我','生气了','不理你','你自己反省','哼！','暂时拉黑','懒得理你'],
+      wallDownMsg: '不生气了\n我们还是好朋友',
+      forgiveDefaultMsg: '',
+      scratchTo: `To ${CFG.receiverName}：`,
+      scratchMsg: `一人闹情绪，一人递台阶。\n这才是\n"铁打的好朋友"该有的样子！`,
+      letterPrefix: `嘿 ${CFG.receiverName}，`,
+      letterBody: `\n说真的，很开心你能出现在我的生命里……\n\n可能有时候，我们总是闹小别扭，\n这里面可能有误会，可能有误解，但不管怎样，\n\n你对我来说，依然是很重要的朋友~！\n\n希望我们都能幸福安康！福寿绵长！\n\n你胸肌那么大，估计心胸肯定也不小，你说对吧？\n还不快来找我和好？！\n\n—— ${CFG.senderName}`,
+    },
+    family: {
+      welcomeIcon: '🏠',
+      welcomeLine: `${CFG.senderName} 有些心里话`,
+      welcomeDesc: 'TA想跟你说几句平时\n不太说出口的话 💭',
+      bubbles: ['又唠叨我！','管太多了！','烦不烦！','别管我！','哼！','知道了！','别说了！'],
+      wallBricks: ['少管我','别说了','烦不烦','知道了','不想听','我自己来','你又不理解','别问了'],
+      wallDownMsg: '其实懂的\n家人永远是家人',
+      forgiveDefaultMsg: '就知道你舍不得！\n家人不就是这样嘛，吵完照样亲 😘',
+      scratchTo: `致 ${CFG.receiverName}：`,
+      scratchMsg: `其实我知道你是为我好。\n只是有时候方式让我有点难受。\n但不管怎样，你永远是我最亲的人。`,
+      letterPrefix: `${CFG.receiverName}，`,
+      letterBody: `\n这些话平时说不出口，但今天想告诉你。\n\n虽然有时候会觉得你管得太多，\n但我知道，这世上最希望我好的人就是你。\n\n谢谢你一直以来的包容和照顾。\n以后，换我多体谅你一点。\n\n—— ${CFG.senderName}`,
+    },
+  };
+
+  let content = contentMap[r] || contentMap.love;
+
+  // Tone adjustments
+  if (t === 'coquettish' && r === 'love') {
+    content.letterBody = `\n人家知道错啦嘛～\n\n不要生气了好不好？你一生气，我的世界就下雨了 🌧️\n\n我保证以后再也不这样了！\n拉钩上吊一百年不许变！\n\n所以……原谅我嘛？🥺\n\n—— 你的 ${CFG.senderName}`;
+  } else if (t === 'direct' && r === 'love') {
+    content.letterBody = `\n我不想拐弯抹角，我想解决问题。\n\n${CFG.conflictReason ? '关于' + CFG.conflictReason + '这件事，' : ''}是我做得不对。\n我不找借口，我认。\n\n但我想让你知道，你对我很重要。\n所以不管你做什么决定，我都接受。但请给我一个机会。\n\n—— ${CFG.senderName}`;
+  }
+
+  if (CFG.conflictReason) {
+    if (r === 'friend') {
+      content.letterBody = content.letterBody.replace('可能有时候，', `关于"${CFG.conflictReason}"——`);
+    }
+    if (r === 'family') {
+      content.letterBody = content.letterBody.replace('方式让我有点难受', `关于"${CFG.conflictReason}"，其实我想说的是`);
+    }
+  }
+
+  return content;
+}
+
+// ==================== WELCOME SCREEN ====================
+function updateWelcomeScreen() {
+  const c = getContent();
+  document.getElementById('welcomeIcon').textContent = c.welcomeIcon;
+  document.getElementById('welcomeTitle').textContent = c.welcomeLine;
+  document.getElementById('welcomeDesc').innerHTML = c.welcomeDesc;
+}
+
+// ==================== START GAME ====================
+function startGame() {
+  // AudioContext will be initialized on first user interaction
+  audio.ensureCtx();
+  gameStarted = true;
+  vibrate(30);
+  audio.sfxClick();
+
+  // Fire and forget - startBGM is async because it needs to resume AudioContext
+  if (!audio.muted) audio.startBGM();
+
+  // Hide settings gear in receiver mode
+  if (!isSenderMode) {
+    settingsGear.classList.add('hidden');
+  }
+
+  // If first time with no config, show settings first
+  if (isSenderMode && CFG.senderName === DEFAULT_CONFIG.senderName) {
+    openSettings();
+  }
+
+  goToLevel(1);
+}
+
+function goToLevel(n) {
+  showLevel(n);
+  vibrate(20);
+
+  switch(n) {
+    case 1: initBubbles(); break;
+    case 2: initWall(); break;
+    case 3: initScratch(); break;
+    case 4: initCompensation(); break;
+    case 5: initReconciliation(); break;
+  }
+}
+
+// ==================== LEVEL 1: BUBBLE POP ====================
+let bubbleTimer = null;
+
+function initBubbles() {
+  const field = document.getElementById('bubbleField');
+  field.innerHTML = '';
+  const c = getContent();
+  const bubbles = c.bubbles;
+  const colors = [
+    'rgba(200,130,200,0.7)', 'rgba(130,180,220,0.7)', 'rgba(220,150,150,0.7)',
+    'rgba(150,200,180,0.7)', 'rgba(200,170,130,0.7)', 'rgba(160,140,200,0.7)',
+    'rgba(200,160,180,0.7)', 'rgba(140,180,200,0.7)',
+  ];
+
+  const placed = [];
+  bubbles.forEach((text, i) => {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = text;
+    const size = 70 + Math.random() * 30;
+
+    // Find non-overlapping position
+    let x, y, attempts = 0;
+    do {
+      x = 10 + Math.random() * (field.offsetWidth - size - 20);
+      y = 20 + Math.random() * (field.offsetHeight - size - 40);
+      attempts++;
+    } while (attempts < 50 && placed.some(p =>
+      Math.abs(p.x - x) < p.size * 0.7 && Math.abs(p.y - y) < p.size * 0.7
+    ));
+
+    placed.push({ x, y, size });
+
+    bubble.style.width = size + 'px';
+    bubble.style.height = size + 'px';
+    bubble.style.left = x + 'px';
+    bubble.style.top = y + 'px';
+    bubble.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.3), ${colors[i % colors.length]})`;
+    bubble.style.boxShadow = `0 4px 20px ${colors[i % colors.length].replace('0.7','0.3')}, inset 0 -4px 10px rgba(0,0,0,0.15)`;
+    bubble.style.animation = `float ${3 + Math.random() * 2}s ease-in-out infinite`;
+    bubble.style.animationDelay = Math.random() * 2 + 's';
+
+    bubble.addEventListener('pointerdown', function(e) {
+      e.preventDefault();
+      if (bubble.classList.contains('popping')) return;
+      bubble.classList.add('popping');
+      vibrate(15);
+      audio.sfxBubblePop();
+      spawnBubbleParticles(bubble, field);
+      setTimeout(() => bubble.remove(), 400);
+
+      // Check all popped
+      checkBubblesDone(field);
+    });
+
+    field.appendChild(bubble);
+  });
+}
+
+function spawnBubbleParticles(bubble, field) {
+  const rect = bubble.getBoundingClientRect();
+  const fieldRect = field.getBoundingClientRect();
+  const cx = rect.left - fieldRect.left + rect.width / 2;
+  const cy = rect.top - fieldRect.top + rect.height / 2;
+  const count = 12;
+
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'bubble-particle';
+    const size = 3 + Math.random() * 6;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 50;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    p.style.background = `hsla(${280 + Math.random()*40},70%,${60+Math.random()*30}%,0.8)`;
+    field.appendChild(p);
+    setTimeout(() => p.remove(), 700);
+  }
+}
+
+function checkBubblesDone(field) {
+  const remaining = field.querySelectorAll('.bubble:not(.popping)');
+  if (remaining.length === 0) {
+    setTimeout(() => {
+      goToLevel(2);
+    }, 600);
+  }
+}
+
+// ==================== LEVEL 2: WALL PUSH ====================
+function initWall() {
+  const grid = document.getElementById('wallGrid');
+  const glow = document.getElementById('wallGlow');
+  const allDown = document.getElementById('wallAllDown');
+  grid.innerHTML = '';
+  glow.style.opacity = '0';
+  allDown.classList.remove('show');
+
+  const c = getContent();
+  allDown.innerHTML = `<div class="result-text" style="font-size:36px;margin-bottom:12px;">☀️</div><div class="result-text">${c.wallDownMsg.replace(/\n/g,'<br>')}</div>`;
+
+  const bricks = c.wallBricks;
+  let crumbledCount = 0;
+
+  bricks.forEach((text) => {
+    const brick = document.createElement('div');
+    brick.className = 'wall-brick';
+    brick.textContent = text;
+
+    brick.addEventListener('pointerdown', function(e) {
+      e.preventDefault();
+      if (brick.classList.contains('crumbling') || brick.classList.contains('crumbled')) return;
+      brick.classList.add('crumbling');
+      vibrate(20);
+      audio.sfxBrickCrumble();
+      setTimeout(() => brick.classList.add('crumbled'), 500);
+
+      crumbledCount++;
+      const pct = crumbledCount / bricks.length;
+      glow.style.opacity = Math.min(pct * 1.2, 0.55);
+
+      if (crumbledCount >= bricks.length) {
+        setTimeout(() => {
+          audio.sfxWallDown();
+          vibratePattern([30,50,30,50,30]);
+          grid.style.opacity = '0';
+          glow.style.opacity = '0.7';
+          allDown.classList.add('show');
+          setTimeout(() => goToLevel(3), 1800);
+        }, 700);
+      }
+    });
+
+    grid.appendChild(brick);
+  });
+}
+
+// ==================== LEVEL 3: SCRATCH CARD ====================
+let scratchCtx, scratchCanvas, scratchReveal, isScratching = false;
+let scratchPercent = 0;
+let scratchStrokes = 0;
+let scratchDone = false;
+let scratchLastPos = { x: -100, y: -100 };
+
+function initScratch() {
+  scratchCanvas = document.getElementById('scratchCanvas');
+  scratchCtx = scratchCanvas.getContext('2d');
+  scratchReveal = document.getElementById('scratchReveal');
+  scratchPercent = 0;
+  scratchStrokes = 0;
+  scratchDone = false;
+  scratchLastPos = { x: -100, y: -100 };
+  document.getElementById('scratchPercent').textContent = '已刮开 0%';
+  document.getElementById('scratchHint').style.display = 'block';
+  document.getElementById('scratchNextBtn').style.display = 'none';
+
+  const wrapper = document.getElementById('scratchWrapper');
+  scratchCanvas.width = wrapper.offsetWidth;
+  scratchCanvas.height = wrapper.offsetHeight;
+
+  // Draw coating
+  scratchCtx.fillStyle = '#3a3060';
+  scratchCtx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+  // Add decorative pattern
+  scratchCtx.fillStyle = 'rgba(255,255,255,0.03)';
+  for (let i = 0; i < 40; i++) {
+    const x = Math.random() * scratchCanvas.width;
+    const y = Math.random() * scratchCanvas.height;
+    const r = 2 + Math.random() * 4;
+    scratchCtx.beginPath();
+    scratchCtx.arc(x, y, r, 0, Math.PI * 2);
+    scratchCtx.fill();
+  }
+  scratchCtx.fillStyle = 'rgba(255,255,255,0.05)';
+  scratchCtx.font = '13px sans-serif';
+  scratchCtx.textAlign = 'center';
+  scratchCtx.fillText('👆 用手指刮开这里', scratchCanvas.width / 2, scratchCanvas.height / 2);
+
+  // Update reveal content
+  const c = getContent();
+  document.getElementById('scratchTo').textContent = c.scratchTo;
+  document.getElementById('scratchMessage').innerHTML = c.scratchMsg.replace(/\n/g, '<br>');
+
+  // Scratch handlers
+  scratchCanvas.onpointerdown = startScratch;
+  scratchCanvas.onpointermove = doScratch;
+  scratchCanvas.onpointerup = endScratch;
+  scratchCanvas.onpointerleave = endScratch;
+}
+
+function startScratch(e) {
+  e.preventDefault();
+  isScratching = true;
+  audio.ensureCtx();
+  doScratch(e);
+}
+
+function doScratch(e) {
+  if (!isScratching || scratchDone) return;
+  e.preventDefault();
+  const rect = scratchCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  scratchCtx.globalCompositeOperation = 'destination-out';
+  scratchCtx.beginPath();
+  scratchCtx.arc(x, y, 24, 0, Math.PI * 2);
+  scratchCtx.fill();
+  scratchCtx.globalCompositeOperation = 'source-over';
+
+  vibrate(8);
+  audio.sfxScratch();
+
+  // Distance-based stroke counting: only count when finger has actually moved
+  // This prevents pointermove flooding from giving false progress
+  const dist = Math.hypot(x - scratchLastPos.x, y - scratchLastPos.y);
+  if (dist >= 18) {
+    scratchLastPos = { x, y };
+    scratchStrokes++;
+    // Each real stroke ≈ 3% coverage, auto-reveal at 70% (~23 substantive strokes)
+    scratchPercent = Math.min(99, Math.floor(scratchStrokes * 3));
+  }
+  document.getElementById('scratchPercent').textContent = '已刮开 ' + scratchPercent + '%';
+
+  if (scratchPercent >= 70 && !scratchDone) {
+    scratchDone = true;
+    document.getElementById('scratchHint').style.display = 'none';
+    // Auto-reveal remaining coating
+    setTimeout(() => {
+      scratchCtx.clearRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      document.getElementById('scratchPercent').textContent = '已刮开 100% ✨';
+      audio.sfxScratchDone();
+      vibrate(30);
+      scratchCanvas.style.pointerEvents = 'none';
+      // Show "继续看" button instead of auto-jumping
+      document.getElementById('scratchNextBtn').style.display = 'inline-block';
+    }, 500);
+  }
+}
+
+function endScratch(e) {
+  isScratching = false;
+}
+
+function scratchGoNext() {
+  vibrate(20);
+  audio.sfxClick();
+  document.getElementById('scratchNextBtn').style.display = 'none';
+  goToLevel(CFG.compensationEnabled ? 4 : 5);
+}
+
+// ==================== LEVEL 4: COMPENSATION ====================
+function initCompensation() {
+  const container = document.getElementById('couponContainer');
+  container.innerHTML = '';
+  selectedCoupon = -1;
+
+  const emojis = ['🍕','🎮','🎬','💆','🌙','🎁','☕','🎵'];
+  CFG.coupons.forEach((text, i) => {
+    const card = document.createElement('div');
+    card.className = 'coupon-card';
+    card.innerHTML = `
+      <div class="coupon-icon">${emojis[i % emojis.length]}</div>
+      <div class="coupon-text">${text}</div>
+      <div class="coupon-badge">券 ${i + 1}</div>
+    `;
+
+    card.addEventListener('pointerdown', function(e) {
+      e.preventDefault();
+      if (selectedCoupon >= 0) return;
+      selectedCoupon = i;
+      document.querySelectorAll('.coupon-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      vibrate(30);
+      audio.sfxCouponSelect();
+
+      setTimeout(() => goToLevel(5), 1000);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// ==================== LEVEL 5: RECONCILIATION ====================
+let typewriterTimer = null;
+let refusalMsgIndex = 0;
+
+const refusalMessages = [
+  '🤔 你真的不原谅吗？\n再想想呗～',
+  '😅 确定不再试试？\n我可准备了很久诶！',
+  '🫶 好吧，看来现在不是时候。\n但我一直都在，等你消气了再来找我～',
+];
+
+function initReconciliation() {
+  const box = document.getElementById('typewriterBox');
+  const buttons = document.getElementById('reconButtons');
+  const refuseDiv = document.getElementById('refuseMsg');
+  box.innerHTML = '';
+  buttons.classList.remove('show');
+  refuseDiv.style.display = 'none';
+  refuseDiv.textContent = '';
+  refusalCount = 0;
+  refusalMsgIndex = 0;
+  pendingForgave = null;
+  document.getElementById('responseInput').style.display = 'none';
+  document.getElementById('responseText').value = '';
+
+  const c = getContent();
+  const fullText = c.letterPrefix + c.letterBody;
+
+  // Typewriter effect
+  let charIdx = 0;
+  if (typewriterTimer) clearInterval(typewriterTimer);
+
+  typewriterTimer = setInterval(() => {
+    if (charIdx < fullText.length) {
+      box.innerHTML = fullText.substring(0, charIdx + 1).replace(/\n/g, '<br>') + '<span class="cursor"></span>';
+      charIdx++;
+      box.scrollTop = box.scrollHeight;
+      if (charIdx % 3 === 0) {
+        vibrate(5);
+        audio.sfxTypewriter();
+      }
+    } else {
+      clearInterval(typewriterTimer);
+      box.innerHTML = fullText.replace(/\n/g, '<br>');
+      // Show buttons
+      setTimeout(() => {
+        buttons.classList.add('show');
+        vibrate(20);
+      }, 500);
+    }
+  }, 50);
+}
+
+let pendingForgave = null; // true=forgave, false=refused
+
+function chooseForgive() {
+  if (typewriterTimer) clearInterval(typewriterTimer);
+  vibratePattern([20,30,50]);
+  audio.sfxForgive();
+  showStampAndFireworks(() => {
+    pendingForgave = true;
+    showResponseInput();
+  });
+}
+
+function showResponseInput() {
+  document.getElementById('reconButtons').classList.remove('show');
+  document.getElementById('refuseMsg').style.display = 'none';
+  const input = document.getElementById('responseInput');
+  input.style.display = 'block';
+  input.style.animation = 'fadeInUp 0.5s';
+  
+  // Pre-fill with a warm default, but user can edit
+  const c = getContent();
+  const def = pendingForgave 
+    ? c.forgiveDefaultMsg
+    : '现在还没消气，但我收到你的心意了 💭\n等我准备好了会来找你的';
+  document.getElementById('responseText').value = def;
+  
+  // Focus for mobile
+  setTimeout(() => document.getElementById('responseText').focus(), 400);
+}
+
+function submitResponse() {
+  const text = document.getElementById('responseText').value.trim();
+  if (!text) {
+    document.getElementById('responseText').placeholder = '写点什么吧，一句话也行~';
+    vibrate([30,50,30]);
+    return;
+  }
+  if (pendingForgave) {
+    // Already showed stamp+fireworks, generate card directly
+    generateResponseCard(true, text);
+  } else {
+    generateResponseCard(false, text);
+  }
+  pendingForgave = null;
+}
+
+function chooseRefuse() {
+  vibratePattern([30,50,30]);
+  audio.sfxRefuse();
+  refusalCount++;
+
+  const msg = refusalMessages[Math.min(refusalCount - 1, refusalMessages.length - 1)];
+  const refuseDiv = document.getElementById('refuseMsg');
+  refuseDiv.style.display = 'block';
+  refuseDiv.innerHTML = msg.replace(/\n/g, '<br>');
+  refuseDiv.style.animation = 'none';
+  refuseDiv.offsetHeight; // reflow
+  refuseDiv.style.animation = 'fadeInUp 0.5s';
+
+  const buttons = document.getElementById('reconButtons');
+  buttons.classList.remove('show');
+  setTimeout(() => buttons.classList.add('show'), 1200);
+
+  if (refusalCount >= maxRefusals) {
+    pendingForgave = false;
+    showResponseInput();
+  }
+}
+
+// ==================== STAMP & FIREWORKS ====================
+const fxCanvas = document.getElementById('fxCanvas');
+const fxCtx = fxCanvas.getContext('2d');
+let fireworksActive = false;
+let fireworksParticles = [];
+
+function showStampAndFireworks(callback) {
+  fxCanvas.width = window.innerWidth;
+  fxCanvas.height = window.innerHeight;
+  fireworksActive = true;
+  fireworksParticles = [];
+
+  // Animate stamp
+  const stampX = fxCanvas.width / 2;
+  const stampY = fxCanvas.height / 2;
+  let stampScale = 3;
+  let stampOpacity = 0;
+  let stampPhase = 0; // 0: appearing, 1: held, 2: done
+
+  audio.sfxStamp();
+  vibratePattern([50,30,50]);
+
+  const drawStamp = () => {
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+
+    if (stampPhase === 0) {
+      stampScale -= 0.08;
+      stampOpacity = Math.min(1, stampOpacity + 0.05);
+      if (stampScale <= 1) {
+        stampPhase = 1;
+        vibrate(30);
+      }
+    } else if (stampPhase === 1) {
+      stampScale = 1 + Math.sin(Date.now() / 100) * 0.02;
+      stampOpacity = 1;
+      if (!stampPhaseStartTime) stampPhaseStartTime = Date.now();
+      if (Date.now() - stampPhaseStartTime > 800) {
+        stampPhase = 2;
+      }
+    }
+
+    // Draw stamp
+    fxCtx.save();
+    fxCtx.translate(stampX, stampY);
+    fxCtx.scale(stampScale, stampScale);
+
+    // Outer circle
+    fxCtx.beginPath();
+    fxCtx.arc(0, 0, 80, 0, Math.PI * 2);
+    fxCtx.strokeStyle = `rgba(240,192,96,${stampOpacity})`;
+    fxCtx.lineWidth = 4;
+    fxCtx.stroke();
+
+    // Inner circle
+    fxCtx.beginPath();
+    fxCtx.arc(0, 0, 65, 0, Math.PI * 2);
+    fxCtx.strokeStyle = `rgba(240,192,96,${stampOpacity * 0.7})`;
+    fxCtx.lineWidth = 2;
+    fxCtx.setLineDash([8, 4]);
+    fxCtx.stroke();
+    fxCtx.setLineDash([]);
+
+    // Text
+    fxCtx.fillStyle = `rgba(240,192,96,${stampOpacity})`;
+    fxCtx.font = 'bold 36px "PingFang SC","Microsoft YaHei",sans-serif';
+    fxCtx.textAlign = 'center';
+    fxCtx.textBaseline = 'middle';
+    fxCtx.fillText('和好', 0, -5);
+
+    fxCtx.font = '14px "PingFang SC","Microsoft YaHei",sans-serif';
+    fxCtx.fillStyle = `rgba(240,192,96,${stampOpacity * 0.8})`;
+    fxCtx.fillText('♥ 已盖章 ♥', 0, 40);
+
+    fxCtx.restore();
+
+    // Spawn fireworks after stamp appears
+    if (stampPhase >= 1 && fireworksParticles.length === 0) {
+      spawnFireworks();
+    }
+
+    // Update fireworks
+    updateFireworks();
+
+    if (stampPhase < 2 || fireworksActive) {
+      requestAnimationFrame(drawStamp);
+    } else {
+      fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+      if (callback) callback();
+    }
+  };
+
+  let stampPhaseStartTime = null;
+  drawStamp();
+}
+
+function spawnFireworks() {
+  for (let b = 0; b < 5; b++) {
+    setTimeout(() => {
+      const cx = fxCanvas.width * (0.2 + Math.random() * 0.6);
+      const cy = fxCanvas.height * (0.15 + Math.random() * 0.4);
+      const count = 30 + Math.random() * 30;
+      const hue = Math.random() < 0.5 ? 40 : 320 + Math.random() * 40;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 4;
+        fireworksParticles.push({
+          x: cx, y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          decay: 0.008 + Math.random() * 0.02,
+          hue: hue + Math.random() * 30,
+          size: 1.5 + Math.random() * 2.5,
+        });
+      }
+      vibratePattern([10,10,10]);
+    }, b * 200);
+  }
+}
+
+function updateFireworks() {
+  fireworksParticles = fireworksParticles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.04;
+    p.life -= p.decay;
+    if (p.life <= 0) return false;
+
+    fxCtx.beginPath();
+    fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    fxCtx.fillStyle = `hsla(${p.hue},80%,${50 + p.life * 30}%,${p.life})`;
+    fxCtx.fill();
+    return true;
+  });
+
+  if (fireworksParticles.length === 0) {
+    fireworksActive = false;
+  }
+}
+
+// ==================== RESPONSE CARD ====================
+let cardDataUrl = '';
+let cardBlob = null;
+
+function generateResponseCard(forgave, responseMsg) {
+  const cardCanvas = document.createElement('canvas');
+  cardCanvas.width = 720;
+  cardCanvas.height = 960;
+  const ctx = cardCanvas.getContext('2d');
+
+  // Background gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, 960);
+  bgGrad.addColorStop(0, '#1a1028');
+  bgGrad.addColorStop(0.5, '#231440');
+  bgGrad.addColorStop(1, '#1a1248');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, 720, 960);
+
+  // Decorative circles
+  ctx.fillStyle = 'rgba(240,192,96,0.04)';
+  ctx.beginPath(); ctx.arc(600, 150, 200, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(120, 800, 150, 0, Math.PI*2); ctx.fill();
+
+  // Glass card
+  roundRect(ctx, 40, 60, 640, 840, 20);
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Title
+  ctx.fillStyle = '#f0c060';
+  ctx.font = 'bold 40px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  const relationshipLabels = { love: '💕', friend: '🤝', family: '🏠' };
+  ctx.fillText(relationshipLabels[CFG.relationship] + ' 和好小卡片', 360, 140);
+
+  // Status badge
+  const badgeY = 210;
+  if (forgave) {
+    ctx.fillStyle = 'rgba(107,223,140,0.15)';
+    roundRect(ctx, 230, badgeY - 20, 260, 50, 25);
+    ctx.fill();
+    ctx.fillStyle = '#6bdf8c';
+    ctx.font = 'bold 26px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillText('✅ 和好啦！', 360, badgeY + 15);
+  } else {
+    ctx.fillStyle = 'rgba(255,107,107,0.1)';
+    roundRect(ctx, 230, badgeY - 20, 260, 50, 25);
+    ctx.fill();
+    ctx.fillStyle = '#ff6b6b';
+    ctx.font = 'bold 26px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillText('⏳ 再等等……', 360, badgeY + 15);
+  }
+
+  // Divider
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(100, 280); ctx.lineTo(620, 280); ctx.stroke();
+
+  // Sender name
+  ctx.fillStyle = '#b8a8d0';
+  ctx.font = '20px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText(CFG.senderName + ' 想对 ' + CFG.receiverName + ' 说：', 360, 340);
+
+  // Sender message
+  ctx.fillStyle = '#e8e0f0';
+  ctx.font = '22px "PingFang SC","Microsoft YaHei",sans-serif';
+  const senderMsg = CFG.senderMessage || '很开心你打开了这份心意 💛';
+  wrapText(ctx, senderMsg, 360, 410, 540, 36);
+
+  // Divider
+  ctx.beginPath(); ctx.moveTo(100, 520); ctx.lineTo(620, 520); ctx.stroke();
+
+  // Receiver response
+  ctx.fillStyle = '#b8a8d0';
+  ctx.font = '20px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText(CFG.receiverName + ' 的回应：', 360, 570);
+
+  ctx.fillStyle = '#e8e0f0';
+  ctx.font = '22px "PingFang SC","Microsoft YaHei",sans-serif';
+  wrapText(ctx, responseMsg, 360, 640, 540, 38);
+
+  // Bottom: timestamp
+  const now = new Date();
+  const dateStr = now.getFullYear() + '.' + (now.getMonth()+1) + '.' + now.getDate() + ' ' +
+    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '16px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText(dateStr, 360, 840);
+
+  // Signature
+  ctx.fillStyle = 'rgba(240,192,96,0.35)';
+  ctx.font = 'italic 14px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText('Created by M.C.', 360, 880);
+
+  // Show card — wait for blob to be ready before showing save/share buttons
+  cardDataUrl = cardCanvas.toDataURL('image/png');
+  document.getElementById('cardImage').src = cardDataUrl;
+  
+  // Convert to blob synchronously via data URL (toBlob is async and unreliable on mobile)
+  const byteString = atob(cardDataUrl.split(',')[1]);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+  cardBlob = new Blob([ab], { type: 'image/png' });
+  
+  document.getElementById('cardOverlay').classList.add('show');
+  vibrate(20);
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const chars = text.split('');
+  let line = '';
+  let currentY = y;
+  for (let i = 0; i < chars.length; i++) {
+    const testLine = line + chars[i];
+    if (chars[i] === '\n') {
+      ctx.fillText(line, x, currentY);
+      line = '';
+      currentY += lineHeight;
+    } else if (ctx.measureText(testLine).width > maxWidth && line.length > 0) {
+      ctx.fillText(line, x, currentY);
+      line = chars[i];
+      currentY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line.length > 0) {
+    ctx.fillText(line, x, currentY);
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function saveCard() {
+  // On mobile, long-press on the image is the most reliable save method.
+  // This button tries the programmatic approach as a convenience.
+  try {
+    const url = URL.createObjectURL(cardBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '和好卡片_' + new Date().getTime() + '.png';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+    vibrate(20);
+    audio.sfxClick();
+  } catch(e) {
+    // On mobile browsers that block programmatic downloads, long-press is the way
+    showToast('请长按上方图片 → 保存到相册 📲');
+  }
+}
+
+async function shareCard() {
+  vibrate(15);
+  // Try Web Share API with image file (iOS Safari, Chrome Android)
+  if (navigator.share && navigator.canShare && cardBlob) {
+    try {
+      const file = new File([cardBlob], '和好卡片.png', { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: '和好卡片' });
+        return;
+      }
+    } catch(e) {
+      if (e.name !== 'AbortError') {} // user cancelled is ok, fall through
+    }
+  }
+  // Try clipboard (Chrome desktop/mobile)
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': cardBlob })]);
+    showToast('图片已复制到剪贴板，去微信粘贴即可发送！✅');
+    return;
+  } catch(e) {}
+  // Last resort: open image in new tab for manual save
+  try {
+    const url = URL.createObjectURL(cardBlob);
+    const w = window.open(url, '_blank');
+    if (!w) throw new Error('popup blocked');
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    showToast('已在新窗口打开图片，长按即可保存 📲');
+  } catch(e) {
+    showToast('请长按上方图片 → 保存到相册后分享 📲');
+  }
+}
+
+function showToast(msg) {
+  const existing = document.querySelector('.toast-msg');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = 'toast-msg';
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:600;background:rgba(0,0,0,0.8);color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;animation:fadeInUp 0.3s;pointer-events:none;white-space:nowrap;';
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.5s'; }, 2000);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function closeCard() {
+  document.getElementById('cardOverlay').classList.remove('show');
+  vibrate(10);
+}
+
+// ==================== INITIALIZATION ====================
+function init() {
+  const hasConfig = loadConfigFromHash();
+
+  if (hasConfig) {
+    // Receiver mode - hide settings gear
+    settingsGear.classList.add('hidden');
+    updateWelcomeScreen();
+    // Show level dots
+    updateDots();
+  } else {
+    // Sender mode - show settings, use defaults
+    settingsGear.classList.remove('hidden');
+    updateWelcomeScreen();
+    // Show welcome screen with settings hint
+    document.getElementById('welcomeDesc').innerHTML =
+      '点击左上角 ⚙️ 自定义设置<br>然后生成链接分享给TA ✨';
+    updateDots();
+  }
+
+  totalLevels = CFG.compensationEnabled ? 5 : 4;
+  updateProgress();
+}
+
+// Expose functions to global scope for onclick handlers
+window.startGame = startGame;
+window.chooseForgive = chooseForgive;
+window.chooseRefuse = chooseRefuse;
+window.applySettings = applySettings;
+window.closeSettings = closeSettings;
+window.toggleCouponSwitch = toggleCouponSwitch;
+window.saveCard = saveCard;
+window.closeCard = closeCard;
+window.shareCard = shareCard;
+window.scratchGoNext = scratchGoNext;
+window.submitResponse = submitResponse;
+window.closeShare = closeShare;
+window.copyShareLink = copyShareLink;
+window.previewReceiver = previewReceiver;
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  if (currentLevel === 3 && scratchCanvas) {
+    const wrapper = document.getElementById('scratchWrapper');
+    scratchCanvas.width = wrapper.offsetWidth;
+    scratchCanvas.height = wrapper.offsetHeight;
+  }
+});
+
+// Initialize on load
+init();
+
+console.log('🎉 主动的人先享受世界 V2 已就绪');
+console.log('💡 点击左上角 ⚙️ 自定义设置');
+console.log('📱 支持手机/平板/电脑');
+</script>
+</body>
+</html>

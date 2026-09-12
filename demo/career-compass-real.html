@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>职业方向速测 · 作品演示</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; background:linear-gradient(160deg,#eef1f4,#fafaf8 55%,#f4f0ea); color:#39424b; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px; }
+  .wrap { width:100%; max-width:520px; }
+  .card { background:#fff; border:1px solid #e2e6ea; border-radius:18px; padding:28px 26px; box-shadow:0 10px 34px rgba(40,60,90,.08); }
+  .kicker { font-size:12px; letter-spacing:3px; color:#8b98a6; text-transform:uppercase; margin-bottom:8px; }
+  h1 { font-size:21px; font-weight:600; color:#2c3844; line-height:1.45; }
+  .sub { font-size:13.5px; color:#7d8994; margin:10px 0 4px; line-height:1.7; }
+  .dots { display:flex; gap:6px; margin:16px 0 18px; }
+  .dot { flex:1; height:4px; border-radius:3px; background:#e8ecf0; transition:background .3s; }
+  .dot.on { background:#5d7f94; }
+  .q { font-size:16.5px; font-weight:600; color:#2c3844; margin:6px 0 18px; line-height:1.6; }
+  .opts { display:flex; flex-direction:column; gap:10px; }
+  .opt { text-align:left; font-size:14px; line-height:1.65; color:#45525f; background:#fff; border:1.5px solid #e2e6ea; border-radius:12px; padding:13px 15px; cursor:pointer; transition:all .18s; }
+  .opt:hover { border-color:#5d7f94; background:#f2f6f9; transform:translateY(-1px); }
+  .opt:active { transform:scale(.99); }
+  .back { display:inline-block; margin-top:14px; font-size:13px; color:#8b98a6; background:none; border:none; cursor:pointer; text-decoration:underline; }
+  .foot { margin-top:18px; text-align:center; font-size:12px; color:#a6b0ba; line-height:1.8; }
+  .result { text-align:center; padding:6px 0 0; }
+  .r-emoji { font-size:52px; line-height:1; margin:6px 0 4px; }
+  .r-name { font-size:25px; font-weight:700; letter-spacing:1px; color:#2c3844; }
+  .r-tag { font-size:13px; margin:6px auto 16px; display:inline-block; padding:4px 16px; border-radius:20px; background:#5d7f94; color:#fff; }
+  .r-block { text-align:left; background:#f7f9fa; border:1px solid #e8ecf0; border-radius:12px; padding:14px 16px; margin:8px 0; }
+  .r-block b { display:block; font-size:13px; color:#7d8994; margin-bottom:4px; letter-spacing:2px; }
+  .r-block p { font-size:14px; color:#45525f; line-height:1.8; }
+  .restart { margin-top:16px; background:#2c3844; color:#fff; border:none; border-radius:30px; padding:11px 30px; font-size:14px; cursor:pointer; }
+  .restart:hover { background:#5d7f94; }
+  .hide { display:none !important; }
+  @media (max-width:420px){ .card{padding:22px 18px;} h1{font-size:19px;} .q{font-size:15.5px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="kicker">Demo · 匿名演示版</div>
+    <h1>职业方向速测</h1>
+    <p class="sub">迷路的时候，需要的不是地图，是罗盘。8 个问题，帮你把"我适合往哪走"的方向感找回来一点。</p>
+
+    <div id="quiz">
+      <div class="dots" id="dots"></div>
+      <div class="q" id="q"></div>
+      <div class="opts" id="opts"></div>
+      <button class="back hide" id="back">← 上一题</button>
+    </div>
+
+    <div id="result" class="result hide"></div>
+
+    <div class="foot">作品集演示 · 方向速测，帮你起个头，真正的答案在你自己那里</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var QUESTIONS = [
+    { q:'如果有一件"做了不一定成，但成了很大"的事，你会：', opts:[
+      {t:'先试再说，机会不等人', c:'A'},
+      {t:'想办法把它做出来、做漂亮', c:'B'},
+      {t:'先研究清楚可行性，再决定动不动', c:'C'},
+      {t:'拉上信得过的人一起，人多力量大', c:'D'} ]},
+    { q:'一天工作结束，你最有成就感的是：', opts:[
+      {t:'谈成了一件事，或者局面往前推了一步', c:'A'},
+      {t:'做出了一个自己满意的作品/方案', c:'B'},
+      {t:'把一个问题彻底搞懂了', c:'C'},
+      {t:'帮到了某个人，他跟我说了谢谢', c:'D'} ]},
+    { q:'同事/朋友眼中的你，更接近：', opts:[
+      {t:'胆子大，敢拍板', c:'A'},
+      {t:'手巧心细，做的东西靠谱', c:'B'},
+      {t:'遇事想得深，问得准', c:'C'},
+      {t:'好说话，谁都愿意找你', c:'D'} ]},
+    { q:'你更愿意花时间学什么：', opts:[
+      {t:'怎么把一个东西卖出去、推起来', c:'A'},
+      {t:'怎么设计出更好看更好用的东西', c:'B'},
+      {t:'把一个领域的门道吃透', c:'C'},
+      {t:'怎么读懂人、照顾好一段关系', c:'D'} ]},
+    { q:'面对一件从没做过的事，你第一反应：', opts:[
+      {t:'兴奋，新的可能性', c:'A'},
+      {t:'已经在脑子里开始构思它该长什么样', c:'B'},
+      {t:'先去查资料，把未知变成已知', c:'C'},
+      {t:'找做过的人取经，少走弯路', c:'D'} ]},
+    { q:'你最受不了的工作状态是：', opts:[
+      {t:'机会摆在面前却没人敢动', c:'A'},
+      {t:'天天重复，没有一点自己的东西', c:'B'},
+      {t:'什么都做，却什么都不精', c:'C'},
+      {t:'冷冰冰的，人和人之间没温度', c:'D'} ]},
+    { q:'给你一笔"折腾基金"，你更想：', opts:[
+      {t:'盘个小生意，自己当操盘手', c:'A'},
+      {t:'做一件自己的作品，哪怕不赚钱', c:'B'},
+      {t:'报个硬课、考个硬证，把手艺磨利', c:'C'},
+      {t:'开个温暖的店/空间，让大家愿意来', c:'D'} ]},
+    { q:'十年后你想成为的样子，更接近：', opts:[
+      {t:'能调动资源、影响局面的人', c:'A'},
+      {t:'有一堆拿得出手的作品的人', c:'B'},
+      {t:'一说起某件事，别人会说"他最懂"', c:'C'},
+      {t:'被很多人在乎、信任的人', c:'D'} ]}
+  ];
+  var DIMS = {
+    A:{name:'开拓者', emoji:'🚀', hex:'#3d6b8f', tag:'商业 · 增长 · 机会嗅觉',
+       desc:'你的动力来自"往前推进"。你不怕变化，甚至享受从 0 到 1 的刺激。市场、生意、谈判、新赛道——那些需要胆识和判断力的地方，是你的主场。适合：销售/市场/创业/项目管理。'},
+    B:{name:'创造者', emoji:'🎨', hex:'#b06a4a', tag:'创作 · 产品 · 表达',
+       desc:'你手里有"做东西"的能力和欲望。比起管一堆事，你更想亲手做出点什么——一个产品、一份设计、一段内容。你适合：设计/开发/内容创作/产品，一切能留下作品的地方。'},
+    C:{name:'深耕者', emoji:'🔬', hex:'#4a7d6a', tag:'专业 · 研究 · 一门深入',
+       desc:'你相信"把一件事做到极致"的价值。外界的风向标对你影响不大，你更信积累。适合：技术专家/分析/顾问/教学——在一个领域里扎得够深，别人就绕不开你。'},
+    D:{name:'连接者', emoji:'🤝', hex:'#c9972f', tag:'关系 · 服务 · 让人安心',
+       desc:'你的天赋在人身上。你能读懂别人的需要，也能让一个团队不散架。适合：客户成功/运营/协调/服务型业务——别人信任你，就是你最大的资产。'}
+  };
+  var answers=[], idx=0;
+  var quiz=document.getElementById('quiz'), resultEl=document.getElementById('result');
+
+  function render(){
+    document.getElementById('dots').innerHTML = QUESTIONS.map(function(_,i){ return '<div class="dot'+(i<=idx?' on':'')+'"></div>'; }).join('');
+    document.getElementById('q').textContent=(idx+1)+'. '+QUESTIONS[idx].q;
+    var optsEl=document.getElementById('opts'); optsEl.innerHTML='';
+    QUESTIONS[idx].opts.forEach(function(o){
+      var b=document.createElement('button'); b.className='opt'; b.textContent=o.t;
+      b.onclick=function(){ answers[idx]=o.c; idx<QUESTIONS.length-1?(idx++,render()):showResult(); };
+      optsEl.appendChild(b);
+    });
+    document.getElementById('back').classList.toggle('hide', idx===0);
+  }
+  document.getElementById('back').onclick=function(){ if(idx>0){ idx--; answers.pop(); render(); } };
+  function showResult(){
+    quiz.classList.add('hide');
+    var cnt={A:0,B:0,C:0,D:0};
+    answers.forEach(function(c){ cnt[c]=(cnt[c]||0)+1; });
+    var order=['A','B','C','D'].sort(function(a,b){ return cnt[b]-cnt[a]; });
+    var m=DIMS[order[0]], s=DIMS[order[1]];
+    resultEl.innerHTML =
+      '<div class="r-emoji">'+m.emoji+s.emoji+'</div>'+
+      '<div class="r-name">'+m.name+' × '+s.name+'</div>'+
+      '<div class="r-tag">你的主方向是「'+m.name+'」</div>'+
+      '<div class="r-block"><b>'+m.name+' · '+m.tag+'</b><p>'+m.desc+'</p></div>'+
+      '<div class="r-block"><b>次方向 · '+s.name+' · '+s.tag+'</b><p>'+s.desc.split('适合')[0]+'</p></div>'+
+      '<div class="r-block" style="border-style:dashed"><b>给小小的你</b><p>罗盘只给方向，不给终点。真正的路，是你一边走一边走出来的——带着你的主色出发就好。</p></div>'+
+      '<button class="restart">再测一次</button>';
+    resultEl.classList.remove('hide');
+    resultEl.querySelector('.restart').onclick=function(){ answers=[]; idx=0; resultEl.classList.add('hide'); quiz.classList.remove('hide'); render(); };
+    resultEl.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  render();
+})();
+</script>
+</body>
+</html>

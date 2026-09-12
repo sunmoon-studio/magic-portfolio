@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>万物有灵 · 流浪动物档案管理台</title>
+<!-- 本工作台为本地单文件版本：数据存于浏览器 localStorage，支持 CSV / JSON 导入导出备份。资料库能力当前不可用，已自动降级为本地方案。 -->
+<style>
+  :root{
+    --bg:#FBF6EE; --bg2:#F3E9DA; --card:#FFFDF8;
+    --ink:#574A3C; --ink2:#8A7B6A; --line:#EADFCE;
+    --orange:#E8924F; --orange-soft:#FBE6D2;
+    --green:#6FAE73; --green-soft:#DCEFD9;
+    --amber:#D9A441; --amber-soft:#F8ECCF;
+    --teal:#5FA89A;  --teal-soft:#D6ECE7;
+    --red:#D9644F;   --red-soft:#F7DCD4;
+    --shadow:0 6px 20px rgba(150,120,90,.12);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  .demo-banner{position:relative;background:linear-gradient(135deg,rgba(64,125,88,.08),rgba(122,158,106,.06));border-bottom:1px solid rgba(64,125,88,.14);color:#4e7c5a;font-size:12.5px;padding:8px 40px 8px 16px;text-align:center;letter-spacing:.5px;z-index:5}
+  .demo-banner button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#4e7c5a;opacity:.55;cursor:pointer;font-size:14px;padding:4px 8px;line-height:1}
+  .demo-banner button:hover{opacity:1}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Yuanti SC",-apple-system,sans-serif;
+    background:var(--bg); color:var(--ink); font-size:16px; line-height:1.5;
+    -webkit-text-size-adjust:100%;
+  }
+  h1,h2,h3{margin:0;font-weight:700}
+  button{font-family:inherit;cursor:pointer}
+  /* top bar */
+  .topbar{padding:20px 16px 6px;text-align:center}
+  .hero{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:6px 4px 2px}
+  .hero-ic{width:46px;height:46px;color:var(--orange);flex:0 0 auto}
+  .hero h1{font-size:20px;line-height:1.25;color:var(--ink)}
+  .sub{margin:4px 0 0;color:var(--ink2);font-size:13px}
+  /* tabs */
+  .tabs{position:sticky;top:0;z-index:20;display:flex;gap:4px;justify-content:center;
+    background:rgba(251,246,238,.94);backdrop-filter:blur(6px);padding:8px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 14px;border:none;background:transparent;
+    color:var(--ink2);border-radius:12px;font-size:12px;min-width:54px}
+  .tab svg{width:22px;height:22px}
+  .tab.active{color:var(--orange);background:var(--orange-soft)}
+  /* main */
+  main{max-width:1100px;margin:0 auto;padding:8px}
+  .page{display:none;padding:10px 6px 20px}
+  .page.active{display:block}
+  .page-h{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 14px;gap:10px}
+  .page-h h2{font-size:18px}
+  /* buttons */
+  .btn{border:none;border-radius:12px;padding:10px 16px;font-size:15px;min-height:44px;background:var(--bg2);color:var(--ink)}
+  .btn.primary{background:var(--orange);color:#fff}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink2)}
+  .btn.warn{background:var(--red-soft);color:var(--red)}
+  .btn.sm{padding:7px 12px;font-size:13px;min-height:38px}
+  .mini{border:none;border-radius:10px;padding:7px 12px;font-size:13px;min-height:38px;background:var(--green-soft);color:var(--green);font-weight:600}
+  .mini:active{transform:scale(.96)}
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 2px 18px}
+  .stat{background:var(--card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .stat.c-green{border-top:3px solid var(--green)}
+  .stat.c-orange{border-top:3px solid var(--orange)}
+  .stat.c-amber{border-top:3px solid var(--amber)}
+  .stat.c-teal{border-top:3px solid var(--teal)}
+  .stat-ic{position:absolute;right:10px;top:10px;opacity:.18;width:34px;height:34px}
+  .stat-n{font-size:26px;font-weight:800;line-height:1.1}
+  .stat-l{font-size:12px;color:var(--ink2);margin-top:2px}
+  /* blocks */
+  .block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 2px}
+  .block-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;margin-bottom:10px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--orange);display:inline-block}
+  .dot.red{background:var(--red)}
+  /* urgent */
+  .urg{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg);margin-bottom:8px;border-left:4px solid var(--amber)}
+  .urg.od{border-left-color:var(--red);background:var(--red-soft)}
+  .urg-t{font-weight:600}
+  .urg-m{font-size:12px;color:var(--ink2);margin-top:2px}
+  /* recent */
+  .rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .rcard{background:var(--bg);border-radius:12px;padding:10px;cursor:pointer}
+  .rc-top{display:flex;align-items:center;justify-content:space-between;gap:6px;font-weight:700}
+  .rc-sub{font-size:12px;color:var(--ink2);margin-top:3px}
+  .note-banner{margin:14px 2px;font-size:12px;color:var(--ink2);background:var(--amber-soft);padding:10px 12px;border-radius:12px}
+  /* chips */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 2px 14px}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:7px 14px;font-size:13px;color:var(--ink2)}
+  .chip.on{background:var(--orange);color:#fff;border-color:var(--orange)}
+  /* animal grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .acard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;cursor:pointer;transition:transform .12s}
+  .acard:active{transform:scale(.98)}
+  .acard-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .avatar{width:42px;height:42px;border-radius:50%;background:var(--orange-soft);color:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex:0 0 auto}
+  .nm{font-weight:700;font-size:16px}
+  .code{font-size:11px;color:var(--ink2)}
+  .acard-row{font-size:13px;color:var(--ink2);margin-top:4px;display:flex;gap:6px}
+  .acard-row span{flex:0 0 auto;color:var(--ink);font-weight:600}
+  /* badges */
+  .badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+  .badge.green{background:var(--green-soft);color:var(--green)}
+  .badge.orange{background:var(--orange-soft);color:var(--orange)}
+  .badge.amber{background:var(--amber-soft);color:#a9791f}
+  .badge.teal{background:var(--teal-soft);color:var(--teal)}
+  .badge.gray{background:#ECE6DC;color:var(--ink2)}
+  .badge.red{background:var(--red-soft);color:var(--red)}
+  /* todo */
+  .todo-group{margin:10px 2px 16px}
+  .tg-h{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:8px;font-size:15px}
+  .tg-c{background:var(--bg2);color:var(--ink2);border-radius:20px;padding:0 9px;font-size:12px;font-weight:700}
+  .todo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:11px 13px;margin-bottom:8px}
+  .todo-group.od .todo-item{border-left:4px solid var(--red);background:var(--red-soft)}
+  .ti-t{font-weight:600}
+  .ti-m{font-size:12px;color:var(--ink2);margin-top:2px}
+  /* medical timeline */
+  .timeline{margin:12px 2px}
+  .tl-title{font-weight:700;color:var(--orange);margin-bottom:8px;font-size:15px}
+  .tl-item{display:flex;gap:10px;margin-bottom:10px}
+  .tl-dot{width:12px;height:12px;border-radius:50%;background:var(--orange);margin-top:6px;flex:0 0 auto;box-shadow:0 0 0 4px var(--orange-soft)}
+  .tl-card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:11px 13px;flex:1}
+  .tl-date{font-size:13px;color:var(--ink2);font-weight:600}
+  .tl-desc{margin-top:3px}
+  .tl-cost{margin-top:4px;color:var(--green);font-weight:700;font-size:13px}
+  .tl-note{margin-top:3px;font-size:12px;color:var(--ink2)}
+  /* finance */
+  .fin-sum{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:4px 2px 12px}
+  .fin-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .fin-card.in{border-left:4px solid var(--green)}
+  .fin-card.out{border-left:4px solid var(--orange)}
+  .fin-n{font-size:24px;font-weight:800}
+  .fin-card.in .fin-n{color:var(--green)}
+  .fin-card.out .fin-n{color:var(--orange)}
+  .fin-l{font-size:12px;color:var(--ink2);margin-top:2px}
+  .bar-wrap{margin:6px 2px 16px}
+  .bar-legend{display:flex;gap:14px;font-size:12px;color:var(--ink2);margin-bottom:6px}
+  .lg{display:inline-flex;align-items:center;gap:5px}
+  .lg::before{content:"";width:10px;height:10px;border-radius:3px;display:inline-block}
+  .lg.green::before{background:var(--green)}
+  .lg.orange::before{background:var(--orange)}
+  /* tables */
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl{min-width:540px;width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;color:var(--ink2);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+  .tbl td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tbl td.red{color:var(--red);font-weight:700;white-space:nowrap}
+  .tbl .empty{text-align:center;color:var(--ink2);padding:18px}
+  /* data page */
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin:12px 2px}
+  .panel h3{font-size:15px;margin-bottom:10px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap}
+  .hint{font-size:12px;color:var(--ink2);margin:8px 0 0}
+  .sync{margin:14px 2px;font-size:12px;color:var(--ink2);text-align:center}
+  .csvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:6px}
+  .csvcell{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
+  .csvcell .t{font-size:13px;font-weight:600;margin-bottom:8px}
+  .csvcell .b{display:flex;gap:6px;justify-content:center}
+  .csvcell .b .btn{padding:6px 10px;font-size:12px;min-height:36px;flex:1}
+  /* empty */
+  .empty{text-align:center;color:var(--ink2);padding:24px 10px;font-size:14px}
+  .empty.small{padding:14px;font-size:13px}
+  /* modal */
+  .mask{position:fixed;inset:0;background:rgba(60,45,30,.42);display:flex;align-items:flex-end;justify-content:center;z-index:50;padding:0}
+  .modal{background:var(--card);width:100%;max-width:560px;border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;animation:rise .18s ease}
+  @keyframes rise{from{transform:translateY(30px);opacity:.6}to{transform:none;opacity:1}}
+  .m-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);font-size:17px;font-weight:700}
+  .m-h .x{background:transparent;border:none;color:var(--ink2);width:36px;height:36px;display:flex;align-items:center;justify-content:center}
+  .m-b{padding:14px 18px;overflow-y:auto}
+  .m-f{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line)}
+  .m-f .btn{flex:1}
+  .fld{display:block;margin-bottom:12px}
+  .fld>span{display:block;font-size:13px;color:var(--ink2);margin-bottom:5px;font-weight:600}
+  .fld>span i{color:var(--red);font-style:normal}
+  .fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:16px;background:#fff;color:var(--ink);font-family:inherit}
+  .fld textarea{resize:vertical}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--orange)}
+  .d-list{display:flex;flex-direction:column;gap:2px}
+  .d-row{display:flex;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line);font-size:14px}
+  .d-k{flex:0 0 92px;color:var(--ink2)}
+  .d-v{flex:1;word-break:break-word}
+  /* footer */
+  .foot{text-align:center;font-size:12px;color:var(--ink2);padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line);margin-top:8px}
+  /* mobile */
+  @media(max-width:768px){
+    .tabs{position:fixed;bottom:0;left:0;right:0;top:auto;justify-content:space-around;flex-wrap:nowrap;
+      background:var(--card);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(150,120,90,.1);
+      padding:5px 2px;padding-bottom:calc(5px + env(safe-area-inset-bottom))}
+    .tab{flex:1;min-width:0;padding:4px 2px}
+    .tab svg{width:20px;height:20px}
+    .tab span{font-size:10px;line-height:1.1}
+    body{padding-bottom:86px}
+    main{padding:4px}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px}
+    .rgrid{grid-template-columns:1fr}
+    .fin-sum{grid-template-columns:1fr}
+    .hero h1{font-size:18px}
+  }
+</style>
+</head>
+<body>
+  <!-- 演示版标识 -->
+  <div class="demo-banner" id="demoBanner">
+    <span>🐱 网页演示版 · 正式版为本地部署工具，救助数据保存在救助人自己的电脑里</span>
+    <button onclick="document.getElementById('demoBanner').remove()" title="知道了">✕</button>
+  </div>
+
+  <header class="topbar">
+    <div class="hero">
+      <span class="hero-ic" id="logo"></span>
+      <div>
+        <h1>万物有灵 · 流浪动物档案管理台</h1>
+        <p class="sub">每一只被看见的毛孩子，都值得被温柔记录</p>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main>
+    <section class="page active" id="page-home"></section>
+    <section class="page" id="page-animal"></section>
+    <section class="page" id="page-todo"></section>
+    <section class="page" id="page-medical"></section>
+    <section class="page" id="page-finance"></section>
+    <section class="page" id="page-data"></section>
+  </main>
+
+  <footer class="foot">以上为示例数据，使用时可自行修改或删除 · 万物有灵 · 流浪动物档案管理台</footer>
+
+  <div id="modalRoot"></div>
+
+<script>
+/* ============ 图标（内联 SVG，无外链） ============ */
+const ICON = {
+  paw:'<svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><circle cx="6.5" cy="11" r="2"/><circle cx="10.5" cy="7.5" r="2"/><circle cx="13.5" cy="7.5" r="2"/><circle cx="17.5" cy="11" r="2"/><path d="M12 12.5c-2.8 0-4.6 1.9-4.6 3.7 0 1.4 1.3 2.3 4.6 2.3s4.6-.9 4.6-2.3c0-1.8-1.8-3.7-4.6-3.7z"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
+  cat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M4 11l1-5 3 2M20 11l-1-5-3 2"/><path d="M5 13a7 7 0 0 0 14 0"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M12 20s-7-4.5-9-9a4.5 4.5 0 0 1 9-1.5A4.5 4.5 0 0 1 21 11c-2 4.5-9 9-9 9z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><path d="M5 12l4 4 10-11"/></svg>',
+  coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.5h3.2a1.8 1.8 0 0 1 0 3.6H10"/></svg>',
+  db:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="100%" height="100%"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" width="18" height="18"><path d="M12 5v14M5 12h14"/></svg>',
+  close:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" width="20" height="20"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+};
+
+/* ============ 数据表结构 & 种子数据 ============ */
+const HEAD = {
+  animal:['编号','名字','性别','年龄估计','毛色特征','性格标签','生活状态','健康状态','出没地点','外貌特征','绝育状态','疫苗状态','驱虫下次日期','医疗备注','领养信息','入档日期'],
+  medical:['编号','动物名字','就诊日期','医院名称','病情描述','治疗项目','费用(元)','备注'],
+  todo:['编号','事项','相关动物','到期日期','状态','备注'],
+  donation:['编号','日期','捐赠人','捐赠类型','金额或物资','数量/规格','用途说明','受赠动物'],
+  expense:['编号','日期','支出类别','金额(元)','相关动物','备注']
+};
+const PREFIX={animal:'LW-',medical:'MED-',todo:'TODO-',donation:'DON-',expense:'EXP-'};
+const TABLE_LABEL={animal:'动物档案',medical:'医疗记录',todo:'待办提醒',donation:'捐赠记录',expense:'费用支出'};
+const STATUS_COLOR={'已领养':'green','治疗观察中':'orange','待领养':'amber','长期照护':'teal'};
+
+const SEED = {
+  animal: [
+    { 编号:'LW-001', 名字:'小雪', 性别:'母', 年龄估计:'约1岁半', 毛色特征:'白灰长毛，鼻梁有浅色花纹', 性格标签:'亲人、安静、适合领养', 生活状态:'已领养', 健康状态:'已康复', 出没地点:'曾在幸福小区5号楼门口活动', 外貌特征:'右眼周围颜色更深，辨识度很高', 绝育状态:'已绝育', 疫苗状态:'已完成', 驱虫下次日期:'2026-10-25', 医疗备注:'初见时轻微流泪，已清洁观察并康复', 领养信息:'已由同城家庭领养，回访适应良好', 入档日期:'2026-03-15' },
+    { 编号:'LW-002', 名字:'毛毛', 性别:'未知', 年龄估计:'约2个月', 毛色特征:'灰棕色幼崽，毛发偏卷', 性格标签:'虚弱、需要保暖、观察中', 生活状态:'治疗观察中', 健康状态:'治疗中', 出没地点:'临时安置在保暖毯里', 外貌特征:'身体小，需连续观察精神和食欲', 绝育状态:'未到年龄', 疫苗状态:'未接种', 驱虫下次日期:'2026-08-22', 医疗备注:'体温、食欲、排便需要连续观察', 领养信息:'', 入档日期:'2026-06-20' },
+    { 编号:'LW-003', 名字:'糖糖', 性别:'母', 年龄估计:'约9个月', 毛色特征:'浅棕色，毛发偏卷，小体型', 性格标签:'胆小、可摸头、慢热', 生活状态:'待领养', 健康状态:'观察中', 出没地点:'常在地下车库入口附近出现', 外貌特征:'鼻尖颜色较深', 绝育状态:'待安排', 疫苗状态:'已打第一针', 驱虫下次日期:'2026-09-18', 医疗备注:'第一针疫苗后观察正常', 领养信息:'', 入档日期:'2026-07-01' },
+    { 编号:'LW-004', 名字:'布布', 性别:'公', 年龄估计:'约1岁', 毛色特征:'棕灰色，额头毛发卷曲', 性格标签:'乖巧、亲近人、恢复期', 生活状态:'长期照护', 健康状态:'恢复期', 出没地点:'临时寄养中，等待身体稳定后开放领养', 外貌特征:'睡觉时喜欢把头埋进毯子', 绝育状态:'已预约', 疫苗状态:'未知', 驱虫下次日期:'2026-08-17', 医疗备注:'驱虫已逾期，绝育已预约，复查时间需提醒', 领养信息:'', 入档日期:'2026-01-10' }
+  ],
+  medical: [
+    { 编号:'MED-001', 动物名字:'小雪', 就诊日期:'2026-03-16', 医院名称:'宠爱动物医院', 病情描述:'体检+驱虫', 治疗项目:'常规检查、内外驱虫', '费用(元)':180, 备注:'初次建档体检' },
+    { 编号:'MED-002', 动物名字:'小雪', 就诊日期:'2026-05-26', 医院名称:'宠爱动物医院', 病情描述:'绝育手术', 治疗项目:'母猫绝育', '费用(元)':480, 备注:'术后恢复良好' },
+    { 编号:'MED-003', 动物名字:'糖糖', 就诊日期:'2026-08-12', 医院名称:'宠爱动物医院', 病情描述:'疫苗接种', 治疗项目:'猫三联第一针', '费用(元)':120, 备注:'接种后观察正常' },
+    { 编号:'MED-004', 动物名字:'毛毛', 就诊日期:'2026-06-20', 医院名称:'宠爱动物医院', 病情描述:'幼猫体检', 治疗项目:'体温检测、体重记录', '费用(元)':60, 备注:'建议保暖、少量多次喂食' }
+  ],
+  todo: [
+    { 编号:'TODO-001', 事项:'复查精神和食欲', 相关动物:'毛毛', 到期日期:'2026-08-22', 状态:'待办', 备注:'连续观察体温和进食情况' },
+    { 编号:'TODO-002', 事项:'补拍领养展示照片', 相关动物:'糖糖', 到期日期:'2026-08-25', 状态:'待办', 备注:'拍自然光正脸照，用于领养转发' },
+    { 编号:'TODO-003', 事项:'确认驱虫安排', 相关动物:'布布', 到期日期:'2026-08-20', 状态:'待办', 备注:'驱虫已逾期，尽快安排' },
+    { 编号:'TODO-004', 事项:'绝育手术', 相关动物:'布布', 到期日期:'2026-08-27', 状态:'待办', 备注:'已预约宠爱动物医院' },
+    { 编号:'TODO-005', 事项:'领养回访', 相关动物:'小雪', 到期日期:'2026-09-20', 状态:'待办', 备注:'电话回访适应情况' }
+  ],
+  donation: [
+    { 编号:'DON-001', 日期:'2026-08-15', 捐赠人:'陈女士', 捐赠类型:'现金', '金额或物资':'100元', '数量/规格':'-', 用途说明:'指定用于幼猫救助', 受赠动物:'毛毛' },
+    { 编号:'DON-002', 日期:'2026-08-16', 捐赠人:'陈女士', 捐赠类型:'物资', '金额或物资':'幼猫粮', '数量/规格':'2kg×1袋', 用途说明:'日常喂养', 受赠动物:'毛毛' },
+    { 编号:'DON-003', 日期:'2026-08-17', 捐赠人:'小区群友', 捐赠类型:'现金', '金额或物资':'66元', '数量/规格':'-', 用途说明:'猫粮支持', 受赠动物:'通用' },
+    { 编号:'DON-004', 日期:'2026-08-19', 捐赠人:'小区群友', 捐赠类型:'物资', '金额或物资':'保暖毯', '数量/规格':'蓝色小毯子1条', 用途说明:'临时安置保暖', 受赠动物:'毛毛、布布' },
+    { 编号:'DON-005', 日期:'2026-08-19', 捐赠人:'匿名好心人', 捐赠类型:'现金', '金额或物资':'50元', '数量/规格':'-', 用途说明:'用于复查和驱虫', 受赠动物:'通用' }
+  ],
+  expense: [
+    { 编号:'EXP-001', 日期:'2026-08-14', 支出类别:'猫粮罐头', '金额(元)':86.5, 相关动物:'通用', 备注:'幼猫粮与主食罐补给' },
+    { 编号:'EXP-002', 日期:'2026-08-18', 支出类别:'驱虫疫苗', '金额(元)':42, 相关动物:'布布', 备注:'驱虫药' },
+    { 编号:'EXP-003', 日期:'2026-08-20', 支出类别:'交通', '金额(元)':28, 相关动物:'毛毛', 备注:'复查交通费' }
+  ]
+};
+
+/* ============ 表单配置 ============ */
+const FORMS = {
+  animal:[
+    {key:'名字',label:'名字',type:'text',required:true},
+    {key:'性别',label:'性别',type:'select',options:['母','公','未知']},
+    {key:'年龄估计',label:'年龄估计',type:'text'},
+    {key:'毛色特征',label:'毛色特征',type:'text'},
+    {key:'性格标签',label:'性格标签',type:'text',hint:'多个用、分隔'},
+    {key:'生活状态',label:'生活状态',type:'select',options:['已领养','治疗观察中','待领养','长期照护']},
+    {key:'健康状态',label:'健康状态',type:'text'},
+    {key:'出没地点',label:'出没地点',type:'text'},
+    {key:'外貌特征',label:'外貌特征',type:'text'},
+    {key:'绝育状态',label:'绝育状态',type:'select',options:['已绝育','已预约','待安排','未到年龄']},
+    {key:'疫苗状态',label:'疫苗状态',type:'select',options:['已完成','已打第一针','未接种','未知']},
+    {key:'驱虫下次日期',label:'驱虫下次日期',type:'date'},
+    {key:'医疗备注',label:'医疗备注',type:'textarea'},
+    {key:'领养信息',label:'领养信息',type:'textarea'},
+    {key:'入档日期',label:'入档日期',type:'date'}
+  ],
+  medical:[
+    {key:'动物名字',label:'动物名字',type:'select',dyn:'animalNames',required:true},
+    {key:'就诊日期',label:'就诊日期',type:'date',required:true},
+    {key:'医院名称',label:'医院名称',type:'text'},
+    {key:'病情描述',label:'病情描述',type:'text'},
+    {key:'治疗项目',label:'治疗项目',type:'text'},
+    {key:'费用(元)',label:'费用(元)',type:'number'},
+    {key:'备注',label:'备注',type:'textarea'}
+  ],
+  todo:[
+    {key:'事项',label:'事项',type:'text',required:true},
+    {key:'相关动物',label:'相关动物',type:'select',dyn:'animalNamesGen',required:true},
+    {key:'到期日期',label:'到期日期',type:'date',required:true},
+    {key:'状态',label:'状态',type:'select',options:['待办','已完成']},
+    {key:'备注',label:'备注',type:'textarea'}
+  ],
+  donation:[
+    {key:'日期',label:'日期',type:'date',required:true},
+    {key:'捐赠人',label:'捐赠人',type:'text'},
+    {key:'捐赠类型',label:'捐赠类型',type:'select',options:['现金','物资']},
+    {key:'金额或物资',label:'金额或物资',type:'text',hint:'现金填金额如100元，物资填名称'},
+    {key:'数量/规格',label:'数量/规格',type:'text'},
+    {key:'用途说明',label:'用途说明',type:'text'},
+    {key:'受赠动物',label:'受赠动物',type:'text'}
+  ],
+  expense:[
+    {key:'日期',label:'日期',type:'date',required:true},
+    {key:'支出类别',label:'支出类别',type:'select',options:['猫粮罐头','医疗','驱虫疫苗','交通','其他']},
+    {key:'金额(元)',label:'金额(元)',type:'number',required:true},
+    {key:'相关动物',label:'相关动物',type:'text'},
+    {key:'备注',label:'备注',type:'textarea'}
+  ]
+};
+
+/* ============ 状态 & 存储 ============ */
+const LS_KEY='wb_stray_v1';
+let state = load();
+let animalFilter='全部';
+let editing=null;
+let modalSave=null;
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function load(){
+  try{ const s=localStorage.getItem(LS_KEY); if(s){ const d=JSON.parse(s); if(d&&d.animal) return d; } }catch(e){}
+  return clone(SEED);
+}
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+
+/* ============ 工具 ============ */
+function esc(v){ return v==null?'':String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function todayStr(){ const d=new Date(); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function dayDiff(a,b){ const da=new Date(a+'T00:00:00'); const db=new Date(b+'T00:00:00'); return Math.round((da-db)/86400000); }
+function parseNum(v){ if(v==null) return 0; const m=String(v).replace(/[^\d.]/g,'').match(/\d+(\.\d+)?/); return m?parseFloat(m[0]):0; }
+function money(n){ return '¥'+Number(n).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function statusCls(s){ return STATUS_COLOR[s]||'gray'; }
+function badge(s){ return '<span class="badge '+statusCls(s)+'">'+esc(s)+'</span>'; }
+function donateBadge(t){ return '<span class="badge '+(t==='现金'?'green':'amber')+'">'+esc(t)+'</span>'; }
+function todoBadge(st){ return '<span class="badge '+(st==='已完成'?'green':'gray')+'">'+esc(st)+'</span>'; }
+
+function nextId(t){
+  const p=PREFIX[t]; let max=0;
+  state[t].forEach(r=>{ const n=parseInt(String(r.编号).replace(p,'')); if(!isNaN(n)&&n>max) max=n; });
+  return p+String(max+1).padStart(3,'0');
+}
+function getRec(t,id){ return state[t].find(r=>r.编号===id); }
+
+/* ============ 导航 ============ */
+const TABS=[
+  {id:'home',label:'首页',icon:'home'},
+  {id:'animal',label:'档案',icon:'cat'},
+  {id:'todo',label:'待办',icon:'check'},
+  {id:'medical',label:'医疗',icon:'heart'},
+  {id:'finance',label:'财务',icon:'coin'},
+  {id:'data',label:'数据',icon:'db'}
+];
+function buildTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(t=>
+    '<button class="tab" data-tab="'+t.id+'" onclick="switchTab(\''+t.id+'\')">'+ICON[t.icon]+'<span>'+t.label+'</span></button>'
+  ).join('');
+}
+function switchTab(t){
+  TABS.forEach(x=>{
+    const b=document.querySelector('.tab[data-tab="'+x.id+'"]');
+    if(b) b.classList.toggle('active', x.id===t);
+  });
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id==='page-'+t));
+  renderAll();
+  window.scrollTo(0,0);
+}
+
+/* ============ 渲染：首页 ============ */
+function renderHome(){
+  const today=todayStr();
+  const a=state.animal;
+  const total=a.length;
+  const treating=a.filter(x=>x.生活状态==='治疗观察中').length;
+  const adopt=a.filter(x=>x.生活状态==='待领养').length;
+  const wk=state.todo.filter(t=>t.状态==='待办' && dayDiff(t.到期日期,today)<=7).length;
+  const overdue=state.todo.filter(t=>t.状态==='待办' && dayDiff(t.到期日期,today)<0);
+  const todayItems=state.todo.filter(t=>t.状态==='待办' && dayDiff(t.到期日期,today)===0);
+  const urgent=[...overdue.map(t=>({...t,_od:true})), ...todayItems.map(t=>({...t,_od:false}))];
+  const recent=[...a].sort((x,y)=>y.入档日期.localeCompare(x.入档日期)).slice(0,3);
+
+  const stat=(c,l,n,ic)=>'<div class="stat c-'+c+'"><span class="stat-ic">'+ic+'</span><div class="stat-n">'+n+'</div><div class="stat-l">'+l+'</div></div>';
+  let urgentHtml = urgent.length
+    ? urgent.map(t=>'<div class="urg '+(t._od?'od':'')+'"><div class="urg-l"><div class="urg-t">'+esc(t.事项)+'</div><div class="urg-m">'+esc(t.相关动物)+' · 到期 '+esc(t.到期日期)+(t._od?'（已逾期）':'（今天）')+'</div></div><button class="mini" onclick="completeTodo(\''+t.编号+'\')">完成</button></div>').join('')
+    : '<div class="empty small">暂无临近待办，一切顺利</div>';
+  const recentHtml = recent.map(x=>'<div class="rcard" onclick="openDetail(\''+x.编号+'\')"><div class="rc-top">'+esc(x.名字)+badge(x.生活状态)+'</div><div class="rc-sub">'+esc(x.编号)+' · '+esc(x.年龄估计)+'</div><div class="rc-sub">'+esc(x.毛色特征)+'</div></div>').join('');
+
+  document.getElementById('page-home').innerHTML =
+    '<div class="stats">'+stat('green','在档动物',total,ICON.cat)+stat('orange','治疗中',treating,ICON.heart)+stat('amber','待领养',adopt,ICON.home)+stat('teal','本周待办',wk,ICON.check)+'</div>'+
+    '<div class="block"><div class="block-h"><span class="dot red"></span>今天要处理</div>'+urgentHtml+'</div>'+
+    '<div class="block"><div class="block-h"><span class="dot"></span>最近入档</div><div class="rgrid">'+recentHtml+'</div></div>'+
+    '<div class="note-banner">当前显示的是示例数据，可在「数据」页清空或恢复；所有修改仅保存在本机浏览器。</div>';
+}
+
+/* ============ 渲染：档案总览 ============ */
+function renderAnimal(){
+  const filters=['全部','已领养','治疗观察中','待领养','长期照护'];
+  const fb=filters.map(f=>'<button class="chip '+(animalFilter===f?'on':'')+'" onclick="setFilter(\''+f+'\')">'+f+'</button>').join('');
+  const list = animalFilter==='全部' ? state.animal : state.animal.filter(x=>x.生活状态===animalFilter);
+  const cards = list.length
+    ? list.map(a=>'<div class="acard" onclick="openDetail(\''+a.编号+'\')"><div class="acard-top"><span class="avatar">'+esc(a.名字.slice(0,1))+'</span><div><div class="nm">'+esc(a.名字)+'</div><div class="code">'+esc(a.编号)+'</div></div>'+badge(a.生活状态)+'</div><div class="acard-row"><span>毛色</span>'+esc(a.毛色特征||'—')+'</div><div class="acard-row"><span>年龄</span>'+esc(a.年龄估计||'—')+'</div></div>').join('')
+    : '<div class="empty">该状态下暂无动物，点击右上角「+ 新增动物」添加</div>';
+  document.getElementById('page-animal').innerHTML =
+    '<div class="page-h"><h2>档案总览</h2><button class="btn primary" onclick="openForm(\'animal\')">'+ICON.plus+' 新增动物</button></div>'+
+    '<div class="chips">'+fb+'</div><div class="grid">'+cards+'</div>';
+}
+function setFilter(f){ animalFilter=f; renderAnimal(); }
+
+/* ============ 渲染：待办 ============ */
+function renderTodo(){
+  const today=todayStr();
+  const g={逾期:[],今天:[],本周:[],以后:[],已完成:[]};
+  state.todo.forEach(t=>{
+    if(t.状态==='已完成'){ g['已完成'].push(t); return; }
+    const d=dayDiff(t.到期日期,today);
+    if(d<0) g['逾期'].push(t);
+    else if(d===0) g['今天'].push(t);
+    else if(d<=7) g['本周'].push(t);
+    else g['以后'].push(t);
+  });
+  const order=['逾期','今天','本周','以后','已完成'];
+  let html='<div class="page-h"><h2>待办提醒</h2><button class="btn primary" onclick="openForm(\'todo\')">'+ICON.plus+' 新增待办</button></div>';
+  let any=false;
+  order.forEach(name=>{
+    const arr=g[name]; if(!arr.length) return; any=true;
+    const od = name==='逾期';
+    html+='<div class="todo-group'+(od?' od':'')+'"><div class="tg-h">'+(od?'<span class="dot red"></span>':'<span class="dot"></span>')+name+' <span class="tg-c">'+arr.length+'</span></div>'+
+      arr.map(t=>'<div class="todo-item'+(od?' od':'')+'"><div class="ti-main"><div class="ti-t">'+esc(t.事项)+'</div><div class="ti-m">'+esc(t.相关动物)+' · 到期 '+esc(t.到期日期)+'</div></div><div class="ti-act"><button class="mini" onclick="completeTodo(\''+t.编号+'\')">完成</button></div></div>').join('')+'</div>';
+  });
+  if(!any) html+='<div class="empty">暂无待办，添加一条开始吧</div>';
+  document.getElementById('page-todo').innerHTML=html;
+}
+function completeTodo(id){
+  const t=getRec('todo',id); if(!t) return;
+  t.状态='已完成'; save(); renderAll();
+}
+
+/* ============ 渲染：医疗 ============ */
+function renderMedical(){
+  const groups={};
+  state.medical.forEach(m=>{ (groups[m.动物名字]=groups[m.动物名字]||[]).push(m); });
+  const names=Object.keys(groups).sort();
+  let html='<div class="page-h"><h2>医疗记录</h2><button class="btn primary" onclick="openForm(\'medical\')">'+ICON.plus+' 新增记录</button></div>';
+  if(!names.length){ html+='<div class="empty">暂无医疗记录</div>'; }
+  names.forEach(n=>{
+    const items=groups[n].slice().sort((a,b)=>b.就诊日期.localeCompare(a.就诊日期));
+    html+='<div class="timeline"><div class="tl-title">'+esc(n)+'</div>'+
+      items.map(m=>'<div class="tl-item"><div class="tl-dot"></div><div class="tl-card"><div class="tl-date">'+esc(m.就诊日期)+' · '+esc(m.医院名称)+'</div><div class="tl-desc"><b>'+esc(m.病情描述)+'</b> · '+esc(m.治疗项目)+'</div><div class="tl-cost">费用 '+money(m['费用(元)'])+'</div>'+(m.备注?'<div class="tl-note">'+esc(m.备注)+'</div>':'')+'</div></div>').join('')+'</div>';
+  });
+  document.getElementById('page-medical').innerHTML=html;
+}
+
+/* ============ 渲染：财务 ============ */
+function renderFinance(){
+  const cash=state.donation.filter(d=>d.捐赠类型==='现金').reduce((s,d)=>s+parseNum(d['金额或物资']),0);
+  const exp=state.expense.reduce((s,e)=>s+parseNum(e['金额(元)']),0);
+  const total=(cash+exp)||1;
+  const bar='<svg viewBox="0 0 100 16" width="100%" height="16" preserveAspectRatio="none" style="border-radius:8px;display:block"><rect x="0" y="0" width="'+(cash/total*100)+'" height="16" fill="#6FAE73"/><rect x="'+(cash/total*100)+'" y="0" width="'+(exp/total*100)+'" height="16" fill="#E8924F"/></svg>';
+  const don=state.donation.slice().sort((a,b)=>b.日期.localeCompare(a.日期));
+  const expn=state.expense.slice().sort((a,b)=>b.日期.localeCompare(a.日期));
+  const donRows=don.length?don.map(d=>'<tr><td>'+esc(d.日期)+'</td><td>'+esc(d.捐赠人)+'</td><td>'+donateBadge(d.捐赠类型)+'</td><td>'+esc(d['金额或物资'])+'</td><td>'+esc(d['数量/规格'])+'</td><td>'+esc(d.用途说明)+'</td><td>'+esc(d.受赠动物)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">暂无捐赠记录</td></tr>';
+  const expRows=expn.length?expn.map(e=>'<tr><td>'+esc(e.日期)+'</td><td>'+esc(e.支出类别)+'</td><td class="red">'+money(e['金额(元)'])+'</td><td>'+esc(e.相关动物)+'</td><td>'+esc(e.备注)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">暂无支出记录</td></tr>';
+  document.getElementById('page-finance').innerHTML=
+    '<div class="page-h"><h2>捐赠与财务</h2><button class="btn primary" onclick="openForm(\'expense\')">'+ICON.plus+' 记一笔支出</button></div>'+
+    '<div class="fin-sum"><div class="fin-card in"><div class="fin-n">'+money(cash)+'</div><div class="fin-l">累计收到现金捐赠</div></div><div class="fin-card out"><div class="fin-n">'+money(exp)+'</div><div class="fin-l">累计支出</div></div></div>'+
+    '<div class="bar-wrap"><div class="bar-legend"><span class="lg green">收入</span><span class="lg orange">支出</span></div>'+bar+'</div>'+
+    '<div class="block"><div class="block-h">捐赠记录</div><div class="scroll"><table class="tbl"><thead><tr><th>日期</th><th>捐赠人</th><th>类型</th><th>金额/物资</th><th>规格</th><th>用途</th><th>受赠</th></tr></thead><tbody>'+donRows+'</tbody></table></div></div>'+
+    '<div class="block"><div class="block-h">费用支出</div><div class="scroll"><table class="tbl"><thead><tr><th>日期</th><th>类别</th><th>金额</th><th>相关动物</th><th>备注</th></tr></thead><tbody>'+expRows+'</tbody></table></div></div>';
+}
+
+/* ============ 数据管理页 ============ */
+function renderData(){
+  const tables=Object.keys(HEAD);
+  const cells=tables.map(t=>
+    '<div class="csvcell"><div class="t">'+TABLE_LABEL[t]+'</div><div class="b"><button class="btn sm" onclick="exportCSV(\''+t+'\')">导出</button><button class="btn sm" onclick="importCSV(\''+t+'\')">导入</button></div></div>'
+  ).join('');
+  document.getElementById('page-data').innerHTML=
+    '<div class="page-h"><h2>数据管理</h2></div>'+
+    '<div class="panel"><h3>备份与恢复（推荐定期备份）</h3><div class="btnrow"><button class="btn primary" onclick="exportJSON()">导出全部 JSON 备份</button><button class="btn" onclick="importJSON()">导入恢复 JSON</button></div><p class="hint">JSON 备份可完整保存全部数据，导入会覆盖当前所有内容。</p></div>'+
+    '<div class="panel"><h3>示例数据</h3><div class="btnrow"><button class="btn warn" onclick="clearData()">清空示例数据</button><button class="btn" onclick="resetSeed()">恢复示例数据</button></div><p class="hint">清空后所有内容将变为空，建议先导出备份；恢复会重新载入示例。</p></div>'+
+    '<div class="panel"><h3>按表导入 / 导出 CSV</h3><div class="csvgrid">'+cells+'</div><p class="hint">CSV 即数据表，可用 Excel / 表格软件打开编辑后再导入。</p></div>'+
+    '<div class="sync">存储模式：本地浏览器存储（localStorage）· 数据仅保存在你当前设备</div>';
+}
+
+/* ============ 弹窗 ============ */
+function showModal(title, bodyHtml, onSave){
+  modalSave = onSave||null;
+  document.getElementById('modalRoot').innerHTML =
+    '<div class="mask" onclick="if(event.target===this)closeModal()"><div class="modal">'+
+      '<div class="m-h"><span>'+esc(title)+'</span><button class="x" onclick="closeModal()" aria-label="关闭">'+ICON.close+'</button></div>'+
+      '<div class="m-b">'+bodyHtml+'</div>'+
+      '<div class="m-f"><button class="btn ghost" onclick="closeModal()">取消</button>'+(onSave?'<button class="btn primary" onclick="if(modalSave)modalSave()">保存</button>':'')+'</div>'+
+    '</div></div>';
+}
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+function openForm(t, rec){
+  editing={table:t, rec:rec||null};
+  const cfg=FORMS[t];
+  let body='';
+  cfg.forEach(f=>{
+    let opts=[];
+    if(f.type==='select'){
+      opts=f.options||[];
+      if(f.dyn==='animalNames') opts=state.animal.map(a=>a.名字);
+      if(f.dyn==='animalNamesGen') opts=['通用',...state.animal.map(a=>a.名字)];
+    }
+    const val=rec?(rec[f.key]??''):'';
+    let ctrl='';
+    if(f.type==='select'){ ctrl='<select id="f_'+f.key+'">'+opts.map(o=>'<option '+(o===val?'selected':'')+'>'+esc(o)+'</option>').join('')+'</select>'; }
+    else if(f.type==='textarea'){ ctrl='<textarea id="f_'+f.key+'" rows="3">'+esc(val)+'</textarea>'; }
+    else if(f.type==='date'){ ctrl='<input type="date" id="f_'+f.key+'" value="'+esc(val)+'">'; }
+    else if(f.type==='number'){ ctrl='<input type="number" id="f_'+f.key+'" value="'+esc(val)+'" step="0.01">'; }
+    else { ctrl='<input type="text" id="f_'+f.key+'" value="'+esc(val)+'" placeholder="'+(f.hint||'')+'">'; }
+    body+='<label class="fld"><span>'+f.label+(f.required?' <i>*</i>':'')+'</span>'+ctrl+'</label>';
+  });
+  showModal((rec?'编辑':'新增')+TABLE_LABEL[t], body, ()=>submitForm());
+}
+function fieldVal(key){ const el=document.getElementById('f_'+key); return el?el.value.trim():''; }
+function submitForm(){
+  const t=editing.table; const isEdit=!!editing.rec;
+  const obj={};
+  FORMS[t].forEach(f=>{ obj[f.key]=fieldVal(f.key); });
+  for(const f of FORMS[t]){ if(f.required && !obj[f.key]){ alert('请填写：'+f.label); return; } }
+  if(isEdit){ const i=state[t].findIndex(r=>r.编号===editing.rec.编号); if(i>=0) state[t][i]=obj; }
+  else { obj.编号=nextId(t); state[t].push(obj); }
+  save(); closeModal(); renderAll();
+}
+
+function openDetail(id){
+  const a=getRec('animal',id); if(!a) return;
+  const rows=HEAD.animal.map(k=>'<div class="d-row"><span class="d-k">'+k+'</span><span class="d-v">'+esc(a[k]||'—')+'</span></div>').join('');
+  const body='<div class="d-list">'+rows+'</div><div class="m-f"><button class="btn ghost" onclick="closeModal()">关闭</button><button class="btn warn" onclick="delRecord(\'animal\',\''+id+'\')">删除</button><button class="btn primary" onclick="openForm(\'animal\',getRec(\'animal\',\''+id+'\'))">编辑</button></div>';
+  showModal('档案详情 · '+esc(a.名字), body, null);
+}
+function delRecord(t,id){
+  if(!confirm('确定删除该记录？此操作不可撤销。')) return;
+  state[t]=state[t].filter(r=>r.编号!==id);
+  save(); closeModal(); renderAll();
+}
+
+/* ============ 导入 / 导出 ============ */
+function download(name, text, type){
+  let content=text;
+  if(type==='text/csv') content='\ufeff'+text;
+  const blob=new Blob([content],{type:type+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+function csvEscape(v){ v=v==null?'':String(v); if(/[",\n\r]/.test(v)) return '"'+v.replace(/"/g,'""')+'"'; return v; }
+function toCSVExport(t){ const h=HEAD[t]; const rows=state[t].map(r=>h.map(k=>csvEscape(r[k])).join(',')); return [h.map(csvEscape).join(','),...rows].join('\r\n'); }
+function parseCSV(text){
+  text=text.replace(/^\ufeff/,'');
+  const rows=[]; let row=[]; let cur=''; let q=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else { if(c==='"'){q=true;} else if(c===','){row.push(cur);cur='';} else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';} else if(c!=='\r'){cur+=c;} }
+  }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>!(r.length===1&&r[0].trim()===''));
+}
+function pickFile(accept, cb){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept=accept;
+  inp.onchange=e=>{ if(e.target.files&&e.target.files[0]) cb(e.target.files[0]); };
+  inp.click();
+}
+function exportJSON(){ download('万物有灵-数据备份.json', JSON.stringify(state,null,2), 'application/json'); }
+function importJSON(){
+  pickFile('.json,application/json', f=>{
+    const r=new FileReader();
+    r.onload=()=>{ try{ const d=JSON.parse(r.result); if(d&&d.animal){ state=d; save(); renderAll(); alert('导入成功'); } else alert('文件格式不正确'); }catch(e){ alert('解析失败：'+e.message); } };
+    r.readAsText(f);
+  });
+}
+function exportCSV(t){ download(TABLE_LABEL[t]+'.csv', toCSVExport(t), 'text/csv'); }
+function importCSV(t){
+  pickFile('.csv,text/csv', f=>{
+    if(!confirm('导入将覆盖当前「'+TABLE_LABEL[t]+'」的全部数据，确定继续？')) return;
+    const r=new FileReader();
+    r.onload=()=>{ try{
+      const rows=parseCSV(r.result); const head=rows[0];
+      if(JSON.stringify(head)!==JSON.stringify(HEAD[t]) && !confirm('表头与预期不一致，仍要导入吗？')) return;
+      const data=rows.slice(1).map(rw=>{ const o={}; HEAD[t].forEach((k,i)=>o[k]=rw[i]!==undefined?rw[i]:''); return o; });
+      state[t]=data; save(); renderAll(); alert('已导入 '+data.length+' 条记录');
+    }catch(e){ alert('解析失败：'+e.message); } };
+    r.readAsText(f);
+  });
+}
+function clearData(){
+  if(!confirm('确定清空所有示例数据？此操作不可恢复（建议先导出备份）。')) return;
+  state={animal:[],medical:[],todo:[],donation:[],expense:[]}; save(); renderAll(); alert('已清空');
+}
+function resetSeed(){
+  if(!confirm('将重新载入示例数据，当前数据会被覆盖，确定？')) return;
+  state=clone(SEED); save(); renderAll(); alert('已恢复示例数据');
+}
+
+/* ============ 初始化 ============ */
+function renderAll(){ renderHome(); renderAnimal(); renderTodo(); renderMedical(); renderFinance(); renderData(); }
+document.getElementById('logo').innerHTML=ICON.paw;
+buildTabs();
+renderAll();
+</script>
+</body>
+</html>

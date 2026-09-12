@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>性格色彩速测 · 作品演示</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; background:linear-gradient(160deg,#f6f1e7,#fdfaf3 55%,#eef3f0); color:#3c3a36; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px; }
+  .wrap { width:100%; max-width:520px; }
+  .card { background:#fffdf8; border:1px solid #e7dfd0; border-radius:18px; padding:28px 26px; box-shadow:0 10px 34px rgba(80,70,50,.10); }
+  .kicker { font-size:12px; letter-spacing:3px; color:#9a8f7a; text-transform:uppercase; margin-bottom:8px; }
+  h1 { font-size:21px; font-weight:600; color:#2f2c27; line-height:1.45; }
+  .sub { font-size:13.5px; color:#8a7f6d; margin:10px 0 4px; line-height:1.7; }
+  .dots { display:flex; gap:6px; margin:16px 0 18px; }
+  .dot { flex:1; height:4px; border-radius:3px; background:#eee5d6; transition:background .3s; }
+  .dot.on { background:#c96f4a; }
+  .q { font-size:16.5px; font-weight:600; color:#2f2c27; margin:6px 0 18px; line-height:1.6; }
+  .opts { display:flex; flex-direction:column; gap:10px; }
+  .opt { text-align:left; font-size:14px; line-height:1.65; color:#4a463f; background:#fff; border:1.5px solid #e7dfd0; border-radius:12px; padding:13px 15px; cursor:pointer; transition:all .18s; }
+  .opt:hover { border-color:#c96f4a; background:#fdf6ec; transform:translateY(-1px); }
+  .opt:active { transform:scale(.99); }
+  .foot { margin-top:18px; text-align:center; font-size:12px; color:#b3a996; line-height:1.8; }
+  .back { display:inline-block; margin-top:14px; font-size:13px; color:#9a8f7a; background:none; border:none; cursor:pointer; text-decoration:underline; }
+  .result { text-align:center; padding:6px 0 0; }
+  .r-emoji { font-size:52px; line-height:1; margin:6px 0 4px; }
+  .r-name { font-size:26px; font-weight:700; letter-spacing:1px; }
+  .r-tag { font-size:13px; margin:6px auto 16px; display:inline-block; padding:4px 14px; border-radius:20px; color:#fff; }
+  .r-block { text-align:left; background:#faf6ee; border:1px solid #eee5d5; border-radius:12px; padding:14px 16px; margin:8px 0; }
+  .r-block b { display:block; font-size:13px; color:#7d7260; margin-bottom:4px; letter-spacing:2px; }
+  .r-block p { font-size:14px; color:#4a463f; line-height:1.8; }
+  .restart { margin-top:16px; background:#2f2c27; color:#f6f1e7; border:none; border-radius:30px; padding:11px 30px; font-size:14px; cursor:pointer; }
+  .restart:hover { background:#c96f4a; }
+  .hide { display:none !important; }
+  @media (max-width:420px){ .card{padding:22px 18px;} h1{font-size:19px;} .q{font-size:15.5px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="kicker">Demo · 匿名演示版</div>
+    <h1>性格色彩速测</h1>
+    <p class="sub">8 个生活场景，凭第一直觉选。测完看看你的主色是什么——红、黄、蓝、绿，都只是你的一部分。</p>
+
+    <div id="quiz">
+      <div class="dots" id="dots"></div>
+      <div class="q" id="q"></div>
+      <div class="opts" id="opts"></div>
+      <button class="back hide" id="back">← 上一题</button>
+    </div>
+
+    <div id="result" class="result hide"></div>
+
+    <div class="foot">作品集演示 · 娱乐向速测，不构成任何心理或职业建议</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var QUESTIONS = [
+    { q:'朋友约你周末一起做点事，你下意识会想：', opts:[
+      {t:'好啊！我来定地方、约人，越热闹越好', c:'R'},
+      {t:'先问清要做什么、几点、几个人，心里有个数', c:'B'},
+      {t:'可以，顺便想想这事做完能带来什么新机会', c:'Y'},
+      {t:'都行，你们定，我跟着一起就挺开心', c:'G'} ]},
+    { q:'团队里起了争执，你的第一反应是：', opts:[
+      {t:'赶紧说开，别憋着，有问题现在解决', c:'R'},
+      {t:'先各自冷静，理清事实再谈，急没用', c:'B'},
+      {t:'吵没意义，直接给出一个能往前走的方案', c:'Y'},
+      {t:'照顾两边情绪，先让大家把话说完', c:'G'} ]},
+    { q:'买东西时你更像哪种人：', opts:[
+      {t:'看顺眼就买，犹豫反而错过', c:'R'},
+      {t:'货比三家，参数、评价、价格全查一遍', c:'B'},
+      {t:'看值不值、能不能复用、划不划算', c:'Y'},
+      {t:'不挑，能用就行，别为这个耗神', c:'G'} ]},
+    { q:'被误解的时候，你通常：', opts:[
+      {t:'当场就解释，藏不住话', c:'R'},
+      {t:'先不解释，时间会证明，清者自清', c:'B'},
+      {t:'解释一次，对方不听就拉倒，精力留给重要的事', c:'Y'},
+      {t:'心里有点委屈，但不想起冲突，慢慢也就过去了', c:'G'} ]},
+    { q:'压力大的时候，你更想：', opts:[
+      {t:'找朋友聊聊、出去动一动，别一个人闷着', c:'R'},
+      {t:'一个人安静待着，把事情想透', c:'B'},
+      {t:'列个清单，一件件干掉它', c:'Y'},
+      {t:'放一放，睡一觉，天塌不下来', c:'G'} ]},
+    { q:'认识新朋友时，你更容易被什么吸引：', opts:[
+      {t:'有意思、能玩到一块儿的人', c:'R'},
+      {t:'有深度、聊得来又靠谱的人', c:'B'},
+      {t:'有目标、有想法、能互相带一带的人', c:'Y'},
+      {t:'温和好相处、让人安心的人', c:'G'} ]},
+    { q:'你做事更接近哪种节奏：', opts:[
+      {t:'先冲起来再说，边做边调整', c:'R'},
+      {t:'先想清楚再动手，一次做对', c:'B'},
+      {t:'定个目标，分步推进，盯结果', c:'Y'},
+      {t:'跟着大家的节奏走，稳稳当当不冒进', c:'G'} ]},
+    { q:'如果可以选，你最希望自己：', opts:[
+      {t:'永远热腾腾的，对生活保持兴致', c:'R'},
+      {t:'足够清醒，把在乎的事看得明白', c:'B'},
+      {t:'想做的事都能做成', c:'Y'},
+      {t:'让身边的人都觉得舒服', c:'G'} ]}
+  ];
+  var COLORS = {
+    R:{name:'红色 · 热情', emoji:'🔥', hex:'#c2543c', tag:'行动派 · 直率 · 有感染力', desc:'你心里有一团火。你讨厌憋着、耗着、拖着，想到就去做，情绪来得快去得也快。跟你在一起不容易冷场，因为你本身就是热源。要注意的是：急的时候慢半拍，听听别人把话说完。'},
+    Y:{name:'黄色 · 目标', emoji:'🌟', hex:'#c9972f', tag:'目标派 · 果断 · 要结果', desc:'你心里有张地图，知道要去哪。你不喜欢无意义的拉扯，凡事讲究值不值、划不划算、能不能成。你天生适合定方向、做决定。要注意的是：偶尔放慢，身边人的感受也值得你停下来看看。'},
+    B:{name:'蓝色 · 完美', emoji:'🌊', hex:'#3d6b8f', tag:'思考派 · 严谨 · 重承诺', desc:'你想得深、看得远，眼里有细节。你不轻易承诺，但答应的事一定做到。别人觉得你冷静，其实你在乎得很深，只是不挂在嘴上。要注意的是：别让"想太多"拦住出发，完美可以慢慢靠近。'},
+    G:{name:'绿色 · 平和', emoji:'🌿', hex:'#5a8a6a', tag:'温和派 · 包容 · 稳得住', desc:'你是那种让周围人安心的人。不争不抢，却最扛得住事；话不多，但总能接住别人的情绪。很多你觉得"没什么"的付出，其实别人都看在眼里。要注意的是：你的感受也重要，该说的时候说出来。'}
+  };
+  var answers = [], idx = 0, sel = -1;
+  var quiz = document.getElementById('quiz'), resultEl = document.getElementById('result');
+
+  function render(){
+    var dots = document.getElementById('dots');
+    dots.innerHTML = QUESTIONS.map(function(_,i){ return '<div class="dot'+(i<=idx?' on':'')+'"></div>'; }).join('');
+    document.getElementById('q').textContent = (idx+1)+'. '+QUESTIONS[idx].q;
+    var optsEl = document.getElementById('opts');
+    optsEl.innerHTML = '';
+    QUESTIONS[idx].opts.forEach(function(o,i){
+      var b = document.createElement('button');
+      b.className='opt'; b.textContent = o.t;
+      b.onclick = function(){ answers[idx]=o.c; next(); };
+      optsEl.appendChild(b);
+    });
+    document.getElementById('back').classList.toggle('hide', idx===0);
+  }
+  function next(){
+    if(idx<QUESTIONS.length-1){ idx++; sel=-1; render(); }
+    else showResult();
+  }
+  document.getElementById('back').onclick = function(){
+    if(idx>0){ idx--; answers.pop(); render(); }
+  };
+  function showResult(){
+    quiz.classList.add('hide');
+    var cnt={R:0,Y:0,B:0,G:0};
+    answers.forEach(function(c){ cnt[c]=(cnt[c]||0)+1; });
+    var order = Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a]; });
+    var main = order[0], second = order[1];
+    var c = COLORS[main];
+    var html = '<div class="r-emoji">'+c.emoji+'</div>'+
+      '<div class="r-name" style="color:'+c.hex+'">'+c.name+'</div>'+
+      '<div class="r-tag" style="background:'+c.hex+'">'+c.tag+'</div>'+
+      '<div class="r-block"><b>你的主色</b><p>'+c.desc+'</p></div>'+
+      '<div class="r-block"><b>次色：'+COLORS[second].name.split(' · ')[0]+'</b><p>'+COLORS[second].desc.split('要注意的是')[0]+'</p></div>'+
+      '<div class="r-block" style="border-style:dashed"><b>给小小的你</b><p>性格没有好坏，只有特点。看见自己的颜色，是为了更懂得怎么用它，而不是给它下定义。</p></div>'+
+      '<button class="restart">再测一次</button>';
+    resultEl.innerHTML = html;
+    resultEl.classList.remove('hide');
+    resultEl.querySelector('.restart').onclick = function(){
+      answers=[]; idx=0; resultEl.classList.add('hide'); quiz.classList.remove('hide'); render();
+    };
+    resultEl.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  render();
+})();
+</script>
+</body>
+</html>

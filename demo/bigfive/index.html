@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大五人格 · 在线速查与自测</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f7f8f6; color: #343a33; padding: 22px 18px 44px; max-width: 780px; margin: 0 auto; }
+  h1, h2, h3 { font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif; }
+  .head { text-align: center; margin-bottom: 20px; }
+  .head h1 { font-size: 24px; letter-spacing: 2px; }
+  .head p { color: #8d968c; font-size: 13px; margin-top: 6px; }
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 18px; }
+  .tab { border: 1px solid #cdd6cd; background: #fff; border-radius: 999px; padding: 7px 18px; font-size: 14px; cursor: pointer; color: #5b665c; }
+  .tab.on { background: #4a7c59; border-color: #4a7c59; color: #fff; }
+  .page { display: none; }
+  .page.on { display: block; }
+  .dim { background: #fff; border: 1px solid #e2e8e0; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; }
+  .dim .t { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .dim .letter { font-family: 'Playfair Display', 'Noto Serif SC', serif; font-size: 28px; color: #4a7c59; font-style: italic; }
+  .dim .name { font-size: 16px; font-weight: 600; }
+  .dim .en { font-size: 12px; color: #97a198; }
+  .dim .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; line-height: 1.7; }
+  .dim .cols .h { font-size: 12px; color: #4a7c59; margin-bottom: 2px; font-weight: 600; }
+  .dim .cols .h.low { color: #b0853b; }
+  @media (max-width: 560px) { .dim .cols { grid-template-columns: 1fr; } }
+  .tip { background: #eef4ec; border-radius: 10px; padding: 12px 16px; font-size: 13.5px; line-height: 1.8; color: #4c5a4f; margin: 14px 0; }
+  .tip b { color: #2f5c40; }
+  .quiz-q { background: #fff; border: 1px solid #e2e8e0; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; }
+  .quiz-q .q { font-size: 14.5px; margin-bottom: 10px; line-height: 1.6; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .opt { border: 1px solid #cdd6cd; border-radius: 8px; background: #fafbfa; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .opt:hover { background: #eef4ec; }
+  .opt.sel { background: #4a7c59; color: #fff; border-color: #4a7c59; }
+  .bar-row { margin-bottom: 14px; }
+  .bar-row .lab { font-size: 13px; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .bar { height: 10px; background: #e6ebe6; border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: #4a7c59; border-radius: 999px; width: 0; transition: width .8s ease; }
+  .read { font-size: 13.5px; color: #5b665c; background: #eef4ec; border-radius: 10px; padding: 12px 16px; line-height: 1.8; margin-top: 10px; }
+  .btn { display: block; margin: 18px auto 0; background: #4a7c59; color: #fff; border: none; border-radius: 999px; padding: 10px 30px; font-size: 15px; cursor: pointer; }
+  .btn:disabled { background: #b8c4b8; cursor: default; }
+  .foot { text-align: center; color: #a9b2a8; font-size: 12px; margin-top: 16px; }
+  #quiz { display: none; }
+  #result { display: none; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>📊 大五人格 · 速查与自测</h1>
+    <p>心理学里最经得起验证的人格模型 · OCEAN</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="tabA" onclick="showPage('A')">五维速查</button>
+    <button class="tab" id="tabB" onclick="showPage('B')">10 题小测</button>
+  </div>
+
+  <div class="page on" id="pageA">
+    <div class="tip">
+      <b>快速识人口诀：</b>开新 尽责 外向 宜人 情稳。<br>
+      记住一点：<b>大五不是给人贴标签，是给理解留入口</b>——每个维度都是一把标尺，没有好坏，只有位置。
+    </div>
+    <div id="dims"></div>
+    <div class="tip">
+      <b>怎么用这套东西？</b>先用来照自己，再用来懂别人。用它分析别人、预测别人、给别人下结论，都是这个模型的误用。
+    </div>
+  </div>
+
+  <div class="page" id="pageB">
+    <div id="intro" style="text-align:center;padding:20px 0">
+      <p style="font-size:14px;color:#5b665c;line-height:1.8">10 道题，每题凭第一感觉选。<br>结果即时生成，数据只留在你的浏览器里，不上传任何地方。</p>
+      <button class="btn" onclick="startQuiz()">开始</button>
+    </div>
+    <div id="quiz"></div>
+    <div id="result"></div>
+  </div>
+
+  <p class="foot">内容为科普整理，非临床测量工具 · 演示版</p>
+
+<script>
+var DIMS = [
+  { L: 'O', name: '开放性', en: 'Openness', hi: '好奇心强，喜欢新观点、新体验；想象力丰富，审美好；对变化兴奋', lo: '务实保守，偏好熟悉的方法和路径；讲究实际，对抽象讨论兴趣不大' },
+  { L: 'C', name: '尽责性', en: 'Conscientiousness', hi: '自律、有条理、说到做到；目标感强，交付可靠', lo: '灵活随性，讨厌条条框框；Deadline 是第一生产力' },
+  { L: 'E', name: '外向性', en: 'Extraversion', hi: '从人群中获得能量；主动表达，社交后更兴奋', lo: '从独处中回血；深度对话优于热闹饭局；想清楚了再开口' },
+  { L: 'A', name: '宜人性', en: 'Agreeableness', hi: '温暖、信任他人、愿意合作；容易共情，让人放松', lo: '直接、较真、就事论事；在意公平胜过在意和谐' },
+  { L: 'N', name: '神经质', en: 'Neuroticism', hi: '情绪感受敏锐、起伏明显；对风险信号警觉（注意：高分≠脆弱，是感受器灵敏）', lo: '情绪稳定，遇事不慌；压力下依然能睡得着' }
+];
+
+var dimsEl = document.getElementById('dims');
+DIMS.forEach(function (d) {
+  var el = document.createElement('div');
+  el.className = 'dim';
+  el.innerHTML =
+    '<div class="t"><span class="letter">' + d.L + '</span><span class="name">' + d.name + '</span><span class="en">' + d.en + '</span></div>' +
+    '<div class="cols"><div><div class="h">高分画像</div>' + d.hi + '</div><div><div class="h low">低分画像</div>' + d.lo + '</div></div>';
+  dimsEl.appendChild(el);
+});
+
+function showPage(k) {
+  document.getElementById('tabA').classList.toggle('on', k === 'A');
+  document.getElementById('tabB').classList.toggle('on', k === 'B');
+  document.getElementById('pageA').classList.toggle('on', k === 'A');
+  document.getElementById('pageB').classList.toggle('on', k === 'B');
+}
+
+// ---- 小测 ----
+var QS = [
+  { t: '刷到一个全新领域的入门视频，我的第一反应是：', d: 'O', fwd: true },
+  { t: '计划被打乱（比如航班取消），我通常能很快接受现实想下一步：', d: 'N', fwd: true },
+  { t: '一周里如果有三天以上都有饭局，我会觉得：', d: 'E', fwd: false },
+  { t: '别人拜托的事，就算麻烦我也会尽量办到：', d: 'A', fwd: true },
+  { t: '我的桌面 / 文件夹 / 收藏夹是分好类的：', d: 'C', fwd: true },
+  { t: '听到一首新风格的歌，我会想找找这个歌手还写过什么：', d: 'O', fwd: true },
+  { t: '深夜想起白天说错的一句话，会翻来覆去睡不着：', d: 'N', fwd: false },
+  { t: '在陌生场合，我会主动找陌生人聊天：', d: 'E', fwd: true },
+  { t: '朋友的观点明显有问题，我会当场指出来：', d: 'A', fwd: false },
+  { t: '我享受"把一件事彻底做完收尾"的感觉：', d: 'C', fwd: true }
+];
+var OPTS = ['很不符合', '不太符合', '说不好', '比较符合', '非常符合'];
+var answers = {};
+
+function startQuiz() {
+  document.getElementById('intro').style.display = 'none';
+  var q = document.getElementById('quiz');
+  q.style.display = 'block';
+  q.innerHTML = '';
+  QS.forEach(function (item, i) {
+    var d = document.createElement('div');
+    d.className = 'quiz-q';
+    d.innerHTML = '<div class="q">' + (i + 1) + '. ' + item.t + '</div>';
+    var o = document.createElement('div');
+    o.className = 'opts';
+    OPTS.forEach(function (label, j) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.textContent = label;
+      b.onclick = function () {
+        o.querySelectorAll('.opt').forEach(function (x) { x.classList.remove('sel'); });
+        b.classList.add('sel');
+        answers[i] = j;
+        checkDone();
+      };
+      o.appendChild(b);
+    });
+    d.appendChild(o);
+    q.appendChild(d);
+  });
+  var btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.id = 'doneBtn';
+  btn.disabled = true;
+  btn.textContent = '看结果';
+  btn.onclick = showResult;
+  q.appendChild(btn);
+}
+function checkDone() {
+  if (Object.keys(answers).length === QS.length) document.getElementById('doneBtn').disabled = false;
+}
+function showResult() {
+  var score = { O: 0, C: 0, E: 0, A: 0, N: 0 };
+  QS.forEach(function (item, i) {
+    var v = answers[i];
+    var val = item.fwd ? v : (4 - v);
+    score[item.d] += val;
+  });
+  var q = document.getElementById('quiz');
+  q.style.display = 'none';
+  var r = document.getElementById('result');
+  r.style.display = 'block';
+  r.innerHTML = '';
+  DIMS.forEach(function (d) {
+    var pct = Math.round(score[d.L] / 8 * 100);
+    var row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = '<div class="lab"><span>' + d.L + ' · ' + d.name + '</span><span>' + pct + '%</span></div><div class="bar"><i></i></div>';
+    r.appendChild(row);
+    setTimeout(function () { row.querySelector('i').style.width = pct + '%'; }, 50);
+  });
+  var top = DIMS.slice().sort(function (a, b) { return score[b.L] - score[a.L]; })[0];
+  var reads = {
+    O: '你最突出的是<b>开放性</b>——你天生对世界保持好奇，愿意走进没走过的门。这既是创造力来源，也是你总在"折腾"的原因。',
+    C: '你最突出的是<b>尽责性</b>——你说过的话会算数，答应的事会落地。你是那种"把事情交给他就可以放心"的人，只是别忘了对自己也宽容一点。',
+    E: '你最突出的是<b>外向性</b>——人群对你来说是充电桩。你的能量会在表达和连接中放大，记得也给自己留一点安静的角落。',
+    A: '你最突出的是<b>宜人性</b>——你让人放松，天生带着"接住别人"的能力。只是"好人"也可以有底线，温柔和坚定并不冲突。',
+    N: '你最突出的是<b>感受的敏锐度</b>——你的情绪天线比常人更长，能先于人察觉到氛围变化。这不是脆弱，是天赋，只是需要学会给天线装个开关。'
+  };
+  var box = document.createElement('div');
+  box.className = 'read';
+  box.innerHTML = reads[top.L] + '<br><span style="color:#8d968c;font-size:12px">（10 题只是速览，完整的大五测评通常有几十题，别把今天的数字太当真。）</span>';
+  r.appendChild(box);
+}
+</script>
+</body>
+</html>

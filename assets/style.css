@@ -1,0 +1,628 @@
+/* ============================================================
+ * 作品集双站 · 设计系统
+ * 暖白底 + 近黑墨 + 衬线标题；3 套可切换点缀色（陶土/青瓷/黛灰）
+ * 高级感来自克制：大留白、强对比、滚动淡入、不堆特效
+ * ============================================================ */
+
+/* ============================================================
+ * 自托管西文字体：Playfair Display（可变字重 400–900，共 121KB）
+ * ------------------------------------------------------------
+ * 为什么必须自托管：字体原先走 Google Fonts CDN，而
+ * fonts.googleapis.com / fonts.gstatic.com 在国内基本不可达。
+ * 结果就是——访客的浏览器压根拿不到这两个字体，最后渲染出来的是
+ * 「访客自己电脑里的备用字体」，设计里最出气质的那一笔整个丢失。
+ * 现在这 4 个文件随站点一起发布：离线可用、内网可用、任何网络都生效。
+ *
+ * 只收 latin / latin-ext（西文 + 常用标点），中文刻意不进 web font：
+ * 中文全量字体动辄数 MB、还会闪一下，交给下面 --serif / --sans 里的
+ * 系统字体栈最稳 —— 秒出、清晰、不闪、不下载。 */
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('fonts/playfair-display-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('fonts/playfair-display-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('fonts/playfair-display-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('fonts/playfair-display-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ============================================================
+ * 自托管中文字体：思源宋体 / Noto Serif SC（标题专用子集，约 427KB）
+ * ------------------------------------------------------------
+ * 为什么不直接用系统宋体：标题是访客看到的第一样东西，而系统宋体
+ * 在各个电脑上长得都不一样 —— Mac 是华文宋体、Windows 是宋体 SimSun，
+ * 还有电脑会装到奇奇怪怪的变体。设计交给访客的电脑，就等于没设计。
+ *
+ * ⚠️ 血泪教训 1（2026-09-11）：一开始这里写的是 "Source Han Serif SC"。
+ *    结果某台机器只装了「Source Han Serif SC Heavy」，浏览器家族名模糊
+ *    匹配把这行标题配成了**全站最粗的字重**，标题硬生生比正文重一大截。
+ *    —— 字体栈里放一个「家族名可能被匹配到任意字重」的字体，是危险的。
+ *    现在改成自托管 + 精确字重，这类意外不会再发生。
+ *
+ * ⚠️ 血泪教训 2（2026-09-11）：第一版子集只扫了「作品标题」，漏了
+ *    SITES 里的首屏文案和 app.js 的界面文案 —— 「做」「创」「界」「温」
+ *    「柔」「相」「处」这些高频字不在字库里，会被静默替换成系统宋体，
+ *    和旁边的字悄悄不是同一副面孔。现在子集覆盖全量来源（含加密简历），
+ *    并在 build_deploy.js 加了构建期覆盖自检兜底（缺字直接报错）。
+ *
+ * 收录 1315 字（标题/标语/分类/界面文案/简历 + 常用字兜底）。
+ * 子集没收录的生僻字仍会自动落到系统宋体，不会出现豆腐块。
+ * unicode-range 限定为中文（含中文标点），西文继续交给上面的 Playfair Display。 */
+@font-face {
+  font-family: 'Noto Serif SC Title';
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('fonts/noto-serif-sc-title.woff2') format('woff2');
+  /* 覆盖：中日韩统一表意文字 + 扩展A/B + 中文标点 + 全角形式
+   *      + 中文常用弯引号/破折号/间隔号（U+00B7、U+2010-2027）。
+   * 有意排除 ASCII：西文归 Playfair Display，避免与该字体冲突。 */
+  unicode-range: U+00B7, U+2010-2027, U+2E80-9FFF, U+3000-303F, U+3400-4DBF, U+FF00-FFEF, U+20000-2FA1F;
+}
+
+:root {
+  --paper: #FAFAF8;
+  --paper-soft: #F2F0EB;
+  --ink: #1A1A1A;
+  --muted: #6f6f69;
+  --line: rgba(0, 0, 0, 0.10);
+  --line-strong: rgba(0, 0, 0, 0.18);
+  /* 字体栈：拉丁 → 自托管 Playfair Display（标题里最出气质的那一笔）；
+   * 中文  → 自托管思源宋体子集（标题专用，约 427KB，人人看到同一款）；
+   * 再往后是系统宋体，只作为「子集没收录的字」的兜底。
+   * ⚠️ 不要在这里放 "Source Han Serif SC" / "Noto Serif CJK SC" 这类
+   *    「一个家族名对应多档字重」的字体 —— 在只装了 Heavy 的机器上，
+   *    浏览器会把标题渲染成全站最粗的字重（2026-09-11 踩过）。 */
+  --serif: "Playfair Display", "Noto Serif SC Title", "Songti SC", "STSong", "SimSun", Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", system-ui, sans-serif;
+}
+
+/* 三套点缀色 */
+[data-accent="terracotta"] { --accent:#9C6B43; --accent-soft:#EAD9C9; --accent-ink:#7A5232; }
+[data-accent="celadon"]    { --accent:#4F7E72; --accent-soft:#D7E4DF; --accent-ink:#3C6358; }
+[data-accent="graphite"]   { --accent:#3A3A3C; --accent-soft:#DEDEDA; --accent-ink:#2A2A2C; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .serif { font-family: var(--serif); font-weight: 400; letter-spacing: .01em; }
+
+/* 衬线族里没有走 h1/h2/h3 的那些，字重统一钉在 400。
+ * （body 是 300 —— 如果这里不钉住，宋体子集会跟着变成 Light，细得发虚。
+ *   2026-09-11：之前这行汉字被系统匹配到「思源宋体 Heavy」，
+ *   所以那时不钉也看不出问题；换成自托管精确字重后就暴露了。） */
+.card .title, .modal .tagline, .media-ph .ph-title, #contact .way .v,
+.lock-title, .resume-h3, .tl-role, .course-name, .edu-school, .priv-title { font-weight: 400; }
+
+/* ---------- 导航 ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 6vw;
+  background: rgba(250, 250, 248, 0.82);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.nav .brand { font-family: var(--serif); font-size: 18px; font-weight: 500; letter-spacing: .04em; }
+.nav .links { display: flex; gap: 26px; align-items: center; }
+.nav .links a {
+  color: var(--muted); text-decoration: none; font-size: 14px; letter-spacing: .03em;
+  transition: color .25s;
+}
+.nav .links a:hover { color: var(--ink); }
+.accent-btn {
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink);
+  font-family: var(--sans); font-size: 13px; padding: 6px 14px; border-radius: 999px;
+  cursor: pointer; transition: all .25s; letter-spacing: .03em;
+}
+.accent-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* 按钮文案两套：电脑端用长的，手机窄屏换成短的（见下方 @media）。
+ * 手机上这一条是导航挤爆的直接原因之一 —— 详见移动端注释。 */
+.accent-btn .lbl-short { display: none; }
+
+/* ---------- 首屏 ---------- */
+.hero { padding: 14vh 6vw 9vh; max-width: 900px; }
+.hero .eyebrow { font-size: 13px; letter-spacing: .34em; text-transform: uppercase; color: var(--accent-ink); font-weight: 500; margin-bottom: 22px; }
+.hero h1 { font-size: clamp(38px, 6vw, 68px); line-height: 1.12; margin-bottom: 22px; font-weight: 350; }
+.hero .eyebrow + h1 { font-size: clamp(34px, 4.6vw, 56px); line-height: 1.3; letter-spacing: .02em; }
+.hero .tagline { font-size: clamp(16px, 2vw, 21px); color: var(--muted); font-weight: 300; max-width: 620px; }
+.hero .rule { width: 56px; height: 2px; background: var(--accent); margin: 30px 0; }
+
+/* ---------- 通用区块 ---------- */
+section { padding: 7vh 6vw; }
+.section-title { font-size: 13px; letter-spacing: .28em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 28px; }
+#about p { max-width: 680px; font-size: 16px; color: #2c2c28; margin-bottom: 18px; }
+#about .ai-note {
+  border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; margin-top: 26px;
+  color: var(--muted); font-style: italic; font-size: 15px;
+}
+
+/* ---------- 筛选 ---------- */
+.filters { display: flex; flex-direction: column; gap: 12px; margin-bottom: 42px; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.filter-label {
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent-ink);
+  font-weight: 600; flex: 0 0 32px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line-strong); background: transparent; color: var(--muted);
+  font-family: var(--sans); font-size: 13px; padding: 6px 16px; border-radius: 999px;
+  cursor: pointer; transition: all .22s; letter-spacing: .04em;
+}
+.chip:hover { color: var(--ink); border-color: var(--accent); }
+.chip:hover svg { color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* 二级（细分）行：只在需要细分的大类下才出现。
+ * 视觉上从属一级 —— 字号更小、描边更淡；选中时不填色，只描成强调色。
+ * 两条规则必须在 .chip.active 之后，否则会被一级的实心样式盖掉。 */
+.filter-row-sub .filter-label { color: var(--muted); font-weight: 500; }
+.chip-sub { font-size: 12.5px; padding: 4px 13px; border-color: var(--line); letter-spacing: .03em; }
+.chip-sub.active { background: transparent; border-color: var(--accent); color: var(--accent-ink); }
+
+/* ---------- 作品网格 ---------- */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 26px; }
+.card {
+  border: 1px solid var(--line); border-radius: 16px; padding: 26px 24px 22px;
+  background: #fff; cursor: pointer; transition: transform .3s, border-color .3s, box-shadow .3s;
+  display: flex; flex-direction: column; min-height: 220px;
+}
+.card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 14px 34px -22px rgba(0,0,0,.35); }
+.card .cover { font-size: 38px; line-height: 1; margin-bottom: 16px; color: var(--accent); }
+
+/* ---------- 分类图标（内联单色线性 SVG） ----------
+ * 为什么不用 emoji：emoji 由系统字体渲染 —— 同一个字符在 Windows / Mac / 安卓上是
+ * 三套不同的图形，还会一次带进二十多种色相，把一个"暖白纸 + 近黑墨 + 一个强调色"的
+ * 克制系统冲散。内联 SVG 在任何设备都长得一模一样，颜色走 currentColor 自动跟随
+ * 三套主题色，放多大都不会糊，离线也能显示。
+ * 描边用 non-scaling-stroke：无论图标显示成 16px 还是 46px，线宽都是同一个值，
+ * 不会"小图标线条发灰、大图标线条变粗"。class="f" 的块是实心填充。 */
+.cover svg, .chip svg {
+  width: 1em; height: 1em; display: inline-block; vertical-align: middle;
+  stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  fill: none; flex: 0 0 auto;
+}
+.cover svg path, .cover svg rect, .cover svg circle, .cover svg line, .cover svg polyline,
+.chip svg path, .chip svg rect, .chip svg circle, .chip svg line, .chip svg polyline {
+  vector-effect: non-scaling-stroke;
+}
+.cover svg .f, .chip svg .f { fill: currentColor; stroke: none; }
+.chip svg { width: 15px; height: 15px; }
+.card .title { font-family: var(--serif); font-size: 21px; margin-bottom: 10px; }
+.card .tagline { font-size: 14px; color: var(--accent-ink); font-style: italic; margin-bottom: 14px; flex: 1; }
+.card .tagline.todo { color: #b3b3ad; font-style: normal; font-size: 13px; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; }
+.tag {
+  font-size: 11px; letter-spacing: .05em; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px;
+}
+.tag.theme { color: var(--accent-ink); border-color: var(--accent-soft); background: var(--accent-soft); }
+/* 二级标签：与一级同色系，但只描边不填色 —— 一眼看出层级 */
+.tag.sub { color: var(--accent-ink); border-color: var(--accent-soft); background: transparent; }
+
+/* ---------- 卡片截图轮播（带 gallery 的作品） ---------- */
+.card.has-gal { padding: 14px 14px 22px; }
+.card-gal {
+  position: relative; width: 100%; aspect-ratio: 1.9; border-radius: 12px;
+  overflow: hidden; background: var(--paper-soft); margin-bottom: 18px;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.card-gal .gal-shots, .card-gal .gal-caps { position: absolute; inset: 0; }
+.card-gal .shot {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transition: opacity .55s ease; display: block;
+}
+.card-gal .shot.on { opacity: 1; }
+.card-gal .gal-caps { pointer-events: none; }
+.card-gal .cap {
+  position: absolute; left: 10px; bottom: 10px; white-space: nowrap;
+  font-size: 11px; letter-spacing: .04em; color: #fff;
+  background: rgba(20,20,20,.52); backdrop-filter: blur(6px);
+  padding: 4px 11px; border-radius: 999px; opacity: 0; transition: opacity .55s ease;
+}
+.card-gal .cap.on { opacity: 1; }
+.card-gal .gal-dots {
+  position: absolute; right: 11px; bottom: 13px; display: flex; gap: 5px; z-index: 2;
+}
+.card-gal .dot {
+  width: 6px; height: 6px; padding: 0; border: none; border-radius: 999px;
+  background: rgba(255,255,255,.55); box-shadow: 0 0 0 1px rgba(0,0,0,.18);
+  cursor: pointer; transition: all .3s;
+}
+.card-gal .dot.on { background: #fff; width: 18px; }
+.card-gal .gal-badge {
+  position: absolute; right: 10px; top: 10px; z-index: 2;
+  font-size: 11px; letter-spacing: .04em; color: #fff;
+  background: rgba(20,20,20,.5); backdrop-filter: blur(6px);
+  padding: 4px 10px; border-radius: 999px;
+  opacity: 0; transition: opacity .3s;
+}
+.card.has-gal:hover .gal-badge { opacity: 1; }
+
+/* ---------- 详情弹层 ---------- */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 100; background: rgba(26,26,26,.42);
+  display: none; align-items: flex-start; justify-content: center; padding: 6vh 5vw; overflow-y: auto;
+}
+.modal-mask.open { display: flex; }
+.modal {
+  background: var(--paper); max-width: 660px; width: 100%; border-radius: 18px;
+  padding: 46px 44px 40px; position: relative; animation: pop .3s ease;
+}
+@keyframes pop { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.modal .close {
+  position: absolute; top: 18px; right: 20px; border: none; background: none;
+  font-size: 26px; line-height: 1; color: var(--muted); cursor: pointer;
+}
+.modal .cover { font-size: 46px; margin-bottom: 14px; color: var(--accent); }
+.modal h2 { font-size: 30px; margin-bottom: 12px; }
+.modal .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.modal .tagline {
+  font-family: var(--serif); font-size: 19px; color: var(--accent-ink);
+  border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin-bottom: 22px; line-height: 1.5;
+}
+.modal .tagline.todo { color: #b3b3ad; border-left-color: var(--line); font-family: var(--sans); font-size: 14px; }
+.modal .story {
+  background: var(--paper-soft); border-radius: 12px; padding: 20px 22px; margin-bottom: 22px;
+  font-size: 15px; line-height: 1.8; color: #2c2c28; white-space: pre-line;
+}
+.modal .story.todo { color: #a8a8a2; background: transparent; border: 1px dashed var(--line-strong); font-size: 14px; }
+.modal .row { margin-bottom: 16px; }
+.modal .row .k { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+.modal .row .v { font-size: 15px; color: #2c2c28; }
+.modal .warn { font-size: 13px; color: var(--accent-ink); background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; margin-top: 8px; }
+.modal .preview-link { display: inline-block; margin-top: 8px; color: var(--accent-ink); font-size: 14px; text-decoration: none; border-bottom: 1px solid var(--accent); }
+/* 可交互演示类作品用宽版弹层：管理端/工具类按宽屏设计，窄容器里会显得局促 */
+.modal.wide { max-width: 1040px; }
+.modal.wide .tagline, .modal.wide .story { max-width: 780px; }
+
+/* ---------- 作品媒体（视频/音频/图片/PDF） ---------- */
+.media { margin: 4px 0 26px; }
+.media-note {
+  font-size: 12px; color: var(--muted); margin-bottom: 12px; letter-spacing: .02em;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.fs-btn {
+  border: 1px solid var(--line-strong); background: transparent; color: var(--ink);
+  font-family: var(--sans); font-size: 12px; letter-spacing: .04em;
+  padding: 5px 13px; border-radius: 999px; cursor: pointer; transition: all .22s; white-space: nowrap;
+}
+.fs-btn:hover { border-color: var(--accent); color: var(--accent-ink); }
+/* 竖版视频（9:16，如手机短片）：限高居中，避免在弹层里被拉成一条超长柱子 */
+.media-video video { width: auto; max-width: 100%; max-height: 72vh; display: block; margin: 0 auto; border-radius: 12px; outline: none; }
+.media-audio audio { width: 100%; border-radius: 12px; outline: none; }
+.media-images { display: flex; flex-direction: column; gap: 12px; }
+.media-images .shot { width: 100%; border-radius: 12px; border: 1px solid var(--line); display: block; background: #fff; }
+.media-iframe iframe { width: 100%; height: 440px; border: 1px solid var(--line); border-radius: 12px; }
+/* 全屏体验：iframe 撑满视口，彻底脱离弹层宽度限制 */
+.media-iframe.fullscreen {
+  position: fixed; inset: 0; z-index: 200; margin: 0; padding: 16px 18px 18px;
+  background: var(--paper); display: flex; flex-direction: column;
+}
+.media-iframe.fullscreen .media-note { flex: 0 0 auto; margin-bottom: 10px; font-size: 13px; }
+.media-iframe.fullscreen iframe { flex: 1 1 auto; height: auto !important; border-radius: 10px; }
+.media-ph { border: 1px dashed var(--line-strong); border-radius: 12px; padding: 30px 24px; text-align: center; background: var(--paper-soft); }
+.media-ph .ph-title { font-family: var(--serif); font-size: 18px; color: var(--accent-ink); margin-bottom: 10px; }
+.media-ph .ph-note { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 420px; margin: 0 auto; }
+.pdf-pages { max-height: 62vh; overflow-y: auto; border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #fff; }
+.pdf-page { position: relative; margin-bottom: 14px; }
+.pdf-page canvas, .pdf-page img { width: 100%; height: auto; border-radius: 6px; display: block; box-shadow: 0 2px 10px -6px rgba(0,0,0,.25); }
+.pdf-page img { background: #fff; }
+.pdf-page.blurred canvas, .pdf-page.blurred img { filter: blur(11px); }
+.pdf-cover { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(250,250,248,.28); color: var(--muted); font-size: 13px; letter-spacing: .25em; border-radius: 6px; }
+.pdf-loading, .pdf-fallback { color: var(--muted); font-size: 13px; padding: 12px 4px; }
+/* 附加的深度报告样章：与主演示在弹层里上下排列 */
+.media-report { margin-top: 20px; }
+.media-report .media-note { font-weight: 500; color: var(--ink); }
+
+/* ---------- 联系 ---------- */
+#contact { border-top: 1px solid var(--line); }
+#contact .ways { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 10px; }
+#contact .way .k { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+#contact .way .v { font-family: var(--serif); font-size: 18px; }
+#contact .qr-note { margin-top: 18px; color: var(--muted); font-size: 14px; }
+#contact .way-qr { display: flex; flex-direction: column; gap: 11px; align-items: flex-start; }
+#contact .qr-img { width: 168px; height: 168px; border-radius: 12px; border: 1px solid var(--line); background: #fff; object-fit: contain; }
+.footer { padding: 30px 6vw 50px; color: var(--muted); font-size: 12px; letter-spacing: .04em; }
+
+/* ---------- 滚动淡入 ---------- */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+/* ---------- 移动端（≤600px） ----------
+ * 手机上导航是「最先被看见、也最容易挤爆」的一条。
+ * 实测（2026-09-11，iPhone 390px）：品牌名 + 4 个链接 + 「换一种气质」按钮的自然
+ * 宽度约 352px，可用宽度只有 343px。而中文可以在任意两字之间断行，浏览器为了塞下
+ * 它，就把每个链接压成了竖着的两行 ——「关于/我」「作品/集」「履/历」「联/系」，
+ * 导航栏看上去像坏了。这是手机端唯一的真问题，其余部分（网格、正文字号、卡片）
+ * 都能自动适配。
+ * 修法：链接和按钮钉住 nowrap（不许断行）+ 收紧间距与字号；按钮文案在窄屏换短版。
+ * ⚠️ 这一段只在 ≤600px 生效，电脑端一个像素都不会动。 */
+@media (max-width: 600px) {
+  .nav { padding: 14px 5vw; }
+  .nav .brand { font-size: 16px; }
+  .nav .links { gap: 10px; }
+  .nav .links a { font-size: 13px; white-space: nowrap; }
+  .accent-btn { font-size: 12px; padding: 5px 10px; white-space: nowrap; }
+  .accent-btn .lbl-full { display: none; }
+  .accent-btn .lbl-short { display: inline; }
+  .modal { padding: 38px 24px 32px; }
+}
+
+/* 更窄的老机型（≤380px，如 iPhone SE 一代 320px）：再让一步，留出安全余量。
+ * 上面那档在 320px 只剩 8px 余量 —— 下次加一个导航项就会再崩。这里再收紧一点，
+ * 把余量拉到 30px 左右，给未来留空间。390px 及以上完全不受影响。 */
+@media (max-width: 380px) {
+  .nav { padding: 13px 4vw; }
+  .nav .brand { font-size: 15px; }
+  .nav .links { gap: 8px; }
+  .nav .links a { font-size: 12.5px; }
+  .accent-btn { font-size: 11.5px; padding: 5px 9px; }
+}
+
+/* ---------- 完整履历（密码锁定区） ---------- */
+.resume-section { border-top: 1px solid var(--line); }
+.resume-lead { max-width: 680px; font-size: 16px; color: #2c2c28; margin-bottom: 34px; }
+.resume-lock { max-width: 780px; }
+.lock-closed {
+  border: 1px solid var(--line); border-radius: 18px; padding: 42px 30px;
+  text-align: center; background: var(--paper-soft);
+}
+.lock-badge { color: var(--accent); margin-bottom: 14px; display: inline-block; }
+.lock-title { font-family: var(--serif); font-size: 22px; margin-bottom: 6px; }
+.lock-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.lock-hint { color: var(--muted); font-size: 12px; line-height: 1.6; margin: -12px 0 18px; opacity: .85; }
+.lock-form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.lock-input {
+  border: 1px solid var(--line-strong); border-radius: 999px; padding: 10px 18px;
+  font-family: var(--sans); font-size: 14px; width: 220px; background: #fff; color: var(--ink);
+}
+.lock-input:focus { outline: none; border-color: var(--accent); }
+.lock-btn {
+  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  border-radius: 999px; padding: 10px 26px; font-family: var(--sans); font-size: 14px; cursor: pointer;
+  transition: all .25s;
+}
+.lock-btn:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
+.lock-error { color: #b4493f; font-size: 13px; margin-top: 16px; min-height: 18px; }
+
+.resume-content { animation: pop .35s ease; }
+.resume-intro { font-size: 16px; color: #2c2c28; margin-bottom: 30px; line-height: 1.8; }
+.resume-h3 {
+  font-family: var(--serif); font-size: 17px; color: var(--accent-ink);
+  margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+}
+.timeline { display: flex; flex-direction: column; gap: 22px; }
+.tl-item { display: flex; gap: 20px; }
+.tl-period { flex: 0 0 130px; color: var(--muted); font-size: 13px; padding-top: 2px; }
+.tl-body { flex: 1; }
+.tl-role { font-family: var(--serif); font-size: 17px; }
+.tl-company { color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+.tl-points { margin: 6px 0 0; padding-left: 18px; color: #2c2c28; font-size: 14px; line-height: 1.7; }
+.courses { display: flex; flex-direction: column; gap: 10px; }
+.course { display: flex; gap: 14px; align-items: baseline; font-size: 14px; flex-wrap: wrap; }
+.course-year { color: var(--accent-ink); font-weight: 500; flex: 0 0 70px; }
+.course-name { font-family: var(--serif); font-size: 16px; }
+.course-note { color: var(--muted); font-size: 13px; flex: 1; min-width: 200px; }
+.edu { display: flex; flex-direction: column; gap: 8px; }
+.edu-item { display: flex; gap: 14px; align-items: baseline; }
+.edu-school { font-family: var(--serif); font-size: 16px; flex: 0 0 200px; }
+.edu-major { color: var(--muted); font-size: 14px; }
+.resume-profile { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.resume-profile li { position: relative; padding-left: 18px; color: #2c2c28; font-size: 14px; line-height: 1.7; }
+.resume-profile li::before { content: ''; position: absolute; left: 2px; top: .6em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.project-list { display: flex; flex-direction: column; gap: 20px; }
+.project-item { border-left: 2px solid var(--line); padding: 0 0 2px 16px; }
+.project-head { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.project-period { color: var(--muted); font-size: 13px; flex: 0 0 112px; }
+.project-name { font-family: var(--serif); font-size: 16px; font-weight: 600; }
+.project-company { color: var(--muted); font-size: 13px; }
+.project-role { color: var(--accent-ink); font-size: 13px; }
+.project-desc { margin: 6px 0 0; color: #2c2c28; font-size: 14px; line-height: 1.8; }
+.skill-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.skill-tag { border: 1px solid var(--line); border-radius: 20px; padding: 4px 14px; font-size: 13px; color: #2c2c28; }
+.priv-works { display: flex; flex-direction: column; gap: 12px; }
+.priv-item { border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+.priv-title { font-family: var(--serif); font-size: 16px; display: block; }
+
+@media (max-width: 600px) {
+  .tl-item { flex-direction: column; gap: 6px; }
+  .tl-period { flex-basis: auto; }
+  .project-period { flex-basis: auto; }
+}
+
+/* ============================================================
+ * 门厅（Gate）· 两站共用，是「作品世界」之前的一扇门
+ * ------------------------------------------------------------
+ * 结构：canvas（水母光晕）+ 中英文信条 + 署名落款 + 底部滚动提示
+ * 入场：信条各行依次上浮醒来（gate-rise，见下）；JS 不可用时静态呈现
+ * 交互：鼠标/手指划过 → 一枚大光晕（60px）慵懒跟随，像水母漂浮，停下不散尽、轻轻呼吸；
+ *       往下滚 → 整屏淡出，门消失、作品世界浮现（可逆：滚回顶部，门会回来）
+ *
+ * 为什么是 fixed 覆盖层（而不是占一屏的普通区块）：
+ *   门是「盖在网站上的一层」，页面内容本来就在文档顶部，只是被门挡住了。
+ *   穿门时门淡出，网站直接透出来 —— 全程没有一帧空白。
+ *   若做成普通区块（relative + 100vh），门淡出后那 100vh 仍在文档流里占位，
+ *   而门的底色与页面底色同为 --paper，滚到中段会看到一大片"白纸"（2026-09-11 实测拍到的）。
+ *   代价：门不占位，所以滚过半屏穿门后，页面也已滚过半屏（hero 顶部留白被跳过）——
+ * ⚠️ 但只靠"门盖在上面"是不够的（2026-09-11 用户实测反馈"回弹"）：门淡出时
+ *    页面自己也在滚 —— 门还没散尽，标题已经被推上去半屏，访客滚到底得往回
+ *    滚一下才能看全。所以另配一个 .gate-run（跑道）：凭空给门留出一屏可推的距离，
+ *    让门散尽那一刻，内容顶边正好贴到视口顶边。
+ * z-index 60：盖住 sticky 导航（50），但低于弹层（100），弹层打开时不受影响。
+ * 高度用 100svh 兜底手机地址栏：100vh 会把地址栏高度算进去，导致内容被裁。
+ *
+ * ⚠️ 这里刻意不写 CSS transition：淡出由 JS 按滚动进度逐帧设置 opacity，
+ *    若再加过渡，两者会互相追赶、产生黏滞感（2026-09-11 实测）。
+ * ============================================================ */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 clamp(24px, 6vw, 90px);
+  /* 底色交给 .gate-veil（见下），才能把「信条退场」与「白雾散去」拆成两条时间轴。
+   * 若底色写在这里，opacity 一降就是整块门变透明，信条会和网页文字叠成双层字。 */
+  background: transparent;
+  /* 门厅使用浅色文字以适配深色背景 */
+  color: #E8E6E3;
+  overflow: hidden;
+}
+
+/* 白雾：不再是"盖满屏的一层纸"，而是跟着「内容顶边」走的一道雾。
+ * 雾永远只落在内容顶边以上 —— 而那块区域本来就是空白（跑道），
+ * 所以正文从雾下面升上来时始终是清晰的，不会被洗白成一片灰白。
+ *   （旧写法是整块门一起降 opacity，正文会长时间泡在雾里 ——
+ *    2026-09-11 用户截图反馈的"有白雾"就是这个。）
+ * --veil-cut 由 JS 每帧按「内容顶边此刻在视口里的位置」写进来。
+ * 兜底值 100vh：万一 JS 没跑起来，雾整屏都是纸，门依旧是完整的一扇门。 */
+.gate-veil {
+  position: absolute; inset: 0;
+  --veil-cut: 100vh;
+  --veil-soft: 200px;
+  /* 门厅使用深色背景(#0d1318)，营造"沉静、深邃、内省"的入口空间，
+   * 与白色内页形成"暗→亮"的叙事递进（沉淀→穿门→展开）。
+   * 渐变到透明，让白色内容从暗色门厅下平滑升起。 */
+  background: linear-gradient(to bottom,
+      #0d1318 0 var(--veil-cut),
+      transparent calc(var(--veil-cut) + var(--veil-soft)));
+  pointer-events: none;
+}
+
+/* 门厅跑道：给门留出一屏"可推的距离"，没有颜色、没有内容，只负责占位。
+ * 它是"回弹"的解药：有它，门散尽那一刻内容顶边正好贴到视口顶边；
+ * 没它，门散尽时页面早滚过半屏，标题被推上去，访客得往回滚一下才能看全。 */
+.gate-run { height: 100vh; height: 100svh; }
+
+/* canvas 铺满门厅，只画点点，不接收鼠标事件 */
+.gate-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+/* 信条：中文衬线大字居中，英文小一号斜体作副句。
+ * text-indent 补最后一字的字距，否则整行会视觉偏左。 */
+.gate-motto { position: relative; z-index: 1; max-width: 1000px; text-align: center; }
+.gate-zh {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(34px, 7.2vw, 88px);
+  line-height: 1.42;
+  letter-spacing: .07em;
+  text-indent: .07em;
+  /* 暗色背景下使用浅色文字 */
+  color: #E8E6E3;
+  /* 窄屏信条会折行。默认按最后一字能塞下就断,会出现「一切都是最好的 / 安排」这种 7+2,
+   * 视觉一头沉。balance 让浏览器把两行配到等长(9 字 → 5+4)。
+   * 不支持的浏览器自动退回普通折行,不影响可用性,故不写前缀兜底。 */
+  text-wrap: balance;
+}
+.gate-en {
+  margin-top: clamp(18px, 2.4vw, 30px);
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(13px, 1.5vw, 21px);
+  letter-spacing: .05em;
+  text-indent: .05em;
+  color: var(--muted);
+}
+/* 署名落款（2026-09-11 用户拍板，2026-09-12 改手写签名体）：像书法作品末尾的署名，回答"这扇门是谁的门"。
+ * 信条本身一字不动 —— 混进名字会稀释信念的力量。两站各签各的名（文案由构建脚本按站生成，
+ * ⚠️ 别在这份共用 CSS 的注释里写任何一方的名字 —— 两站共用同一份 CSS，写了就会互相泄漏，
+ *    构建期 scanLeak 会拦）。 */
+.gate-sign {
+  margin-top: clamp(24px, 3.4vw, 40px);
+  font-family: 'Parisienne', cursive;
+  font-weight: 400;
+  font-size: clamp(18px, 2vw, 26px);
+  letter-spacing: .1em;
+  text-indent: .1em;
+  color: var(--muted);
+}
+
+/* 入场：一行一行"醒"过来（参考 antigravity.google 的生命感，2026-09-11 用户点名）。
+ * 各行依次上浮淡入：中文 → 英文 → 署名 → 滚动提示，一屏之内完成一场小小的开幕。
+ * ⚠️ 动画只放在**子元素**上：滚动淡出由 JS 逐帧写 .gate-motto / .gate-hint 的
+ *    inline opacity（父层），两层各管各的，互不打架 —— 别把入场动画挪到父层，
+ *    那会和逐帧淡出互相追赶（门厅块顶部的教训）。 */
+@keyframes gate-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+.gate-zh     { animation: gate-rise 1.1s cubic-bezier(.22, 1, .36, 1) .15s both; }
+.gate-en     { animation: gate-rise 1.1s cubic-bezier(.22, 1, .36, 1) .55s both; }
+.gate-sign   { animation: gate-rise 1.1s cubic-bezier(.22, 1, .36, 1) .95s both; }
+.gate-hint > span {
+  display: inline-block;
+  animation: gate-rise 1.1s cubic-bezier(.22, 1, .36, 1) 1.4s both;
+}
+
+/* 底部滚动提示：竖线（"门缝"）+ 文案；绝对定位，不干扰信条居中 */
+.gate-hint {
+  position: absolute; left: 0; right: 0; bottom: clamp(26px, 5vh, 54px);
+  z-index: 1;
+  text-align: center;
+  font-size: 11px; letter-spacing: .34em; text-indent: .34em;
+  color: var(--muted); opacity: .62;
+  white-space: nowrap;
+}
+.gate-hint::before {
+  content: ""; display: block; width: 1px; height: 34px;
+  margin: 0 auto 12px; background: currentColor; opacity: .55;
+  transform-origin: top center;
+  animation: gate-drip 2.6s ease-in-out infinite;
+}
+@keyframes gate-drip {
+  0%, 100% { transform: scaleY(.45); opacity: .25; }
+  50%      { transform: scaleY(1);   opacity: .7; }
+}
+
+/* 手机：窄屏字要大一点才压得住场；提示贴底，避免与信条抢位置 */
+@media (max-width: 600px) {
+  .gate { padding: 0 22px; }
+  .gate-zh { font-size: clamp(32px, 9.4vw, 44px); line-height: 1.5; }
+  .gate-en { letter-spacing: .1em; text-indent: .1em; }
+  .gate-hint { bottom: 22px; font-size: 10px; }
+  /* 手机上"推门"的行程缩短：一屏半的滚动在手机上是好几次滑动，太累 */
+  .gate-run { height: 78vh; height: 78svh; }
+}

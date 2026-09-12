@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外贸客户管理 CRM · 功能演示</title>
+<style>
+:root{
+  --navy:#0F172A; --blue:#1D4ED8; --teal:#0F766E; --green:#16A34A; --gold:#F59E0B; --red:#DC2626;
+  --gray:#F8FAFC; --mid:#E2E8F0; --dark:#334155; --text:#111827;
+  --paper:#F3F6FA; --ink:#0B1220; --line:#D7E0EA; --muted:#5D6B82;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Microsoft YaHei",Arial,sans-serif;background:linear-gradient(180deg,#F8FAFC 0,#EFF6FF 45%,#F8FAFC 100%);color:var(--text)}
+
+/* 演示横幅 */
+.demo-banner{background:#FEF3C7;color:#78350F;font-size:13px;padding:9px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #FDE68A}
+.demo-banner button{margin-left:auto;border:0;background:rgba(120,53,15,.12);border-radius:999px;width:22px;height:22px;cursor:pointer;color:#78350F;font-size:12px;line-height:1}
+
+/* 侧栏 + 主区布局 */
+.layout{display:flex;min-height:640px}
+.side{width:196px;flex:0 0 196px;background:linear-gradient(180deg,var(--navy),#172554);color:#CBD5E1;padding:18px 0;display:flex;flex-direction:column}
+.side .logo{padding:0 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.side .logo .t{font-weight:800;color:#fff;font-size:17px;letter-spacing:.04em}
+.side .logo .s{font-size:11px;color:#93C5FD;letter-spacing:.14em;margin-top:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:13px 20px;cursor:pointer;font-size:14px;font-weight:600;border-left:4px solid transparent;transition:.15s}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.on{background:rgba(59,130,246,.18);color:#fff;border-left-color:var(--gold)}
+.side .foot{margin-top:auto;padding:14px 18px;font-size:11px;color:#64748B;border-top:1px solid rgba(255,255,255,.08);line-height:1.7}
+.main{flex:1 1 auto;min-width:0;padding:22px 26px}
+
+.page{display:none}
+.page.on{display:block}
+
+/* 通用卡片与标题 */
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 32px rgba(15,23,42,.07);padding:18px 20px;margin-bottom:16px}
+.card h3{margin:0 0 14px;font-size:15px;color:var(--navy)}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:#3B82F6;font-weight:800}
+.page-title{margin:2px 0 16px;font-size:22px;color:var(--navy)}
+.page-sub{color:var(--muted);font-size:13px;margin:-10px 0 16px;line-height:1.7}
+
+/* 工作台 */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 14px 32px rgba(15,23,42,.06)}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600}
+.stat .v{font-size:28px;font-weight:800;color:var(--navy);margin-top:6px}
+.stat .v small{font-size:12px;color:var(--green);font-weight:700;margin-left:6px}
+.stat .d{font-size:11px;color:var(--muted);margin-top:6px}
+.dash-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:16px}
+
+/* 趋势柱状图 */
+.chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:6px 4px 0}
+.chart .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.chart .bar i{display:block;width:70%;max-width:34px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#60A5FA,var(--blue));min-height:6px;transition:height .5s}
+.chart .bar.hot i{background:linear-gradient(180deg,#FBBF24,var(--gold))}
+.chart .bar b{font-size:11px;color:var(--muted);font-weight:600}
+
+/* 时间线 */
+.tl{list-style:none;margin:0;padding:0}
+.tl li{position:relative;padding:0 0 16px 24px;border-left:2px solid var(--mid);margin-left:6px}
+.tl li:last-child{padding-bottom:2px}
+.tl li::before{content:"";position:absolute;left:-6px;top:3px;width:10px;height:10px;border-radius:50%;background:#fff;border:3px solid var(--blue)}
+.tl li.gold::before{border-color:var(--gold)}
+.tl li.green::before{border-color:var(--green)}
+.tl .d{font-size:11px;color:var(--muted)}
+.tl .c{font-size:13px;margin-top:2px;line-height:1.6}
+.tl .c b{color:var(--navy)}
+.tag-ch{display:inline-block;font-size:10px;font-weight:800;padding:1px 8px;border-radius:999px;margin-right:6px;vertical-align:1px}
+.ch-mail{background:#DBEAFE;color:#1D4ED8}
+.ch-wa{background:#D1FAE5;color:#0F766E}
+.ch-call{background:#FEF3C7;color:#92400E}
+.ch-meet{background:#EDE9FE;color:#6D28D9}
+.ch-show{background:#FCE7F3;color:#BE185D}
+
+/* 工具栏 + 表格 */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar input[type=text]{flex:1 1 200px;min-width:160px;border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:13px;background:#fff;font-family:inherit}
+.toolbar select{border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:13px;background:#fff;color:var(--dark);font-family:inherit}
+.btn{border:0;border-radius:999px;padding:10px 17px;font-weight:800;cursor:pointer;background:#fff;color:var(--navy);box-shadow:0 8px 22px rgba(15,23,42,.08);transition:.16s;font-size:13px;font-family:inherit}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(15,23,42,.14)}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.gold{background:var(--gold);color:#3B2A08}
+.btn.sm{padding:7px 13px;font-size:12px;box-shadow:none}
+table.cust{width:100%;border-collapse:collapse;font-size:13px}
+table.cust th{background:#F1F5F9;color:#475569;font-size:11px;letter-spacing:.06em;padding:10px 12px;text-align:left;border-bottom:1px solid var(--mid);white-space:nowrap}
+table.cust td{padding:11px 12px;border-bottom:1px solid #EEF2F7;vertical-align:middle}
+table.cust tr.row{cursor:pointer;transition:.12s}
+table.cust tr.row:hover{background:#F8FAFF}
+.lvl{display:inline-block;font-weight:800;font-size:12px;width:26px;height:26px;line-height:26px;text-align:center;border-radius:8px}
+.lvl.A{background:#DCFCE7;color:#15803D}
+.lvl.B{background:#FEF9C3;color:#A16207}
+.lvl.C{background:#F1F5F9;color:#64748B}
+.st{display:inline-block;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px}
+.st.active{background:#DBEAFE;color:#1D4ED8}
+.st.deal{background:#DCFCE7;color:#15803D}
+.st.dormant{background:#F1F5F9;color:#94A3B8}
+.dim{color:var(--muted);font-size:12px}
+.next{font-size:12px;color:#B45309;font-weight:600}
+table.cust .op{color:var(--blue);font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap}
+
+/* 场景快捷分类 */
+.scenes{display:flex;gap:8px;flex-wrap:wrap;margin:-2px 0 14px}
+.scene{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--dark);cursor:pointer;transition:.15s;font-family:inherit}
+.scene:hover{border-color:#93C5FD;color:var(--blue)}
+.scene.on{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 8px 18px rgba(15,23,42,.22)}
+
+/* 客户 / 产品详情 */
+.back{border:0;background:none;color:var(--blue);font-weight:700;font-size:13px;cursor:pointer;padding:0;margin-bottom:12px}
+.detail-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.detail-head h2{margin:0;font-size:20px;color:var(--navy)}
+.detail-head .flag{font-size:26px}
+.info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.info-grid .cell{background:#F8FAFC;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.info-grid .k{font-size:11px;color:var(--muted)}
+.info-grid .v{font-size:13px;font-weight:700;color:var(--dark);margin-top:3px}
+.contact-card{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fff}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#60A5FA,#1D4ED8);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px}
+.contact-card .nm{font-weight:700;font-size:13px}
+.contact-card .rl{font-size:11px;color:var(--muted)}
+.contact-card .ct{font-size:12px;color:var(--dark);margin-top:2px;word-break:break-all}
+
+/* ===== 邮件模板（1:1 复刻真实版：变量面板 + 全库实时替换）===== */
+.varpanel{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.varpanel .vh{font-size:13px;font-weight:800;color:var(--blue);margin-bottom:12px}
+.vargrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--dark);margin-bottom:5px}
+.fg input{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;background:#fff;font-family:inherit}
+.fg input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,.13)}
+.varhint{font-size:11.5px;color:#3F5872;margin-top:11px;line-height:1.75}
+.varhint b{color:#B45309}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;color:var(--dark);cursor:pointer;transition:.15s;font-family:inherit}
+.tabs button:hover{border-color:#93C5FD;color:var(--blue)}
+.tabs button.on{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 8px 18px rgba(29,78,216,.24)}
+.tabs button span{font-size:11px;opacity:.75;margin-left:2px}
+.tpl{border:1px solid var(--line);border-radius:14px;background:#fff;margin-bottom:14px;overflow:hidden}
+.tpl .hd{display:flex;align-items:center;gap:10px;padding:13px 16px;background:#F8FAFC;border-bottom:1px solid var(--line);cursor:pointer}
+.tpl:not(.open) .hd{border-bottom:0}
+.tpl .hd b{font-size:14px;color:var(--navy)}
+.tpl .hd .tag{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:#EFF6FF;color:var(--blue);border:1px solid #BFDBFE;white-space:nowrap}
+.tpl .hd [data-copy]{margin-left:auto}
+.tpl .hd .arr{margin-left:6px;color:var(--muted);transition:.2s;font-size:12px}
+.tpl.open .hd .arr{transform:rotate(180deg)}
+.tpl .bd{display:none;padding:16px 18px}
+.tpl.open .bd{display:block}
+.lbl{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:0 0 5px}
+.tpl .subj{font-size:13.5px;font-weight:700;color:var(--navy);padding:9px 12px;background:#FAFBFC;border-radius:8px;border-left:3px solid var(--blue);margin-bottom:12px;line-height:1.6}
+.tpl pre{white-space:pre-wrap;font-family:"Microsoft YaHei",Arial,sans-serif;font-size:12.5px;line-height:1.9;color:var(--dark);background:#FAFBFC;border:1px dashed var(--mid);border-radius:10px;padding:14px 16px;margin:0 0 12px}
+.hl{background:#FEF9C3;color:#B45309;padding:1px 6px;border-radius:4px;font-weight:700}
+.vars{display:flex;gap:8px;flex-wrap:wrap}
+.vars span{font-size:11px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:999px;padding:2px 10px}
+
+/* 模态框 + toast */
+.mask{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.mask.on{display:flex}
+.modal{background:#fff;border-radius:16px;box-shadow:0 30px 60px rgba(15,23,42,.3);width:560px;max-width:96vw;max-height:90vh;overflow:auto;padding:22px 24px}
+.modal h3{margin:0 0 16px;font-size:16px;color:var(--navy)}
+.frm label{display:block;font-size:12px;font-weight:700;color:var(--dark);margin:12px 0 5px}
+.frm input,.frm select,.frm textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit}
+.frm textarea{min-height:110px;resize:vertical;line-height:1.7}
+.frm .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal .ft{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.dl{display:grid;grid-template-columns:110px 1fr;gap:8px 14px;font-size:13px;margin-top:4px}
+.dl .k{color:var(--muted);font-size:12px}
+.dl .v{color:var(--dark);font-weight:600;word-break:break-all}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;font-size:13px;padding:10px 20px;border-radius:999px;opacity:0;transition:.25s;z-index:99;pointer-events:none;box-shadow:0 14px 30px rgba(15,23,42,.3)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:860px){
+  .layout{flex-direction:column}
+  .side{width:100%;flex:none;flex-direction:row;align-items:center;padding:0 8px;overflow-x:auto}
+  .side .logo{border:0;padding:12px 10px}
+  .nav-item{border-left:0;border-bottom:4px solid transparent;padding:12px 10px;white-space:nowrap}
+  .nav-item.on{border-bottom-color:var(--gold)}
+  .side .foot{display:none}
+  .stats{grid-template-columns:1fr 1fr}
+  .dash-grid{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  📋 网页演示版 · 真实版的功能复刻：客户档案 / 写跟进 / 产品库 / 邮件模板变量替换都能上手点；真实版另含账号体系、团队协作与云端数据后端
+  <button onclick="this.parentNode.remove()" title="知道了">✕</button>
+</div>
+
+<div class="layout">
+  <aside class="side">
+    <div class="logo">
+      <div class="t">TradeCRM</div>
+      <div class="s">CUSTOMER MANAGER</div>
+    </div>
+    <div class="nav-item on" data-page="dashboard">📊 工作台</div>
+    <div class="nav-item" data-page="customers">🤝 客户管理</div>
+    <div class="nav-item" data-page="products">📦 产品库</div>
+    <div class="nav-item" data-page="templates">✉️ 邮件模板</div>
+    <div class="foot">演示数据均为虚构<br>仅还原真实版功能与交互</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ============ 工作台 ============ -->
+    <section class="page on" id="page-dashboard">
+      <div class="eyebrow">DASHBOARD</div>
+      <h1 class="page-title">工作台</h1>
+      <div class="stats">
+        <div class="stat"><div class="k">客户总数</div><div class="v">128<small>↑ 本月 +9</small></div><div class="d">覆盖 23 个国家 · 欧洲占 54%</div></div>
+        <div class="stat"><div class="k">7 天内待跟进</div><div class="v">23</div><div class="d">其中 A 级客户 6 个，已置顶提醒</div></div>
+        <div class="stat"><div class="k">高意向（A 级）</div><div class="v">18</div><div class="d">近 30 天有互动且明确需求</div></div>
+        <div class="stat"><div class="k">本月成交客户</div><div class="v">4<small>↑ 1</small></div><div class="d">样品转订单平均周期 21 天</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card">
+          <h3>近 8 周跟进量趋势</h3>
+          <div class="chart" id="chart"></div>
+        </div>
+        <div class="card">
+          <h3>最近跟进动态</h3>
+          <ul class="tl" id="recent-tl"></ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3>⏰ 待办提醒</h3>
+        <ul class="tl" id="todo-tl"></ul>
+      </div>
+    </section>
+
+    <!-- ============ 客户管理 ============ -->
+    <section class="page" id="page-customers">
+      <div id="cust-list-view">
+        <div class="eyebrow">CUSTOMERS</div>
+        <h1 class="page-title">客户管理</h1>
+        <p class="page-sub">先按场景分一类，再输入名字一键检索——这正是真实版里"客户信息沉淀成资产"的用法。点任意一行可查看完整档案。</p>
+
+        <div class="scenes" id="scenes">
+          <button class="scene on" data-scene="">全部客户</button>
+          <button class="scene" data-scene="due">⏰ 待跟进</button>
+          <button class="scene" data-scene="A">⭐ A 级高意向</button>
+          <button class="scene" data-scene="deal">🤝 已成交</button>
+          <button class="scene" data-scene="dormant">💤 沉睡待唤醒</button>
+        </div>
+
+        <div class="toolbar">
+          <input type="text" id="q" placeholder="🔍 输入公司 / 联系人名字 / 邮箱 / 国家，一键调取…">
+          <select id="f-level"><option value="">意向等级</option><option value="A">A · 高意向</option><option value="B">B · 培育中</option><option value="C">C · 观察池</option></select>
+          <select id="f-status"><option value="">客户状态</option><option value="active">进行中</option><option value="deal">已成交</option><option value="dormant">沉睡</option></select>
+          <select id="f-country"><option value="">全部国家</option></select>
+          <button class="btn primary" id="btn-add">＋ 新增客户</button>
+          <button class="btn" id="btn-csv">⬇ 导出 CSV</button>
+        </div>
+        <div class="card" style="padding:0;overflow:auto">
+          <table class="cust">
+            <thead><tr><th>公司</th><th>国家</th><th>主联系人</th><th>等级</th><th>状态</th><th>最近跟进</th><th>下一步</th><th></th></tr></thead>
+            <tbody id="cust-rows"></tbody>
+          </table>
+        </div>
+        <p class="dim" id="cust-count" style="text-align:right"></p>
+      </div>
+
+      <div id="cust-detail-view" style="display:none">
+        <button class="back" id="btn-back">← 返回客户列表</button>
+        <div id="detail-body"></div>
+      </div>
+    </section>
+
+    <!-- ============ 产品库 ============ -->
+    <section class="page" id="page-products">
+      <div class="eyebrow">PRODUCTS</div>
+      <h1 class="page-title">产品库</h1>
+      <p class="page-sub">产品资料集中沉淀，报价时直接调用。按品类筛选，或输入产品名 / 工厂所在地检索。</p>
+      <div class="toolbar">
+        <input type="text" id="pq" placeholder="🔍 搜索产品名称 / 规格 / 工厂所在地…">
+        <select id="pf-cat"><option value="">全部品类</option></select>
+        <button class="btn primary" id="btn-add-prod">＋ 添加产品</button>
+        <button class="btn" id="btn-pcsv">⬇ 导出 CSV</button>
+      </div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table class="cust">
+          <thead><tr><th>产品</th><th>品类</th><th>MOQ</th><th>出厂价</th><th>含税运价</th><th>报价 USD</th><th>工厂所在地</th><th></th></tr></thead>
+          <tbody id="prod-rows"></tbody>
+        </table>
+      </div>
+      <p class="dim" id="prod-count" style="text-align:right"></p>
+    </section>
+
+    <!-- ============ 邮件模板 ============ -->
+    <section class="page" id="page-templates">
+      <div class="eyebrow">EMAIL TEMPLATES</div>
+      <h1 class="page-title">邮件模板</h1>
+      <p class="page-sub">外贸开发信模板库 · 一键复制 · 智能变量替换。先在下面填一次你的名字和客户名字，整库模板会实时替换——这就是真实版"改一处、全库生效"的核心设计。</p>
+
+      <div class="varpanel">
+        <div class="vh">⚙️ 快速变量设置（填写后模板自动替换）</div>
+        <div class="vargrid">
+          <div class="fg"><label>你的名字</label><input id="tpl-your-name" placeholder="如：Kevin"></div>
+          <div class="fg"><label>你的公司名</label><input id="tpl-company" placeholder="如：ABC Trading Co."></div>
+          <div class="fg"><label>客户名字</label><input id="tpl-client" placeholder="如：John"></div>
+          <div class="fg"><label>产品名称</label><input id="tpl-product" placeholder="如：LED Camping Lantern"></div>
+          <div class="fg"><label>你的职位</label><input id="tpl-title" placeholder="如：Sales Manager"></div>
+          <div class="fg"><label>你的邮箱</label><input id="tpl-email" placeholder="如：sales@yourcompany.com"></div>
+        </div>
+        <div class="varhint" id="tpl-hint"></div>
+      </div>
+
+      <div class="tabs" id="tpl-tabs"></div>
+      <div id="tpl-list"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- 新增客户模态框 -->
+<div class="mask" id="mask-cust">
+  <div class="modal frm">
+    <h3>＋ 新增客户</h3>
+    <div class="row2">
+      <div><label>公司名称 *</label><input id="n-company" placeholder="比如：Nordwind Handels GmbH"></div>
+      <div><label>国家 / 地区</label><input id="n-country" placeholder="比如：德国"></div>
+    </div>
+    <div class="row2">
+      <div><label>主联系人</label><input id="n-contact" placeholder="姓名"></div>
+      <div><label>邮箱</label><input id="n-email" placeholder="name@example.com"></div>
+    </div>
+    <div class="row2">
+      <div><label>意向等级</label><select id="n-level"><option value="B">B · 培育中</option><option value="A">A · 高意向</option><option value="C">C · 观察池</option></select></div>
+      <div><label>客户来源</label><select id="n-source"><option>询盘</option><option>展会</option><option>主动开发</option><option>老客转介绍</option></select></div>
+    </div>
+    <label>主营产品 / 备注</label>
+    <input id="n-note" placeholder="比如：户外照明 · 连锁零售">
+    <div class="ft"><button class="btn" id="c-cancel">取消</button><button class="btn primary" id="c-save">保存</button></div>
+  </div>
+</div>
+
+<!-- 写跟进模态框 -->
+<div class="mask" id="mask-followup">
+  <div class="modal frm">
+    <h3>✍️ 写跟进 · <span id="fu-company" style="color:var(--blue)"></span></h3>
+    <div class="row2">
+      <div><label>跟进方式</label><select id="fu-channel"><option value="邮件">邮件</option><option value="WhatsApp">WhatsApp</option><option value="电话">电话</option><option value="视频会议">视频会议</option><option value="展会面谈">展会面谈</option></select></div>
+      <div><label>日期</label><input type="date" id="fu-date"></div>
+    </div>
+    <label>跟进内容 *</label>
+    <textarea id="fu-note" placeholder="沟通要点、客户反馈、达成的共识、待办事项…"></textarea>
+    <div class="ft"><button class="btn" id="fu-cancel">取消</button><button class="btn gold" id="fu-save">保存跟进</button></div>
+  </div>
+</div>
+
+<!-- 添加产品模态框 -->
+<div class="mask" id="mask-prod">
+  <div class="modal frm">
+    <h3>＋ 添加产品</h3>
+    <div class="row2">
+      <div><label>产品名称 *</label><input id="p-name" placeholder="比如：USB-C 充电露营灯"></div>
+      <div><label>品类</label><input id="p-cat" placeholder="比如：露营灯"></div>
+    </div>
+    <label>规格 / 描述</label>
+    <input id="p-spec" placeholder="比如：IPX5 防水 · 3 档亮度 · 4000mAh">
+    <div class="row2">
+      <div><label>MOQ（起订量）</label><input id="p-moq" placeholder="500"></div>
+      <div><label>工厂所在地</label><input id="p-loc" placeholder="深圳"></div>
+    </div>
+    <div class="row2">
+      <div><label>出厂价（¥）</label><input id="p-factory" placeholder="25.50"></div>
+      <div><label>含税运价（¥）</label><input id="p-tax" placeholder="32.80"></div>
+    </div>
+    <div class="row2">
+      <div><label>报价（USD）</label><input id="p-quote" placeholder="8.99"></div>
+      <div><label>备注</label><input id="p-note" placeholder="爆款型号"></div>
+    </div>
+    <div class="ft"><button class="btn" id="p-cancel">取消</button><button class="btn primary" id="p-save">保存</button></div>
+  </div>
+</div>
+
+<!-- 产品详情模态框 -->
+<div class="mask" id="mask-pdetail">
+  <div class="modal">
+    <h3 id="pd-title">产品详情</h3>
+    <div class="dl" id="pd-body"></div>
+    <div class="ft"><button class="btn primary" id="pd-close">关闭</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 数据（全部虚构） ================= */
+var CH = {'邮件':'ch-mail','WhatsApp':'ch-wa','电话':'ch-call','视频会议':'ch-meet','展会面谈':'ch-show'};
+
+var CUSTOMERS = [
+ {id:1, company:'Nordwind Handels GmbH', country:'德国', flag:'🇩🇪', level:'A', status:'deal', source:'展会', product:'户外照明 · 露营装备连锁',
+  contacts:[{name:'Lukas Weber', role:'采购总监', email:'l.weber@nordwind-demo.com', wa:'+49 15X XXXX 2210'},{name:'Anna Schulz', role:'采购助理', email:'a.schulz@nordwind-demo.com', wa:'+49 15X XXXX 8841'}],
+  followups:[
+   {date:'2026-09-08', channel:'视频会议', note:'确认 TST601 系列尾单包装细节，客户接受我们的中性彩盒方案，预计 9 月底下达返单。'},
+   {date:'2026-09-02', channel:'邮件', note:'发送更新后的包装设计稿与报价单（有效期 30 天），抄送 Anna。'},
+   {date:'2026-08-21', channel:'展会面谈', note:'展会现场演示 3 款新品，Lukas 对太阳能串灯很感兴趣，约定展会后寄样。'},
+   {date:'2026-08-05', channel:'WhatsApp', note:'客户询问交期，回复当前排产 25 天，客户表示可接受。'}],
+  next:'9/28 前确认返单数量', owner:'我'},
+ {id:2, company:'Brightline Retail Ltd', country:'英国', flag:'🇬🇧', level:'A', status:'active', source:'询盘', product:'庭院灯 · DIY 连锁',
+  contacts:[{name:'James Carter', role:'品类经理', email:'j.carter@brightline-demo.com', wa:'+44 7XXX 482910'}],
+  followups:[
+   {date:'2026-09-09', channel:'邮件', note:'寄出 4 款庭院灯样品，客户承诺两周内给出评测反馈。'},
+   {date:'2026-08-30', channel:'电话', note:'电话沟通秋季促销计划，客户计划把户外照明作为 Q4 主推品类。'},
+   {date:'2026-08-12', channel:'邮件', note:'第一次报价，客户反馈价格比现供应商高 5%，准备做阶梯价方案。'}],
+  next:'9/23 跟进样品评测结果', owner:'我'},
+ {id:3, company:'Sunbelt Outdoors LLC', country:'美国', flag:'🇺🇸', level:'B', status:'active', source:'主动开发', product:'露营灯 · 电商自营',
+  contacts:[{name:'Michael Torres', role:'Founder', email:'mike@sunbelt-demo.com', wa:'+1 5XX 220 8841'}],
+  followups:[
+   {date:'2026-09-05', channel:'WhatsApp', note:'客户分享了竞品的 Amazon 链接，希望我们做同规格但更轻量的版本，转研发评估。'},
+   {date:'2026-08-18', channel:'邮件', note:'第二封开发信回复了！客户询问 MOQ 与定制 LOGO 起订量。'}],
+  next:'9/15 发送定制方案与打样报价', owner:'我'},
+ {id:4, company:'Koala Camping Co.', country:'澳大利亚', flag:'🇦🇺', level:'A', status:'active', source:'询盘', product:'露营灯 · 户外专营店',
+  contacts:[{name:'Emily Watson', role:'Buyer', email:'emily@koalacamp-demo.com', wa:'+61 4XX 371 550'}],
+  followups:[
+   {date:'2026-09-10', channel:'邮件', note:'客户要求提供 FOB 悉尼 报价与运输方案，已转物流同事核算。'},
+   {date:'2026-08-28', channel:'视频会议', note:'1 小时视频选品会，客户圈定 6 款产品进入测样清单。'}],
+  next:'9/14 回复 FOB 报价', owner:'我'},
+ {id:5, company:'Maple Ridge Trading', country:'加拿大', flag:'🇨🇦', level:'C', status:'dormant', source:'展会', product:'通用照明批发',
+  contacts:[{name:'Daniel Lévesque', role:'Owner', email:'daniel@mapleridge-demo.com', wa:''}],
+  followups:[
+   {date:'2026-05-14', channel:'邮件', note:'最后一封跟进邮件未回复，转入观察池，计划 Q4 用新品唤醒。'},
+   {date:'2026-03-02', channel:'邮件', note:'报过一次价，客户说预算冻结，暂缓采购。'}],
+  next:'10 月初 新品目录唤醒', owner:'我'},
+ {id:6, company:'Aurora Home ApS', country:'丹麦', flag:'🇩🇰', level:'B', status:'active', source:'询盘', product:'氛围灯 · 家居连锁',
+  contacts:[{name:'Freja Møller', role:'Purchasing', email:'freja@aurorahome-demo.com', wa:'+45 2X 55 12 08'}],
+  followups:[
+   {date:'2026-09-03', channel:'邮件', note:'客户提供目标零售价，请我们倒推成本结构，评估中。'},
+   {date:'2026-08-15', channel:'邮件', note:'收到客户第一次询盘，已发目录与公司介绍。'}],
+  next:'9/12 回复成本可行性结论', owner:'我'},
+ {id:7, company:'Alpine Sports AG', country:'瑞士', flag:'🇨🇭', level:'B', status:'active', source:'老客转介绍', product:'头灯 · 户外专业渠道',
+  contacts:[{name:'Peter Brunner', role:'Product Manager', email:'p.brunner@alpinesports-demo.com', wa:'+41 7X 220 44 91'}],
+  followups:[
+   {date:'2026-08-26', channel:'视频会议', note:'头灯新品的亮度与防水规格沟通，客户要求 IPX7 测试报告，已联系实验室。'},
+   {date:'2026-08-01', channel:'邮件', note:'Nordwind 转介绍的客户，首封开发信即获回复。'}],
+  next:'9/16 提供 IPX7 报告', owner:'我'},
+ {id:8, company:'Meridian Wholesale BV', country:'荷兰', flag:'🇳🇱', level:'C', status:'dormant', source:'主动开发', product:'杂货批发',
+  contacts:[{name:'Sander de Vries', role:'Trader', email:'sander@meridian-demo.com', wa:''}],
+  followups:[
+   {date:'2026-06-20', channel:'邮件', note:'三次跟进后客户明确表示今年无计划，保持半年一次问候频率。'}],
+  next:'12 月 节日问候', owner:'我'},
+ {id:9, company:'Southern Cross Gear', country:'新西兰', flag:'🇳🇿', level:'B', status:'active', source:'询盘', product:'工作灯 · 汽修连锁',
+  contacts:[{name:'Olivia Reid', role:'Category Buyer', email:'olivia@scgear-demo.com', wa:'+64 2X 881 0034'}],
+  followups:[
+   {date:'2026-09-07', channel:'邮件', note:'工作灯 COB 与 SMT 光源方案对比已发出，等待客户测试数据。'},
+   {date:'2026-08-22', channel:'WhatsApp', note:'客户询问能否做 12V 车充版本，回复可以做，需确认数量。'}],
+  next:'9/18 跟进测试结果', owner:'我'},
+ {id:10, company:'Fjord Supply AS', country:'挪威', flag:'🇳🇴', level:'A', status:'deal', source:'展会', product:'渔具灯 · 渔业用品',
+  contacts:[{name:'Henrik Olsen', role:'MD', email:'henrik@fjordsupply-demo.com', wa:'+47 9XX 22 517'}],
+  followups:[
+   {date:'2026-09-09', channel:'邮件', note:'首单 30% 定金到账，订单转入生产排期，预计 10/15 出货。'},
+   {date:'2026-09-01', channel:'电话', note:'价格谈判最终轮，双方各让一步锁定单价，确认 PI。'},
+   {date:'2026-08-19', channel:'展会面谈', note:'展会第二天深聊 40 分钟，客户当场拍板测样 5 款。'}],
+  next:'9/20 跟进生产进度', owner:'我'},
+ {id:11, company:'Lumière Maison SARL', country:'法国', flag:'🇫🇷', level:'B', status:'active', source:'询盘', product:'装饰灯 · 精品店',
+  contacts:[{name:'Camille Dubois', role:'Directrice', email:'camille@lumaison-demo.com', wa:'+33 6 XX 45 22 90'}],
+  followups:[
+   {date:'2026-09-04', channel:'邮件', note:'客户对包装的法语标签有合规要求，整理了 CE 与标签要求清单回复。'},
+   {date:'2026-08-11', channel:'邮件', note:'询盘来自官网表单，客户经营 12 家精品店。'}],
+  next:'9/15 确认标签合规细节', owner:'我'},
+ {id:12, company:'Pacific Depot Inc', country:'美国', flag:'🇺🇸', level:'C', status:'dormant', source:'主动开发', product:'仓储照明批发',
+  contacts:[{name:'Grace Kim', role:'Procurement', email:'grace@pacdepot-demo.com', wa:''}],
+  followups:[
+   {date:'2026-07-02', channel:'邮件', note:'开发信打开但未回复，尝试换了标题再触达一次。'}],
+  next:'9/25 换角度二次触达', owner:'我'}
+];
+
+/* ================= 产品库（演示数据，全部虚构） ================= */
+var PRODUCTS = [
+ {id:1, name:'USB-C 充电露营灯 TST601', cat:'露营灯', spec:'IPX5 防水 · 3 档亮度 · 4000mAh · 40h 续航', moq:500, factory:'25.50', tax:'32.80', quote:'8.99', loc:'深圳', note:'爆款型号，欧洲客户返单最多'},
+ {id:2, name:'折叠太阳能露营灯 SL-220', cat:'太阳能灯', spec:'单晶硅板 · 折叠收纳 · 2000mAh · 5 档', moq:1000, factory:'31.20', tax:'39.60', quote:'11.50', loc:'宁波', note:'旺季主推，带 USB 输出可做充电宝'},
+ {id:3, name:'太阳能串灯 10m / 20 灯珠', cat:'氛围灯', spec:'IP65 · 8 种模式 · 光控感应 · 10m 线长', moq:2000, factory:'18.60', tax:'23.90', quote:'6.20', loc:'中山', note:'零售走量款，可定制彩盒'},
+ {id:4, name:'COB 工作灯 WL-880', cat:'工作灯', spec:'COB 高亮 · 磁吸底座 · 360° 旋转 · 内置电池', moq:1000, factory:'42.00', tax:'52.00', quote:'15.80', loc:'深圳', note:'汽修 / 应急渠道，配 12V 车充版本'},
+ {id:5, name:'防水头灯 HL-330（IPX7）', cat:'头灯', spec:'IPX7 · 350 流明 · 红光模式 · 可充电', moq:1000, factory:'36.50', tax:'45.20', quote:'13.40', loc:'东莞', note:'专业户外渠道，需附 IPX7 测试报告'},
+ {id:6, name:'感应夜灯 NL-120', cat:'感应灯', spec:'人体红外感应 · 暖光 2700K · 磁吸 + 挂绳', moq:2000, factory:'14.80', tax:'19.10', quote:'5.10', loc:'深圳', note:'家居连锁常备款，起订量友好'},
+ {id:7, name:'庭院装饰地插灯 GL-90', cat:'庭院灯', spec:'不锈钢灯体 · 太阳能充电 · 暖白光 · IP65', moq:1000, factory:'27.90', tax:'35.40', quote:'10.20', loc:'中山', note:'做 DIY 连锁的常卖规格，可换色温'},
+ {id:8, name:'三脚架工作灯 TL-1500', cat:'工作灯', spec:'1500 流明 · 三脚架可升降 1.8m · IP54 · 大容量电池', moq:500, factory:'68.00', tax:'83.00', quote:'25.60', loc:'宁波', note:'工地 / 户外作业，毛利较高'},
+ {id:9, name:'渔具专用防水灯 FL-66', cat:'渔具灯', spec:'IP68 全防水 · 蓝光诱鱼 · 挂钩式 · 可充电', moq:500, factory:'45.50', tax:'56.80', quote:'17.30', loc:'深圳', note:'渔业用品渠道，客户首单即返单'},
+ {id:10, name:'便携露营氛围灯串 ML-05', cat:'氛围灯', spec:'5m / 20 颗暖光 · Type-C · 可接移动电源', moq:2000, factory:'16.20', tax:'20.80', quote:'5.60', loc:'中山', note:'夏季旺季款，礼品渠道可印刷 LOGO'}
+];
+
+/* ================= 邮件模板库（1:1 复刻真实版结构） =================
+   变量：{{YOUR_NAME}} {{COMPANY}} {{CLIENT_NAME}} {{PRODUCT}} {{YOUR_TITLE}} {{YOUR_EMAIL}}
+   填了自动替换；没填的保留占位符并高亮，提醒还需要补什么。 */
+var TPL_KEYS = ['YOUR_NAME','COMPANY','CLIENT_NAME','PRODUCT','YOUR_TITLE','YOUR_EMAIL'];
+var TPL_EL = {YOUR_NAME:'tpl-your-name', COMPANY:'tpl-company', CLIENT_NAME:'tpl-client', PRODUCT:'tpl-product', YOUR_TITLE:'tpl-title', YOUR_EMAIL:'tpl-email'};
+
+var EMAIL_TPL = {
+  'cold-outreach': {icon:'✉', title:'首次开发信', desc:'向陌生客户发送的第一封邮件', items:[
+    {name:'通用开发信 — 公司介绍型', tag:'推荐',
+     subject:'Premium Outdoor Camping Products — {{COMPANY}} Introduction',
+     body:"Dear {{CLIENT_NAME}},\n\nI hope this email finds you well. My name is {{YOUR_NAME}}, {{YOUR_TITLE}} at {{COMPANY}}, a leading supplier of outdoor camping products based in China.\n\nWe specialize in a wide range of high-quality camping gear, including camping lanterns, portable lights, tents, and outdoor accessories. Our products are CE/FCC certified and have been exported to over 30 countries worldwide.\n\nHere are some highlights of what we offer:\n• LED Camping Lanterns — USB-C rechargeable, IP65 waterproof, 10+ hours runtime\n• Portable Outdoor Lights — Solar-powered and multi-mode options\n• Camping Accessories — Compact, durable, and designed for modern campers\n\nWe would love the opportunity to discuss how we can support your business with competitive pricing and reliable quality.\n\nWould you be available for a brief call this week? I'd be happy to share our latest catalog and pricing.\n\nLooking forward to hearing from you!\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'开发信 — 产品亮点型', tag:'高回复率',
+     subject:'Top-Selling {{PRODUCT}} — Ready for Your Market!',
+     body:"Hi {{CLIENT_NAME}},\n\nI came across your company while researching leading outdoor retailers in your region, and I believe we could be a great fit as your supplier.\n\nI'm {{YOUR_NAME}} from {{COMPANY}}. We manufacture and export premium outdoor camping products, and our {{PRODUCT}} has been a bestseller across European and North American markets.\n\nWhat makes our {{PRODUCT}} stand out:\n✅ High-quality materials with rigorous QA testing\n✅ Competitive factory-direct pricing (30-50% below market average)\n✅ MOQ as low as 100 pcs for initial orders\n✅ Fast lead time: 15-20 days for production\n✅ OEM/ODM services available — customize with your brand\n\nI'd love to send you samples so you can experience the quality firsthand. Shall I arrange that?\n\nWarm regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]},
+  'new-product': {icon:'☆', title:'新品推荐', desc:'向客户推荐新品或爆品', items:[
+    {name:'新品发布通知', tag:'新品',
+     subject:'🔥 New Arrival: {{PRODUCT}} — Exclusive First Look!',
+     body:"Dear {{CLIENT_NAME}},\n\nExciting news! We've just launched our latest {{PRODUCT}}, and I wanted to give you an exclusive preview before the official release.\n\n🌟 Product Highlights:\n• Upgraded design with enhanced durability\n• New color options trending in 2026\n• Improved battery life — up to 20 hours continuous use\n• Compact foldable design — perfect for retail display\n\n📊 Market Potential:\nThis product category saw a 25% growth in global sales last year, and early feedback from our pilot customers has been overwhelmingly positive.\n\n🎯 Special Launch Offer:\n• 10% discount on first orders placed before [DATE]\n• Free sample kit (3 units) for qualified distributors\n• Marketing materials included for your online/offline channels\n\nI'd be happy to schedule a video call to walk you through the product details and discuss exclusive distribution opportunities in your market.\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'季节新品推荐', tag:'季节性',
+     subject:'Get Ready for Summer: Top Camping Products for 2026 Season',
+     body:"Hi {{CLIENT_NAME}},\n\nWith the summer camping season approaching, I wanted to share our top-performing products that could be perfect for your inventory planning.\n\n🏕️ Summer 2026 Bestsellers:\n\n1. {{PRODUCT}} — Our flagship item with a 95% customer satisfaction rate\n2. Solar Camping Lanterns — Eco-friendly, zero running cost\n3. Portable LED String Lights — Creating the perfect campsite ambiance\n4. Waterproof Headlamps — IP67 rated, essential for outdoor adventures\n\nAll products come with:\n• Full certification (CE, FCC, RoHS)\n• 12-month warranty\n• Custom packaging with your brand logo\n• Dropshipping support available\n\n📦 Early Bird Advantage:\nOrder before [DATE] and enjoy priority production scheduling and 5% early bird discount.\n\nWould you like me to send you our summer catalog with full specifications and pricing?\n\nLooking forward to your reply!\n\nWarm regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]},
+  'follow-up': {icon:'↻', title:'跟进邮件', desc:'对未回复客户的温和跟进', items:[
+    {name:'温和跟进 — 第一次', tag:'3 天后发送',
+     subject:'Re: {{PRODUCT}} — Quick Follow-Up',
+     body:"Hi {{CLIENT_NAME}},\n\nI hope you're doing well! I just wanted to follow up on my previous email regarding our {{PRODUCT}} and outdoor camping product range.\n\nI understand you must be busy, so I'll keep this brief:\n\n📌 Quick Summary:\n• Factory-direct pricing with no middlemen\n• MOQ from 100 pcs — perfect for testing the market\n• Free samples available for evaluation\n\nIf this isn't the right time, no worries at all! I'd be happy to reconnect whenever it suits you. Just let me know.\n\nWishing you a wonderful week ahead! 🌿\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'价值型跟进 — 附带市场资讯', tag:'7 天后发送',
+     subject:'Outdoor Camping Market Insights + Our Latest Offers',
+     body:"Hi {{CLIENT_NAME}},\n\nI wanted to reach out again, this time with some market insights that might be valuable for your business:\n\n📊 2026 Outdoor Camping Market Trends:\n• Global market size expected to reach $12.5B — a 7.4% YoY growth\n• LED camping lights remain the fastest-growing category (+15%)\n• Consumers increasingly prefer USB-C rechargeable products over battery-powered ones\n• Sustainability and eco-friendly features are driving purchase decisions\n\nBased on these trends, our {{PRODUCT}} is perfectly positioned for the current market demand.\n\nI'd be happy to share our detailed market report and see how we can align with your business strategy. No strings attached!\n\nWould a quick 15-minute call work for you this week?\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]},
+  'exhibition': {icon:'⚑', title:'展会相关', desc:'广交会等展会邀请与后续跟进', items:[
+    {name:'展会邀请函', tag:'展前发送',
+     subject:'Invitation: Visit Us at Canton Fair 2026 — Booth #XXXX',
+     body:"Dear {{CLIENT_NAME}},\n\nWe are excited to invite you to visit our booth at the upcoming Canton Fair!\n\n📍 Exhibition Details:\n• Fair: 135th Canton Fair (Phase 2)\n• Date: April 23 – 27, 2026\n• Booth Number: Hall XX, Booth #XXXX\n• Location: China Import and Export Fair Complex, Guangzhou\n\n🌟 What to Expect at Our Booth:\n• Live demo of our latest {{PRODUCT}} lineup\n• Exclusive show-only pricing (up to 15% off)\n• New 2026 product launches — first time showcased!\n• Face-to-face consultation with our product engineers\n• Free sample kits for qualified buyers\n\n📋 Schedule a Meeting:\nTo make the most of your visit, I'd love to arrange a dedicated meeting time for you. Please let me know your preferred date and time, and I'll reserve a slot.\n\nWe look forward to welcoming you in Guangzhou!\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'展会后续跟进信', tag:'展后发送',
+     subject:'Great Meeting You at Canton Fair — Next Steps',
+     body:"Dear {{CLIENT_NAME}},\n\nIt was a pleasure meeting you at the Canton Fair! Thank you for taking the time to visit our booth and showing interest in our products.\n\nAs discussed, I'd like to follow up on the items we talked about:\n\n📌 Action Items:\n1. Attached: Updated catalog with full product specifications\n2. Pricing: I've prepared a quotation for the {{PRODUCT}} as you requested\n3. Samples: We can arrange sample shipment within 3 business days\n4. OEM Options: Our design team is ready to discuss customization\n\n📎 Attached Files:\n• Product Catalog 2026 (PDF)\n• Quotation Sheet\n• Company Profile & Certifications\n\nPlease take a look and let me know if you have any questions. I'd be happy to schedule a video call to discuss the details further.\n\nThank you again for your time, and I look forward to building a great partnership!\n\nWarm regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]},
+  'quotation': {icon:'💰', title:'报价回复', desc:'收到客户询价后的专业报价邮件', items:[
+    {name:'正式报价邮件', tag:'专业',
+     subject:'Quotation for {{PRODUCT}} — {{COMPANY}}',
+     body:"Dear {{CLIENT_NAME}},\n\nThank you for your inquiry! We're pleased to provide you with our quotation for the {{PRODUCT}}.\n\n📋 Quotation Details:\n\n| Item | Description | MOQ | Unit Price (FOB) |\n|------|-------------|-----|-----------------|\n| {{PRODUCT}} | [Specifications] | 500 pcs | USD $X.XX |\n\n💡 Additional Information:\n• Payment Terms: T/T 30% deposit, 70% before shipment\n• Lead Time: 20-25 days after order confirmation\n• Sample: Available at USD $XX (refundable on bulk order)\n• Shipping: FOB Shenzhen / CIF available upon request\n• Certification: CE, FCC, RoHS compliant\n\n🎁 Volume Discounts:\n• 1,000+ pcs: 5% discount\n• 3,000+ pcs: 8% discount\n• 5,000+ pcs: Contact us for best price\n\nThis quotation is valid for 30 days. Please feel free to reach out if you need any clarification or would like to discuss further.\n\nLooking forward to your reply!\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'议价回复邮件', tag:'谈判',
+     subject:'Re: Price Discussion for {{PRODUCT}}',
+     body:"Dear {{CLIENT_NAME}},\n\nThank you for your candid feedback on our pricing. We truly value this opportunity to work with you.\n\nAfter careful consideration and discussion with our production team, we'd like to offer the following adjusted proposal:\n\n💰 Revised Offer:\n• Unit Price: USD $X.XX (reduced from $X.XX — a X% adjustment)\n• Condition: Minimum order of 1,000 pcs\n• Validity: 15 days from today\n\n🤝 What We Can Also Offer:\n• Free shipping labels and barcoding included\n• Extended payment terms (T/T 30/70) for first order\n• Priority production slot\n• Dedicated account manager for your orders\n\nWe've made our best effort to accommodate your budget while maintaining our quality standards. Our {{PRODUCT}} uses premium materials and undergoes strict QC inspection at every stage.\n\nI believe this revised offer represents great value. Shall we proceed with a trial order?\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]},
+  'relationship': {icon:'🤝', title:'老客户维护', desc:'节日问候、复购提醒等', items:[
+    {name:'节日问候信', tag:'关系维护',
+     subject:"Season's Greetings from {{COMPANY}} 🎄",
+     body:"Dear {{CLIENT_NAME}},\n\nAs the holiday season approaches, I wanted to take a moment to express our sincere gratitude for your partnership and trust in {{COMPANY}}.\n\nLooking back at our collaboration this year, it's been a wonderful journey. Your support has been instrumental in our growth, and we truly value the relationship we've built together.\n\n🌟 A Quick Look Ahead:\nWe have exciting plans for 2026, including new product launches and innovative designs in our outdoor camping lineup. I can't wait to share them with you!\n\n🎁 As a Token of Our Appreciation:\nWe'd like to offer you an exclusive 10% loyalty discount on your next order. Simply mention code \"VIP2026\" when placing your order.\n\nWishing you and your team a joyful holiday season and a prosperous new year!\n\nWarmest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"},
+    {name:'复购提醒 + 新品推荐', tag:'复购',
+     subject:'Time to Restock? + Exciting New Additions to Our Line!',
+     body:"Hi {{CLIENT_NAME}},\n\nI hope you're doing well! It's been a while since your last order, and I wanted to check in.\n\n📦 Reorder Made Easy:\nBased on your previous purchase history, you may be running low on inventory. We've kept your product specifications and packaging details on file, so reordering is quick and hassle-free!\n\n🆕 New Products You Might Love:\nSince your last order, we've added some exciting new items to our collection:\n\n1. {{PRODUCT}} — [Brief highlight]\n2. Smart Solar Camping Light — App-controlled, 5 lighting modes\n3. Ultra-Light Camping Chair — Only 1.2kg, supports up to 150kg\n\n🎯 Exclusive for Returning Customers:\n• 5% loyalty discount on reorders\n• Free new product samples with any order over $5,000\n• Same lead time guarantee as your previous order\n\nWould you like me to prepare a reorder quote with your usual specifications? Or would you prefer to add some of our new items to try?\n\nLooking forward to reconnecting!\n\nBest regards,\n{{YOUR_NAME}}\n{{YOUR_TITLE}} | {{COMPANY}}\nEmail: {{YOUR_EMAIL}}"}
+  ]}
+};
+var TPL_CAT = 'cold-outreach';
+
+/* ================= 工具 ================= */
+function $(s){return document.querySelector(s)}
+function $$(s){return [].slice.call(document.querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(msg){var t=$('#toast');t.textContent=msg;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on')},2200)}
+function fmtShort(d){return d.slice(5).replace('-','/')}
+function initials(n){return (n||'?').split(/\s+/).map(function(x){return x[0]}).slice(0,2).join('')}
+var ST = {active:['active','进行中'], deal:['deal','已成交'], dormant:['dormant','沉睡']};
+
+/* ================= 导航 ================= */
+function navTo(page){
+  $$('.nav-item').forEach(function(x){x.classList.toggle('on', x.dataset.page===page)});
+  $$('.page').forEach(function(p){p.classList.remove('on')});
+  $('#page-'+page).classList.add('on');
+}
+$$('.nav-item').forEach(function(n){ n.onclick = function(){ navTo(n.dataset.page) } });
+
+/* ================= 工作台 ================= */
+var TREND = [['7/20',34],['7/27',41],['8/3',38],['8/10',52],['8/17',47],['8/24',63],['8/31',58],['9/7',71]];
+function renderDashboard(){
+  var max = Math.max.apply(null, TREND.map(function(t){return t[1]}));
+  $('#chart').innerHTML = TREND.map(function(t,i){
+    var h = Math.round(t[1]/max*100);
+    return '<div class="bar'+(i===TREND.length-1?' hot':'')+'"><i style="height:'+h+'%"></i><b>'+t[1]+'</b><b style="color:#94A3B8">'+t[0]+'</b></div>';
+  }).join('');
+  var all = [];
+  CUSTOMERS.forEach(function(c){c.followups.slice(0,2).forEach(function(f){all.push({c:c,f:f})})});
+  all.sort(function(a,b){return a.f.date<b.f.date?1:-1});
+  $('#recent-tl').innerHTML = all.slice(0,6).map(function(x){
+    return '<li><div class="d">'+x.f.date+' · '+esc(x.c.company)+'</div><div class="c"><span class="tag-ch '+CH[x.f.channel]+'">'+x.f.channel+'</span>'+esc(x.f.note)+'</div></li>';
+  }).join('');
+  var todos = [];
+  CUSTOMERS.forEach(function(c){ if(c.next && c.level!=='C') todos.push(c); });
+  todos.sort(function(a,b){return (a.level>b.level?1:-1)});
+  $('#todo-tl').innerHTML = todos.slice(0,5).map(function(c){
+    return '<li class="'+(c.level==='A'?'gold':'')+'"><div class="d">'+esc(c.company)+' · '+c.flag+' '+esc(c.country)+'</div><div class="c"><b>'+esc(c.next)+'</b></div></li>';
+  }).join('');
+}
+
+/* ================= 客户管理 ================= */
+var curDetail = null;
+var SCENE = '';
+var SCENE_MAP = {due:{level:'',status:'active'}, A:{level:'A',status:''}, deal:{level:'',status:'deal'}, dormant:{level:'',status:'dormant'}};
+
+function filtered(){
+  var q = $('#q').value.trim().toLowerCase();
+  var lv = $('#f-level').value, st = $('#f-status').value, co = $('#f-country').value;
+  return CUSTOMERS.filter(function(c){
+    if(lv && c.level!==lv) return false;
+    if(st && c.status!==st) return false;
+    if(co && c.country!==co) return false;
+    if(q){
+      var hay = (c.company+' '+c.country+' '+c.product+' '+c.contacts.map(function(x){return x.name+' '+x.email}).join(' ')).toLowerCase();
+      if(hay.indexOf(q)===-1) return false;
+    }
+    return true;
+  });
+}
+function renderList(){
+  var rows = filtered();
+  $('#cust-rows').innerHTML = rows.length ? rows.map(function(c){
+    var last = c.followups[0];
+    return '<tr class="row" data-id="'+c.id+'">'+
+      '<td><b>'+esc(c.company)+'</b><div class="dim">'+esc(c.product)+'</div></td>'+
+      '<td>'+c.flag+' '+esc(c.country)+'</td>'+
+      '<td>'+esc(c.contacts[0].name)+'<div class="dim">'+esc(c.contacts[0].role)+'</div></td>'+
+      '<td><span class="lvl '+c.level+'">'+c.level+'</span></td>'+
+      '<td><span class="st '+ST[c.status][0]+'">'+ST[c.status][1]+'</span></td>'+
+      '<td class="dim">'+(last?fmtShort(last.date)+' '+last.channel:'—')+'</td>'+
+      '<td><span class="next">'+esc(c.next||'—')+'</span></td>'+
+      '<td class="op">查看档案 →</td></tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:30px">没有符合条件的客户</td></tr>';
+  $('#cust-count').textContent = '共 '+rows.length+' / '+CUSTOMERS.length+' 家客户';
+  $$('#cust-rows .row').forEach(function(r){
+    r.onclick = function(){ openDetail(+r.dataset.id) };
+  });
+}
+function openDetail(id){
+  var c = CUSTOMERS.filter(function(x){return x.id===id})[0];
+  if(!c) return;
+  curDetail = c;
+  $('#cust-list-view').style.display='none';
+  $('#cust-detail-view').style.display='block';
+  $('#detail-body').innerHTML =
+    '<div class="card">'+
+      '<div class="detail-head"><span class="flag">'+c.flag+'</span><h2>'+esc(c.company)+'</h2>'+
+      '<span class="lvl '+c.level+'">'+c.level+'</span><span class="st '+ST[c.status][0]+'">'+ST[c.status][1]+'</span>'+
+      '<span style="margin-left:auto;display:flex;gap:8px">'+
+        '<button class="btn" id="btn-tpl">✉️ 用邮件模板跟进</button>'+
+        '<button class="btn gold" id="btn-fu">✍️ 写跟进</button></span></div>'+
+      '<div class="info-grid">'+
+        '<div class="cell"><div class="k">国家 / 地区</div><div class="v">'+c.flag+' '+esc(c.country)+'</div></div>'+
+        '<div class="cell"><div class="k">客户来源</div><div class="v">'+esc(c.source)+'</div></div>'+
+        '<div class="cell"><div class="k">主营产品</div><div class="v">'+esc(c.product)+'</div></div>'+
+        '<div class="cell"><div class="k">下一步</div><div class="v" style="color:#B45309">'+esc(c.next||'—')+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card"><h3>联系人</h3>'+ c.contacts.map(function(ct){
+      return '<div class="contact-card"><div class="avatar">'+esc(initials(ct.name))+'</div><div>'+
+        '<div class="nm">'+esc(ct.name)+' <span class="rl">· '+esc(ct.role)+'</span></div>'+
+        '<div class="ct">✉️ '+esc(ct.email)+(ct.wa?' &nbsp; 💬 '+esc(ct.wa):'')+'</div></div></div>';
+    }).join('')+'</div>'+
+    '<div class="card"><h3>沟通历史（'+c.followups.length+' 条）</h3><ul class="tl">'+
+      c.followups.map(function(f){
+        return '<li class="'+(f.channel==='视频会议'||f.channel==='展会面谈'?'green':'')+'"><div class="d">'+f.date+'</div><div class="c"><span class="tag-ch '+CH[f.channel]+'">'+f.channel+'</span>'+esc(f.note)+'</div></li>';
+      }).join('')+'</ul></div>';
+  $('#btn-fu').onclick = function(){ openFuModal(c) };
+  $('#btn-tpl').onclick = function(){
+    var el = $('#'+TPL_EL.CLIENT_NAME);
+    if(el) el.value = c.contacts[0].name.split(' ')[0];
+    saveTplVars();
+    renderTpls();
+    navTo('templates');
+    toast('已把「'+c.contacts[0].name.split(' ')[0]+'」填进模板变量，邮件落款与称呼已自动替换');
+  };
+}
+$('#btn-back').onclick = function(){
+  $('#cust-detail-view').style.display='none';
+  $('#cust-list-view').style.display='block';
+  renderList();
+};
+
+/* 场景快捷分类 */
+$$('#scenes .scene').forEach(function(b){
+  b.onclick = function(){
+    SCENE = b.dataset.scene;
+    $$('#scenes .scene').forEach(function(x){x.classList.toggle('on', x===b)});
+    var m = SCENE_MAP[SCENE];
+    if(m){ $('#f-level').value = m.level; $('#f-status').value = m.status; }
+    else { $('#f-level').value=''; $('#f-status').value=''; }
+    $('#f-country').value='';
+    renderList();
+  };
+});
+['q','f-level','f-status','f-country'].forEach(function(id){
+  var el = $('#'+id);
+  el.addEventListener(id==='q'?'input':'change', renderList);
+});
+(function(){
+  var countries = [];
+  CUSTOMERS.forEach(function(c){ if(countries.indexOf(c.country)===-1) countries.push(c.country) });
+  countries.sort();
+  $('#f-country').innerHTML += countries.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
+})();
+
+/* 导出 CSV（客户） */
+$('#btn-csv').onclick = function(){
+  var rows = [['公司','国家','等级','状态','主联系人','邮箱','主营产品','最近跟进','下一步']];
+  filtered().forEach(function(c){
+    rows.push([c.company,c.country,c.level,ST[c.status][1],c.contacts[0].name,c.contacts[0].email,c.product,(c.followups[0]||{}).date||'',c.next||'']);
+  });
+  downloadCSV(rows, '客户列表_演示.csv', '已导出 '+ (rows.length-1) +' 家客户（虚构数据）');
+};
+
+/* 新增客户 */
+$('#btn-add').onclick = function(){ $('#mask-cust').classList.add('on') };
+$('#c-cancel').onclick = function(){ $('#mask-cust').classList.remove('on') };
+$('#c-save').onclick = function(){
+  var company = $('#n-company').value.trim();
+  if(!company){ toast('请填写公司名称'); return }
+  CUSTOMERS.unshift({
+    id: Date.now(), company: company, country: $('#n-country').value.trim()||'未知', flag:'🌐',
+    level: $('#n-level').value, status:'active', source: $('#n-source').value,
+    product: $('#n-note').value.trim()||'—',
+    contacts:[{name: $('#n-contact').value.trim()||'—', role:'主联系人', email: $('#n-email').value.trim()||'—', wa:''}],
+    followups:[], next:'尽快完成首次触达', owner:'我'
+  });
+  $('#mask-cust').classList.remove('on');
+  ['#n-company','#n-country','#n-contact','#n-email','#n-note'].forEach(function(s){$(s).value=''});
+  navTo('customers'); renderList(); toast('已新增客户「'+company+'」');
+};
+
+/* 写跟进 */
+function openFuModal(c){
+  $('#fu-company').textContent = c.company;
+  $('#fu-note').value = '';
+  $('#fu-date').value = new Date().toISOString().slice(0,10);
+  $('#mask-followup').classList.add('on');
+}
+$('#fu-cancel').onclick = function(){ $('#mask-followup').classList.remove('on') };
+$('#fu-save').onclick = function(){
+  var note = $('#fu-note').value.trim();
+  if(!note){ toast('请填写跟进内容'); return }
+  curDetail.followups.unshift({date: $('#fu-date').value || '2026-09-10', channel: $('#fu-channel').value, note: note});
+  $('#mask-followup').classList.remove('on');
+  openDetail(curDetail.id);
+  renderDashboard();
+  toast('跟进已记录，档案时间线已更新 ✅');
+};
+
+/* ================= 产品库 ================= */
+function prodFiltered(){
+  var q = $('#pq').value.trim().toLowerCase();
+  var cat = $('#pf-cat').value;
+  return PRODUCTS.filter(function(p){
+    if(cat && p.cat!==cat) return false;
+    if(q){
+      var hay = (p.name+' '+p.cat+' '+p.spec+' '+p.loc+' '+p.note).toLowerCase();
+      if(hay.indexOf(q)===-1) return false;
+    }
+    return true;
+  });
+}
+function renderProducts(){
+  var rows = prodFiltered();
+  $('#prod-rows').innerHTML = rows.length ? rows.map(function(p){
+    return '<tr class="row" data-pid="'+p.id+'">'+
+      '<td><b>'+esc(p.name)+'</b><div class="dim">'+esc(p.spec)+'</div></td>'+
+      '<td>'+esc(p.cat)+'</td>'+
+      '<td>'+esc(p.moq)+' pcs</td>'+
+      '<td>¥'+esc(p.factory)+'</td>'+
+      '<td>¥'+esc(p.tax)+'</td>'+
+      '<td style="color:#15803D;font-weight:700">'+esc(p.quote)+'</td>'+
+      '<td class="dim">'+esc(p.loc)+'</td>'+
+      '<td class="op">查看详情 →</td></tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:#94A3B8;padding:30px">没有符合条件的产品</td></tr>';
+  $('#prod-count').textContent = '共 '+rows.length+' / '+PRODUCTS.length+' 款产品';
+  $$('#prod-rows .row').forEach(function(r){
+    r.onclick = function(){ openProdDetail(+r.dataset.pid) };
+  });
+}
+function openProdDetail(id){
+  var p = PRODUCTS.filter(function(x){return x.id===id})[0];
+  if(!p) return;
+  $('#pd-title').textContent = p.name;
+  $('#pd-body').innerHTML =
+    '<div class="k">品类</div><div class="v">'+esc(p.cat)+'</div>'+
+    '<div class="k">规格 / 描述</div><div class="v">'+esc(p.spec)+'</div>'+
+    '<div class="k">MOQ</div><div class="v">'+esc(p.moq)+' pcs</div>'+
+    '<div class="k">出厂价</div><div class="v">¥'+esc(p.factory)+'</div>'+
+    '<div class="k">含税运价</div><div class="v">¥'+esc(p.tax)+'</div>'+
+    '<div class="k">报价（FOB）</div><div class="v" style="color:#15803D">'+esc(p.quote)+'</div>'+
+    '<div class="k">工厂所在地</div><div class="v">'+esc(p.loc)+'</div>'+
+    '<div class="k">备注</div><div class="v">'+esc(p.note||'—')+'</div>';
+  $('#mask-pdetail').classList.add('on');
+}
+$('#pd-close').onclick = function(){ $('#mask-pdetail').classList.remove('on') };
+['pq','pf-cat'].forEach(function(id){
+  var el = $('#'+id);
+  el.addEventListener(id==='pq'?'input':'change', renderProducts);
+});
+(function(){
+  var cats = [];
+  PRODUCTS.forEach(function(p){ if(cats.indexOf(p.cat)===-1) cats.push(p.cat) });
+  $('#pf-cat').innerHTML += cats.map(function(c){return '<option>'+esc(c)+'</option>'}).join('');
+})();
+$('#btn-pcsv').onclick = function(){
+  var rows = [['产品名称','品类','规格','MOQ','出厂价','含税运价','报价USD','工厂所在地','备注']];
+  prodFiltered().forEach(function(p){ rows.push([p.name,p.cat,p.spec,p.moq,p.factory,p.tax,p.quote,p.loc,p.note]) });
+  downloadCSV(rows, '产品库_演示.csv', '已导出 '+ (rows.length-1) +' 款产品（虚构数据）');
+};
+$('#btn-add-prod').onclick = function(){ $('#mask-prod').classList.add('on') };
+$('#p-cancel').onclick = function(){ $('#mask-prod').classList.remove('on') };
+$('#p-save').onclick = function(){
+  var name = $('#p-name').value.trim();
+  if(!name){ toast('请填写产品名称'); return }
+  PRODUCTS.unshift({
+    id: Date.now(), name: name, cat: $('#p-cat').value.trim()||'未分类', spec: $('#p-spec').value.trim()||'—',
+    moq: $('#p-moq').value.trim()||'—', factory: $('#p-factory').value.trim()||'—', tax: $('#p-tax').value.trim()||'—',
+    quote: $('#p-quote').value.trim()||'—', loc: $('#p-loc').value.trim()||'—', note: $('#p-note').value.trim()||''
+  });
+  $('#mask-prod').classList.remove('on');
+  ['#p-name','#p-cat','#p-spec','#p-moq','#p-loc','#p-factory','#p-tax','#p-quote','#p-note'].forEach(function(s){$(s).value=''});
+  navTo('products'); renderProducts(); toast('已添加产品「'+name+'」');
+};
+
+/* ================= 通用 CSV 下载 ================= */
+function downloadCSV(rows, filename, okMsg){
+  var csv = '\uFEFF'+rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = filename;
+  a.click();
+  toast(okMsg);
+}
+
+/* ================= 邮件模板：变量替换（核心） ================= */
+function tplVars(){
+  var v = {};
+  TPL_KEYS.forEach(function(k){
+    var el = document.getElementById(TPL_EL[k]);
+    v[k] = el ? el.value.trim() : '';
+  });
+  return v;
+}
+function saveTplVars(){
+  try{ localStorage.setItem('crm-tpl-vars', JSON.stringify(tplVars())) }catch(e){}
+}
+function tplReplace(text, vars){
+  var r = text;
+  TPL_KEYS.forEach(function(k){
+    r = r.split('{{'+k+'}}').join(vars[k] || '{{'+k+'}}');
+  });
+  return r;
+}
+function tplHighlight(text){
+  return esc(text).replace(/\{\{[A-Z_]+\}\}/g, function(m){ return '<span class="hl">'+m+'</span>' });
+}
+function renderTpls(){
+  var vars = tplVars();
+  saveTplVars();
+
+  var filled = TPL_KEYS.filter(function(k){return vars[k]}).length;
+  $('#tpl-hint').innerHTML = filled
+    ? '已替换 <b>'+filled+' / 6</b> 个变量——下面所有分类、所有模板的邮件已实时更新（这就是真实版「改一处、全库生效」）。留空的位置用 <span class="hl">{{变量}}</span> 标出来，提醒你还需要补什么。'
+    : '还没填写。先试试在「你的名字」里打上自己的名字——下面每一封邮件的落款会立刻跟着变；再填「客户名字」，称呼也一起换。';
+
+  var cats = Object.keys(EMAIL_TPL);
+  $('#tpl-tabs').innerHTML = cats.map(function(k){
+    var c = EMAIL_TPL[k];
+    return '<button class="'+(k===TPL_CAT?'on':'')+'" data-cat="'+k+'">'+c.icon+' '+c.title+' <span>'+c.items.length+'</span></button>';
+  }).join('');
+  $$('#tpl-tabs button').forEach(function(b){
+    b.onclick = function(){ TPL_CAT = b.dataset.cat; renderTpls() };
+  });
+
+  var cat = EMAIL_TPL[TPL_CAT];
+  var h = '<p class="dim" style="margin:0 0 12px">'+cat.icon+' <b style="color:var(--navy)">'+cat.title+'</b> · '+cat.desc+'</p>';
+  h += cat.items.map(function(item, idx){
+    var subj = tplHighlight(tplReplace(item.subject, vars));
+    var body = tplHighlight(tplReplace(item.body, vars));
+    return '<div class="tpl'+(idx===0?' open':'')+'" data-idx="'+idx+'">'+
+      '<div class="hd"><b>'+esc(item.name)+'</b><span class="tag">'+esc(item.tag)+'</span>'+
+        '<button class="btn primary sm" data-copy="'+idx+'">📋 一键复制</button><span class="arr">▼</span></div>'+
+      '<div class="bd">'+
+        '<div class="lbl">邮件主题</div><div class="subj">'+subj+'</div>'+
+        '<div class="lbl">邮件正文</div><pre>'+body+'</pre>'+
+      '</div></div>';
+  }).join('');
+  $('#tpl-list').innerHTML = h;
+
+  $$('#tpl-list .tpl .hd').forEach(function(hd){
+    hd.onclick = function(){ hd.parentNode.classList.toggle('open') };
+  });
+  $$('#tpl-list [data-copy]').forEach(function(b){
+    b.onclick = function(ev){
+      ev.stopPropagation();
+      var item = EMAIL_TPL[TPL_CAT].items[+b.dataset.copy];
+      var text = 'Subject: ' + tplReplace(item.subject, vars) + '\n\n' + tplReplace(item.body, vars);
+      copyText(text);
+      b.innerHTML = '✅ 已复制';
+      setTimeout(function(){ b.innerHTML = '📋 一键复制' }, 1800);
+    };
+  });
+}
+function copyText(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('邮件已复制（已代入你填的变量）✅')},function(){fallbackCopy(text)});
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text){
+  var ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('邮件已复制（已代入你填的变量）✅') }catch(e){ toast('复制失败，请手动选择复制') }
+  document.body.removeChild(ta);
+}
+
+/* ================= 启动 ================= */
+/* 变量输入即替换（与真实版一致：oninput → 重渲染全库） */
+(function(){
+  try{
+    var saved = JSON.parse(localStorage.getItem('crm-tpl-vars') || 'null');
+    if(saved) TPL_KEYS.forEach(function(k){ var el=document.getElementById(TPL_EL[k]); if(el && saved[k]) el.value = saved[k] });
+  }catch(e){}
+  TPL_KEYS.forEach(function(k){
+    var el = document.getElementById(TPL_EL[k]);
+    if(el) el.addEventListener('input', renderTpls);
+  });
+})();
+
+renderDashboard();
+renderList();
+renderProducts();
+renderTpls();
+
+/* 默认只填「你的名字」和「客户名字」，其余留空——
+   这样打开就能同时看到"已替换"和"待补的黄色占位符"两种状态 */
+(function(){
+  var preset = {YOUR_NAME:'Kevin', CLIENT_NAME:'James'};
+  var anyEmpty = TPL_KEYS.some(function(k){ var el=document.getElementById(TPL_EL[k]); return el && !el.value });
+  if(anyEmpty){
+    TPL_KEYS.forEach(function(k){ var el=document.getElementById(TPL_EL[k]); if(el && !el.value && preset[k]) el.value = preset[k] });
+    renderTpls();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>字体加载测试</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+  <style>
+    body {
+      padding: 40px;
+      background: #0d1318;
+      color: #E8E6E3;
+      font-size: 32px;
+      line-height: 2;
+    }
+    .test1 { font-family: 'Parisienne', cursive; }
+    .test2 { font-family: Parisienne, cursive; }
+    .fallback { font-family: cursive; }
+  </style>
+</head>
+<body>
+  <h2>字体加载诊断</h2>
+  
+  <div class="test1">
+    测试1 (带引号): — Magic
+  </div>
+  
+  <div class="test2">
+    测试2 (无引号): — Magic
+  </div>
+  
+  <div class="fallback">
+    对照组 (纯cursive): — Magic
+  </div>
+  
+  <hr style="margin: 40px 0; border-color: #555;">
+  
+  <div style="font-size: 16px;">
+    <p><strong>说明:</strong></p>
+    <p>• 如果测试1和测试2都是<strong>流畅手写体</strong>,说明Parisienne字体加载成功</p>
+    <p>• 如果测试1和测试2看起来和对照组一样(普通斜体),说明字体加载失败</p>
+    <p>• 请按F12打开开发者工具,查看Network标签中是否有字体请求失败</p>
+  </div>
+  
+  <script>
+    // 检查字体是否加载成功
+    document.fonts.ready.then(() => {
+      const loaded = document.fonts.check('1em Parisienne');
+      const status = document.createElement('div');
+      status.style.cssText = 'margin-top: 40px; padding: 20px; background: ' + (loaded ? '#2a4' : '#a42') + '; border-radius: 8px;';
+      status.innerHTML = '<strong>字体加载状态:</strong> ' + (loaded ? '✓ Parisienne 已加载' : '✗ Parisienne 未加载');
+      document.body.appendChild(status);
+    });
+  </script>
+</body>
+</html>

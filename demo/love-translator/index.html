@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>爱情翻译器 · 照见，不改造</title>
+<style>
+  :root{
+    --rose:#d4537e; --rose-deep:#993556; --rose-soft:#f4c0d1;
+    --ink:#3a2b30; --muted:#8a7a80; --line:#ecd9e0;
+    --bg1:#fff5f8; --bg2:#fdeef3; --card:#ffffff; --gold:#c79a4b;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink); background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    min-height:100vh; line-height:1.7;
+  }
+  .serif{font-family:"Songti SC","STSong","Noto Serif SC",serif;}
+  .app{max-width:480px; margin:0 auto; padding:24px 20px 60px; min-height:100vh;
+       display:flex; flex-direction:column;}
+  .bar{height:6px; background:var(--line); border-radius:99px; overflow:hidden; margin-bottom:22px;}
+  .bar > i{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--rose-soft),var(--rose));
+           transition:width .4s ease;}
+  .step-tip{font-size:12px; color:var(--muted); text-align:center; margin-bottom:14px; letter-spacing:1px;}
+  .screen{display:none; flex:1; flex-direction:column; justify-content:center; animation:fade .5s ease;}
+  .screen.on{display:flex;}
+  @keyframes fade{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  .logo{font-size:30px; text-align:center; color:var(--rose); letter-spacing:2px;}
+  .sub{text-align:center; color:var(--muted); font-size:14px; margin:10px 0 30px; letter-spacing:1px;}
+  .lead{max-width:380px; margin:0 auto; background:var(--card); border:1px solid var(--line);
+        border-radius:18px; padding:22px 20px; font-size:15px; color:var(--ink);}
+  .lead b{color:var(--rose-deep);}
+  .lead .q{color:var(--muted); font-size:13px; margin-top:14px; display:block;}
+  .btn{display:block; width:100%; border:none; border-radius:14px; padding:15px;
+       font-size:16px; font-family:inherit; cursor:pointer; background:var(--rose); color:#fff;
+       letter-spacing:2px; margin-top:22px; transition:transform .15s, box-shadow .2s;
+       box-shadow:0 8px 20px rgba(212,83,126,.25);}
+  .btn:active{transform:scale(.98);}
+  .btn.ghost{background:#fff; color:var(--rose-deep); border:1.5px solid var(--rose-soft);
+             box-shadow:none;}
+  .btn.sim-cta{background:linear-gradient(90deg,#d4537e,#993556); margin-top:18px;
+               box-shadow:0 10px 22px rgba(212,83,126,.35);}
+  .qtag{display:inline-block; font-size:12px; color:var(--rose); border:1px solid var(--rose-soft);
+        border-radius:99px; padding:3px 12px; margin-bottom:14px;}
+  .qtext{font-size:19px; line-height:1.6; margin-bottom:8px; font-weight:500;}
+  .qhint{font-size:13px; color:var(--muted); margin-bottom:20px;}
+  .opt{display:block; width:100%; text-align:left; border:1.5px solid var(--line); background:#fff;
+       border-radius:14px; padding:15px 16px; margin-bottom:12px; font-size:15px; color:var(--ink);
+       font-family:inherit; cursor:pointer; transition:all .18s;}
+  .opt:active{transform:scale(.99);}
+  .opt.sel{border-color:var(--rose); background:#fff3f7; box-shadow:0 6px 16px rgba(212,83,126,.14);}
+  .opt .dot{display:inline-block; width:9px; height:9px; border-radius:50%; background:var(--rose-soft);
+            margin-right:10px; vertical-align:middle;}
+  .opt.sel .dot{background:var(--rose);}
+  .whisper{margin-top:6px; background:#fffafc; border-left:3px solid var(--rose); border-radius:0 12px 12px 0;
+           padding:14px 16px; font-size:14px; color:var(--rose-deep); line-height:1.65;
+           animation:fade .5s ease;}
+  .whisper .tag{font-size:11px; color:var(--muted); letter-spacing:2px; display:block; margin-bottom:6px;}
+  .r-hero{text-align:center; margin-bottom:8px;}
+  .r-num{font-size:54px; color:var(--rose); line-height:1; font-weight:700;}
+  .r-num small{font-size:18px; color:var(--muted); font-weight:400;}
+  .r-title{font-size:18px; margin:10px 0 4px; font-weight:600;}
+  .r-attach{font-size:14px; color:var(--muted); margin-bottom:24px;}
+  .hit{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 18px;
+       margin-bottom:14px; animation:fade .5s ease;}
+  .hit .hname{font-size:15px; font-weight:600; color:var(--rose-deep); margin-bottom:10px;
+              display:flex; align-items:center; gap:8px;}
+  .hit .hname::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--rose);}
+  .flip{font-size:14px; line-height:1.7;}
+  .old{color:var(--muted); text-decoration:line-through; text-decoration-color:var(--rose-soft);}
+  .arrow{color:var(--gold); margin:0 6px; font-weight:700;}
+  .neu{color:var(--ink); font-weight:600;}
+  .meta{margin-top:10px; font-size:13px; color:var(--rose-deep); background:#fff6f9;
+        border-radius:10px; padding:10px 12px; font-style:italic;}
+  .safe{background:var(--card); border:1px dashed var(--line); border-radius:16px; padding:16px 18px;
+        margin:18px 0; font-size:14px; color:var(--muted);}
+  .safe b{color:var(--ink);}
+  .closing{text-align:center; font-size:16px; color:var(--rose-deep); margin:26px 4px 6px; line-height:1.8;}
+  .closing .big{font-size:20px; font-weight:700; display:block; margin-bottom:8px; color:var(--rose);}
+  .foot{text-align:center; color:var(--muted); font-size:12px; margin-top:26px; letter-spacing:1px;}
+  .sim-setup{background:#fff; border:1px solid var(--line); border-radius:16px; padding:20px;
+             font-size:15px; line-height:1.85; color:var(--ink); margin-bottom:20px;}
+  .sim-setup .tag{font-size:11px; color:var(--rose); letter-spacing:3px; display:block; margin-bottom:8px;}
+  .sim-opt{display:block; width:100%; text-align:left; border:1.5px solid var(--line); background:#fff;
+           border-radius:14px; padding:14px 16px; margin-bottom:11px; font-size:14px; color:var(--ink);
+           font-family:inherit; cursor:pointer; transition:all .18s; line-height:1.65;}
+  .sim-opt:active{transform:scale(.99);}
+  .sim-opt.sel{border-color:var(--rose); background:#fff3f7;}
+  .reveal-block{background:#fffafc; border-left:3px solid var(--rose); border-radius:0 14px 14px 0;
+                padding:14px 16px; margin-bottom:12px; animation:fade .5s ease; font-size:14px;
+                line-height:1.75; color:var(--rose-deep);}
+  .reveal-block .label{font-size:11px; color:var(--rose); letter-spacing:3px; display:block; margin-bottom:6px; font-weight:600;}
+  .reveal-block.zj{background:#f6fbf7; border-left-color:#639922; color:#27500a;}
+  .reveal-block.zj .label{color:#639922;}
+  .gold-quote{text-align:center; padding:22px 14px; margin:8px 0 16px; background:#fff;
+              border:1px solid var(--rose-soft); border-radius:18px; animation:fade .5s ease;}
+  .gold-quote .q{font-size:18px; line-height:1.75; color:var(--rose-deep); font-weight:500;}
+  .gold-quote .by{display:block; margin-top:10px; font-size:13px; color:var(--muted); letter-spacing:3px;}
+  .center-btns{text-align:center; margin-top:6px;}
+  .poster-btn{display:inline-block; background:var(--rose); color:#fff; border:none;
+              border-radius:10px; padding:11px 22px; font-size:14px; font-family:inherit;
+              cursor:pointer; box-shadow:0 6px 14px rgba(212,83,126,.2); margin:0 4px;}
+  .poster-btn.ghost{background:#fff; color:var(--rose-deep); border:1.5px solid var(--rose-soft);
+                    box-shadow:none; display:block; margin:12px auto; padding:13px; font-size:15px;}
+  .poster-btn:active{transform:scale(.98);}
+  .summary-card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px 16px;
+                margin-bottom:12px; font-size:14px; color:var(--ink); line-height:1.75;}
+  .summary-card .h{font-size:13px; color:var(--rose); letter-spacing:2px; margin-bottom:6px; display:block; font-weight:600;}
+  #posterStage{position:fixed; left:-9999px; top:0;}
+  .poster{width:720px; height:960px; background:#fff5f8;
+          padding:80px 70px; display:flex; flex-direction:column; justify-content:space-between;
+          box-sizing:border-box; font-family:"Songti SC","STSong","Noto Serif SC",serif;}
+  .poster .p-top{font-size:22px; color:#d4537e; letter-spacing:6px;}
+  .poster .p-q{font-size:40px; line-height:1.7; color:#3a2b30; text-align:center; margin:auto 0;
+               font-weight:500; white-space:pre-wrap;}
+  .poster .p-bot{font-size:18px; color:#8a7a80; text-align:right; letter-spacing:3px;}
+  .poster .p-bot b{color:#d4537e; font-weight:600; font-size:22px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="bar" id="bar"><i></i></div>
+  <div class="step-tip" id="stepTip"></div>
+
+  <section class="screen on" id="start">
+    <div class="logo serif">爱情翻译器</div>
+    <div class="sub">照见，不改造</div>
+    <div class="lead serif">
+      这不是一道"你合格吗"的测试。<br>
+      它只想做一件事：<b>帮你在爱情里，看见那些自己看不见的旧代码。</b>
+      <span class="q">—— 回答时凭第一直觉，没有对错，只有"被看见"。</span>
+    </div>
+    <button class="btn" onclick="startQuiz()">开始照见</button>
+  </section>
+
+  <section class="screen" id="quiz">
+    <span class="qtag" id="qTag">旧代码扫描</span>
+    <div class="qtext serif" id="qText"></div>
+    <div class="qhint" id="qHint"></div>
+    <div id="qOpts"></div>
+    <div id="qWhisper"></div>
+    <button class="btn" id="nextBtn" style="display:none" onclick="next()">下一题</button>
+  </section>
+
+  <section class="screen" id="report">
+    <div class="r-hero">
+      <div class="r-num" id="rNum">0<small> / 10</small></div>
+      <div class="r-title serif">条旧代码，正在你爱情里悄悄运行</div>
+      <div class="r-attach" id="rAttach"></div>
+    </div>
+    <div id="rHits"></div>
+    <div class="safe" id="rSafe"></div>
+    <div class="closing serif">
+      <span class="big">看见，就是改变的开始。</span>
+      改不改、怎么改，是你自己的选择。<br>但至少从这一刻起，那套旧代码，<br>你终于知道它在跑了。
+    </div>
+    <div class="foot">爱情翻译器 ｜ 照见，不改造</div>
+    <button class="btn sim-cta" onclick="startSim()">进入情景演练</button>
+    <button class="btn ghost" onclick="location.reload()">重新照见一次</button>
+  </section>
+
+  <section class="screen" id="simIntro">
+    <div class="logo serif">情景演练</div>
+    <div class="sub">三个真实场景，三句"记住"</div>
+    <div class="lead serif">
+      测试给了你一面镜子。<br>
+      接下来三个场景，让你<b>在具体情境里，再选一次</b>——<br>
+      看见自己踩进去的旧代码，<br>
+      也看见"你本可以"的那条新尺子。
+      <span class="q">—— 每场景结尾有一句金句，可以一键生成海报，发给需要的人。</span>
+    </div>
+    <button class="btn" onclick="beginSim()">开始演练</button>
+    <button class="btn ghost" onclick="location.reload()">先不做了</button>
+  </section>
+
+  <section class="screen" id="simScene">
+    <div class="step-tip" id="simProg">情景演练</div>
+    <div id="simSetup"></div>
+    <div id="simOpts"></div>
+    <div id="simReveal"></div>
+    <div class="center-btns" id="simBtns"></div>
+  </section>
+
+  <section class="screen" id="simSummary">
+    <div class="logo serif">三句"记住"</div>
+    <div class="sub">带走它们，就是你这次演练的全部收获</div>
+    <div id="simSumList"></div>
+    <button class="poster-btn ghost" onclick="genAllPoster()">保存我的三句</button>
+    <div class="closing serif">
+      <span class="big">照见 → 记住 → 不再重蹈。</span>
+      演练不是为了"做对"，<br>是为了下一次踩进旧代码时，<br>你能认出来。
+    </div>
+    <button class="btn ghost" onclick="location.reload()">重新照见</button>
+  </section>
+
+</div>
+
+<div id="posterStage">
+  <div id="poster" class="poster">
+    <div class="p-top">爱情翻译器</div>
+    <div class="p-q" id="pQuote"></div>
+    <div class="p-bot"><b>记住</b> · 照见，不改造</div>
+  </div>
+</div>
+
+<script src="html2canvas.min.js"></script>
+<script>
+/* 旧代码库 */
+const CODES = {
+  control:   {name:"控制 ≠ 爱",        old:"他控制我 = 他太爱我",          neu:"控制 ≠ 爱",                meta:"我的系统把控制读成了他爱我。"},
+  anxiety:   {name:"焦虑 ≠ 心动",      old:"心跳加速 = 心动",              neu:"焦虑 ≠ 心动",              meta:"焦虑型依恋会把不安误认为心动。"},
+  exam:      {name:"冷暴力 = 考卷",    old:"冷暴力 = 让他知道我生气了",    neu:"冷暴力 = 一张没有答案的考卷", meta:"冷暴力不是冷，是一张没有答案的考卷。"},
+  piano:     {name:"稳定 ≠ 没感觉",    old:"稳定的人 = 没感觉",            neu:"可能还没学会听钢琴曲",     meta:"不需要讨厌摇滚，需要训练耳朵听懂钢琴曲。"},
+  value:     {name:"价值 ≠ 牺牲",      old:"他为我牺牲 = 我有价值",        neu:"价值不需要牺牲证明",        meta:"我的价值不需要任何人的牺牲来证明。"},
+  addiction: {name:"间歇 ≠ 爱",        old:"他忽冷忽热 = 好刺激",          neu:"间歇性强化 = 最强成瘾",      meta:"焦虑换了衣服，但没离开房间。"},
+  unattain:  {name:"不可得 ≠ 魅力",    old:"不可得的人 = 有魅力",          neu:"追不可得 = 逃避被正式鉴定", meta:"不是没魅力，是太害怕被正式鉴定。"},
+  analysis:  {name:"分析 ≠ 努力",      old:"分析他 = 在努力",              neu:"用分析代替选择 = 逃避",      meta:"用分析来代替做选择，也是一种逃避。"},
+  quiet:     {name:"安静 ≠ 不爱",      old:"他不追我 = 不爱",              neu:"健康的爱是安静的一致性",    meta:"健康的爱不是一阵风把你吹倒，是回头发现他一直在原地。"},
+  chosen:    {name:"被选 ≠ 需做事",    old:"付出够多 = 他会选我",          neu:"真正的被选不需要做任何事",  meta:"我要的不是不再喜欢他，而是相信我值得被选择，因为我是我。"}
+};
+
+const ATTACH = [
+  {q:"你们闹矛盾，你的第一反应通常是？", h:"凭直觉，别想太久。",
+   o:[{t:"主动找他、怕关系断掉",k:"anx"},{t:"先躲开，自己待着",k:"avo"},{t:"该谈就谈，正常沟通",k:"sec"}]},
+  {q:"他消息回慢了，你心里？", h:"那条消息亮起红点的瞬间。",
+   o:[{t:"立刻慌，是不是出事 / 不在乎了",k:"anx"},{t:"无所谓，忙就忙",k:"avo"},{t:"稍微等等，相信他",k:"sec"}]},
+  {q:"关系进入平稳期，你感觉？", h:"没有风浪的日子。",
+   o:[{t:"有点慌，怕平淡 = 不爱",k:"anx"},{t:"松口气，终于不用应付了",k:"avo"},{t:"舒服，踏实",k:"sec"}]},
+  {q:"感情里，你最怕的是？", h:"深夜一个人时会冒出来的那种怕。",
+   o:[{t:"被抛弃、不被选",k:"anx"},{t:"被吞噬、失去自我",k:"avo"},{t:"都不太怕，怕不真诚",k:"sec"}]}
+];
+
+const SCAN = [
+  {code:"control", q:"他经常看你的手机、限制你和异性朋友来往。你真实的感受更接近——", h:"别评判自己，选最贴近的。",
+   o:[{t:"他这么在意，说明真的很爱我", hit:true, m:"你刚才把被盯紧读成了被在乎。控制，从来不是爱的一种。"},
+      {t:"有点不舒服，但说不清哪里不对", m:"你的身体已经察觉了不对劲，这本身就是清醒的开始。"},
+      {t:"这是控制，不是爱，我会警惕", m:"这一题你很清醒。在乎和控制，长得像，但你分得清。"}]},
+
+  {code:"anxiety", q:"和他在一起，你常常是——", h:"回想你们相处时的身体感觉。",
+   o:[{t:"心跳砰砰、忽上忽下，这才叫心动", hit:true, m:"砰砰跳的，不一定都是心动。有时候，那是焦虑在冒充心动。"},
+      {t:"大多时候踏实平静，偶尔有小波动", m:"平静也能是爱。不一定要上头才叫谈恋爱。"},
+      {t:"总在紧绷、猜他怎么想，很累", m:"累，本身就是信号。身体在替你喊停。"}]},
+
+  {code:"exam", q:"吵架后他消失好几天不回消息。你会——", h:"你通常做的那个动作。",
+   o:[{t:"想办法哄他、等他消气，不然这关过不去", hit:true, m:"你接了一张没有答案的考卷。冷暴力的可怕，是它把你训练成不断自我考试的考生。"},
+      {t:"给他空间，也给自己空间", m:"你没接那张考卷。这很难得——很多人一被冷，就自动坐回考场了。"},
+      {t:"直接说我的感受，不玩失踪游戏", m:"你跳出了考场。沉默不该是惩罚。"}]},
+
+  {code:"piano", q:"一个情绪稳定、对你始终如一的男生，你第一感觉是——", h:"身体最诚实的那个反应。",
+   o:[{t:"有点无聊，没有心跳的感觉", hit:true, m:"你也许不是不喜欢他，是还没学会听钢琴曲。摇滚很响，但钢琴曲要安静下来才听得见。"},
+      {t:"安心，但还想看看有没有更来电的", m:"想看更多没问题。只是别把平静误读成没爱。"},
+      {t:"正合我意，稳定最难得", m:"你已经听得见钢琴曲了。这是很多人要练很久的耳朵。"}]},
+
+  {code:"value", q:"他为你放弃了很多、付出巨大。你会——", h:"这件事在你心里的重量。",
+   o:[{t:"正因如此我更不能离开他，我欠他的", hit:true, m:"小心——他牺牲多很容易变成你走不掉的绳子。你的价值，不需要牺牲证明。"},
+      {t:"感激，但我的价值不靠这个证明", m:"你站得很稳。感恩和被绑架之间，你选了前者。"},
+      {t:"压力很大，想平衡", m:"压力感是对的。当付出变成重量，关系就已经失衡了。"}]},
+
+  {code:"addiction", q:"他平时冷淡，但偶尔的温柔让你——", h:"那种一下子上头的瞬间。",
+   o:[{t:"比一直温柔更上头，总盼那一下", hit:true, m:"这不是你贪心，是间歇性强化在起作用——最强的成瘾机制。焦虑换了衣服，但没离开房间。"},
+      {t:"怀疑，觉得是套路", m:"你看穿了节奏。偶尔的糖，不该抵消长期的冷。"},
+      {t:"无所谓，看整体", m:"你在看总量而不是峰值。这是不会被拿捏的视角。"}]},
+
+  {code:"unattain", q:"你更容易对哪种人动心？", h:"想想让你真正上头的类型。",
+   o:[{t:"若即若离、不太容易追到的人", hit:true, m:"追不到的人，未必更有魅力，有时只是让你逃过被正式鉴定。"},
+      {t:"真诚、明确喜欢我的人", m:"你敢接住确定的爱。很多人其实怕这个。"},
+      {t:"说不清，看缘分", m:"缘分没错。只是别让看不清长期替你做选择。"}]},
+
+  {code:"analysis", q:"关系出问题时，你花大量时间——", h:"你大脑最常转的那件事。",
+   o:[{t:"分析他到底怎么想、为什么这样", hit:true, m:"分析他 ≠ 在努力。用分析代替做选择，本身也是一种逃避。"},
+      {t:"想清楚自己要什么、该不该继续", m:"你把箭头指向了自己，而不是只盯着他。这才叫在努力。"},
+      {t:"找人聊，但很快落地做决定", m:"你不让分析变成原地打转。想，是为了走。"}]},
+
+  {code:"quiet", q:"他不算浪漫，但你每次需要他都在。你觉得——", h:"你心里的那句评价。",
+   o:[{t:"不够爱，因为没仪式感、不轰烈", hit:true, m:"健康的爱不是一阵风把你吹倒，是回头发现他一直在原地。"},
+      {t:"这样挺好，踏实", m:"你认得出安静的爱。这是很多人求而不得的眼光。"},
+      {t:"希望加点浪漫，但本质满意", m:"你要的是更甜，不是更爱。这分得清，就稳。"}]},
+
+  {code:"chosen", q:"你觉得，要怎样他才会一直选你？", h:"你潜意识里的答案。",
+   o:[{t:"我要做得更好、更完美才行", hit:true, m:"真正的被选，不需要你做任何事。你值得被选择，因为你是你。"},
+      {t:"选我是他的事，我做好自己", m:"你把被爱的开关，从自己手里放下了。这是解脱。"},
+      {t:"顺其自然，强求没用", m:"你不再用努力去换被选。这本身，就是被爱的前提。"}]},
+
+  {code:"control", q:"他因为你和别的男生说话而吃醋生气，你认为——", h:"你给这个行为的解释。",
+   o:[{t:"吃醋说明他在乎，是爱的表现", hit:true, m:"又一次——你把掌控欲翻译成了在乎。在乎是尊重边界，不是替你决定谁能与你说话。"},
+      {t:"可以理解，但要沟通边界", m:"你给了空间，也守了底线。"},
+      {t:"这是不安全感在作祟", m:"你看得很透。吃醋的底层，常常是怕失去掌控，不是太爱你。"}]},
+
+  {code:"quiet", q:"他很少把爱挂在嘴边，你会偷偷怀疑——", h:"那个不敢说出口的念头。",
+   o:[{t:"他没那么爱我，真爱会表达", hit:true, m:"爱的语言有很多种。不说，不等于没有。回头看看，他是不是一直在原地。"},
+      {t:"行动比语言重要", m:"你认行动。很多人困在他没说里，你没。"},
+      {t:"偶尔想听，但不怀疑爱", m:"你想听甜话，但不拿没听到当不爱的证据。很稳。"}]}
+];
+
+const SIMS = [
+  {setup:"他冷暴力已经第三天了。今天是晚上 11 点，你躺在床上翻来覆去，手机屏幕亮了又暗下去——他头像还是灰的。",
+   options:[
+     {t:"再发一条：你到底怎么想的，能不能别这样", hit:true, mirror:"你又在替他答那张考卷。冷暴力的可怕，不是冷，是它把你训练成一个不断自我考试的考生。"},
+     {t:"把对话框关掉，告诉自己不答才是答案", hit:false, mirror:"你没接那张考卷。沉默不该是惩罚，你也无需为他的回避买单。"},
+     {t:"找朋友倾诉、出门走走", hit:false, mirror:"你绕开了那张考卷。把自己从漩涡里抽出来，是清醒的选择。"}
+   ],
+   ruler:"你本可以——把对话框关掉，告诉自己不答，才是答案。沉默不该是惩罚。",
+   gold:"冷暴力不是冷，是一张没有答案的考卷。"},
+
+  {setup:"周末他约你吃饭，看到你和旁边的男同事打了个招呼。整个晚饭他都在绕着那个人问，脸色越来越不好看。",
+   options:[
+     {t:"紧张解释：真的只是同事，你想多了", hit:true, mirror:"你接了他的质问卷。在乎是好的，掌控不是——一旦你开始自证清白，就把控制读成了爱。"},
+     {t:"平静反问：你到底是不放心那个人，还是不放心你自己？", hit:false, mirror:"一句话把箭头指回去。他不是在问那个人，是在问你能不能被掌控。"},
+     {t:"直接说：我可以解释，但你这个态度让我不舒服", hit:false, mirror:"你既给了空间，也守了底线。这比全凭他心情健康得多。"}
+   ],
+   ruler:"你本可以——平静反问：你到底是不放心那个人，还是不放心你自己？把箭头指回去。",
+   gold:"我的系统把控制读成了他爱我。"},
+
+  {setup:"他为了跟你，从老家辞了工作搬过来。最近他压力很大、常叹气，你开始觉得——离开他，对不起他。",
+   options:[
+     {t:"不再提走的事，再撑撑——他付出那么多", hit:true, mirror:"你把自己绑成了补偿品。一旦他为你付出多变成你走不掉的绳子，爱就开始变质了。"},
+     {t:"主动聊：我看见你的牺牲，但我没有欠你", hit:false, mirror:"一句话把我欠你这条绳子剪断了。感恩和被绑架之间，你选了前者。"},
+     {t:"鼓励他去找新工作，别让为我牺牲绑住两个人", hit:false, mirror:"你不让为我牺牲变成两个人的枷锁。这是真正的为他好，也是为自己好。"}
+   ],
+   ruler:"你本可以——主动聊：我看见你的牺牲，但我没有欠你。剪断那条我欠你的绳子。",
+   gold:"我的价值，不需要任何人的牺牲来证明。"}
+];
+
+/* 状态 */
+let idx = 0;
+let hits = {};
+let attach = {anx:0, avo:0, sec:0};
+const ALL = ATTACH.length + SCAN.length;
+const bar = document.querySelector("#bar i");
+const stepTip = document.getElementById("stepTip");
+
+function startQuiz(){ show("quiz"); render(); }
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+}
+
+function render(){
+  const pct = Math.round(idx/ALL*100);
+  bar.style.width = pct + "%";
+  stepTip.textContent = (idx < ATTACH.length) ? "依恋速测 · "+(idx+1)+"/"+ATTACH.length
+                                              : "旧代码扫描 · "+(idx-ATTACH.length+1)+"/"+SCAN.length;
+  const tag = document.getElementById("qTag");
+  const qt = document.getElementById("qText");
+  const qh = document.getElementById("qHint");
+  const opts = document.getElementById("qOpts");
+  const wh = document.getElementById("qWhisper");
+  const next = document.getElementById("nextBtn");
+  wh.innerHTML = ""; next.style.display = "none"; opts.innerHTML = "";
+  let q, isAttach = idx < ATTACH.length;
+  if(isAttach){ q = ATTACH[idx]; tag.textContent = "依恋速测"; }
+  else { q = SCAN[idx-ATTACH.length]; tag.textContent = "旧代码扫描"; }
+  qt.textContent = q.q;
+  qh.textContent = q.h || "";
+  q.o.forEach((opt)=>{
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = '<span class="dot"></span>'+opt.t;
+    b.onclick = ()=>choose(opt, b, isAttach);
+    opts.appendChild(b);
+  });
+}
+
+function choose(opt, btn, isAttach){
+  document.querySelectorAll("#qOpts .opt").forEach(o=>o.style.pointerEvents="none");
+  btn.classList.add("sel");
+  if(isAttach){ attach[opt.k]++; }
+  else if(opt.hit) hits[SCAN[idx-ATTACH.length].code] = true;
+  if(!isAttach && opt.hit){
+    const wh = document.getElementById("qWhisper");
+    const div = document.createElement("div");
+    div.className = "whisper";
+    div.innerHTML = '<span class="tag">照 见</span>'+ (opt.m || "这一题，你选的正是旧代码。");
+    wh.appendChild(div);
+  }
+  document.getElementById("nextBtn").style.display = "block";
+  window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"});
+}
+
+function next(){
+  idx++;
+  if(idx >= ALL){ buildReport(); return; }
+  bar.style.width = Math.round(idx/ALL*100)+"%";
+  render();
+}
+
+/* 报告 */
+function buildReport(){
+  let label = "安全依恋倾向";
+  if(attach.anx >= attach.avo && attach.anx >= attach.sec) label="焦虑依恋倾向";
+  else if(attach.avo >= attach.anx && attach.avo >= attach.sec) label="回避依恋倾向";
+  if(attach.anx>0 && attach.avo>0 && attach.sec>0 && (attach.anx+attach.avo+attach.sec)===4){
+    label = "焦虑与回避混合倾向";
+  }
+  const hitList = Object.keys(hits);
+  const n = hitList.length;
+  document.getElementById("rNum").innerHTML = n + '<small> / 10</small>';
+  document.getElementById("rAttach").textContent = "你的依恋底色：" + label + " —— 它决定了旧代码更容易从哪个入口溜进来。";
+  const box = document.getElementById("rHits");
+  box.innerHTML = "";
+  if(n === 0){
+    box.innerHTML = '<div class="safe">这一次，10 条旧代码都没怎么抓住你。要么你已活得清醒，要么你还没走进足够深的关系。</div>';
+  } else {
+    hitList.forEach(c=>{
+      const d = CODES[c];
+      const el = document.createElement("div");
+      el.className = "hit";
+      el.innerHTML = '<div class="hname">'+d.name+'</div>'+
+        '<div class="flip"><span class="old">'+d.old+'</span>'+
+        '<span class="arrow">→</span><span class="neu">'+d.neu+'</span></div>'+
+        '<div class="meta">'+d.meta+'</div>';
+      box.appendChild(el);
+    });
+  }
+  const safeList = Object.keys(CODES).filter(c=>!hits[c]);
+  const safeBox = document.getElementById("rSafe");
+  if(safeList.length){
+    const names = safeList.map(c=>CODES[c].name.replace(/\s/g,"")).join("、");
+    safeBox.innerHTML = "你暂时没被这些困住：<b>"+names+"</b>。不是你完美，是这些坑，你要么绕过了，要么还没踩到。";
+  } else {
+    safeBox.innerHTML = "10 条旧代码，这一次都照见到了。没关系——<b>被全数照见，反而是最彻底的开始。</b>";
+  }
+  show("report");
+  bar.style.width = "100%";
+  stepTip.textContent = "你的爱情旧代码报告";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* 情景演练 */
+let simIdx = 0, simReveal = false, simGoldList = [];
+
+function startSim(){ show("simIntro"); window.scrollTo({top:0,behavior:"smooth"}); }
+
+function beginSim(){
+  simIdx = 0; simReveal = false; simGoldList = [];
+  show("simScene"); renderSim(); window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function renderSim(){
+  const s = SIMS[simIdx];
+  document.getElementById("simProg").textContent = "情景演练 · "+(simIdx+1)+"/"+SIMS.length;
+  document.getElementById("simSetup").innerHTML =
+    '<div class="sim-setup"><span class="tag">场景 · '+(simIdx+1)+'</span>'+s.setup+'</div>';
+  const optsBox = document.getElementById("simOpts");
+  const revealBox = document.getElementById("simReveal");
+  const btns = document.getElementById("simBtns");
+  optsBox.innerHTML = ""; revealBox.innerHTML = ""; btns.innerHTML = "";
+  if(!simReveal){
+    s.options.forEach((opt)=>{
+      const b = document.createElement("button");
+      b.className = "sim-opt";
+      b.textContent = opt.t;
+      b.onclick = ()=>chooseSim(opt, b);
+      optsBox.appendChild(b);
+    });
+  } else {
+    const chosen = s.options.find(o=>o._picked);
+    const r1 = document.createElement("div");
+    r1.className = "reveal-block";
+    r1.innerHTML = '<span class="label">照 见</span>' + chosen.mirror;
+    revealBox.appendChild(r1);
+    const r2 = document.createElement("div");
+    r2.className = "reveal-block zj";
+    r2.innerHTML = '<span class="label">新尺子</span>' + s.ruler;
+    revealBox.appendChild(r2);
+    const gq = document.createElement("div");
+    gq.className = "gold-quote";
+    gq.innerHTML = '<div class="q">'+s.gold+'</div><div class="by">—— 记住</div>';
+    revealBox.appendChild(gq);
+    const pb = document.createElement("button");
+    pb.className = "poster-btn";
+    pb.textContent = "保存这张金句图";
+    pb.onclick = ()=>genPoster("爱情翻译器-S"+(simIdx+1));
+    btns.appendChild(pb);
+    const isLast = simIdx >= SIMS.length-1;
+    const nb = document.createElement("button");
+    nb.className = "poster-btn ghost";
+    nb.textContent = isLast ? "看我的三句记住" : "下一场景";
+    nb.onclick = nextSim;
+    btns.appendChild(nb);
+  }
+}
+
+function chooseSim(opt, btn){
+  document.querySelectorAll("#simOpts .sim-opt").forEach(o=>o.style.pointerEvents="none");
+  btn.classList.add("sel");
+  const s = SIMS[simIdx];
+  s.options.forEach(o=>o._picked = (o===opt));
+  simGoldList.push(s.gold);
+  simReveal = true;
+  renderSim();
+  window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"});
+}
+
+function nextSim(){
+  simReveal = false;
+  simIdx++;
+  if(simIdx >= SIMS.length){ showSimSummary(); return; }
+  renderSim();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function showSimSummary(){
+  show("simSummary");
+  const list = document.getElementById("simSumList");
+  list.innerHTML = "";
+  simGoldList.forEach((g,i)=>{
+    const card = document.createElement("div");
+    card.className = "summary-card";
+    card.innerHTML = '<span class="h">第 '+(i+1)+' 句 · 记住</span>'+g;
+    list.appendChild(card);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+/* 海报生成（html2canvas） */
+function genPoster(filename){
+  const s = SIMS[simIdx];
+  document.getElementById("pQuote").textContent = s.gold;
+  html2canvas(document.getElementById("poster"), {backgroundColor:"#fff5f8", scale:2, useCORS:true})
+    .then(canvas=>{
+      const link = document.createElement("a");
+      link.download = filename + ".png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }).catch(err=>{
+      alert("保存失败，请稍后再试或刷新页面。");
+      console.error(err);
+    });
+}
+
+function genAllPoster(){
+  document.getElementById("pQuote").textContent = "三句记住，\n是我这次的全部演练。";
+  html2canvas(document.getElementById("poster"), {backgroundColor:"#fff5f8", scale:2, useCORS:true})
+    .then(canvas=>{
+      const link = document.createElement("a");
+      link.download = "爱情翻译器-我的三句.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    });
+}
+</script>
+</body>
+</html>

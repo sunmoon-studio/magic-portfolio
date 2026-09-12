@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>外贸模板文件 · 预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f1f3f5; color: #333; padding: 20px 16px 40px; max-width: 840px; margin: 0 auto; font-size: 14px; }
+  h1 { font-family: 'Noto Serif SC', 'Songti SC', serif; font-size: 21px; }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .badge { font-size: 11px; background: #e4e9ec; color: #5a7183; border-radius: 4px; padding: 3px 8px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { border: 1px solid #cdd6dc; background: #fff; border-radius: 999px; padding: 7px 16px; font-size: 13.5px; cursor: pointer; color: #556570; }
+  .tab.on { background: #2f5d7c; border-color: #2f5d7c; color: #fff; }
+  .page { display: none; }
+  .page.on { display: block; }
+  .paper { background: #fff; border-radius: 10px; box-shadow: 0 2px 14px rgba(40,60,80,.1); padding: 28px 30px; }
+  .ph { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2f5d7c; padding-bottom: 14px; margin-bottom: 16px; }
+  .ph .co { font-family: 'Noto Serif SC', serif; font-size: 19px; color: #2f5d7c; font-weight: 700; }
+  .ph .co small { display: block; font-size: 10.5px; color: #9aa7b0; font-family: -apple-system, sans-serif; font-weight: 400; margin-top: 3px; letter-spacing: .5px; }
+  .ph .doc { text-align: right; font-size: 12px; color: #6b7880; line-height: 1.8; }
+  .ph .doc b { font-size: 15px; color: #2f5d7c; letter-spacing: 1px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-bottom: 14px; }
+  th, td { border: 1px solid #dde4e9; padding: 7px 9px; text-align: left; }
+  th { background: #f0f5f8; color: #44545f; font-weight: 600; font-size: 11.5px; white-space: nowrap; }
+  td.num, th.num { text-align: right; }
+  .total-row td { background: #f6fafc; font-weight: 700; color: #2f5d7c; }
+  .note { font-size: 11.5px; color: #8b98a2; line-height: 1.8; }
+  .note b { color: #556570; }
+  .terms { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 12px; color: #556570; margin-bottom: 14px; }
+  @media (max-width: 600px) { .terms { grid-template-columns: 1fr; } }
+  .sign { display: flex; justify-content: space-between; margin-top: 26px; font-size: 12.5px; color: #556570; }
+  .sign .box { width: 45%; border-top: 1px solid #9aa7b0; padding-top: 6px; }
+  .tip { background: #eaf2f7; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; color: #40606f; line-height: 1.8; margin-top: 12px; }
+  .foot { text-align: center; color: #a5b1ba; font-size: 12px; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>📑 外贸模板文件 · 预览</h1>
+    <span class="badge">模板结构展示 · 数据均为虚构</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="pg(0)">报价单 Quotation</button>
+    <button class="tab" onclick="pg(1)">形式发票 PI</button>
+    <button class="tab" onclick="pg(2)">订单跟踪表</button>
+  </div>
+
+  <div class="page on">
+    <div class="paper">
+      <div class="ph">
+        <div class="co">×× TRADING CO., LTD.<small>ADD: ×× City, China &nbsp;|&nbsp; TEL: +86-×××-×××××××× &nbsp;|&nbsp; EMAIL: sales@example.com</small></div>
+        <div class="doc"><b>QUOTATION</b><br>No.: QT-2026-0912<br>Date: 2026-09-04<br>Valid Until: 2026-09-25</div>
+      </div>
+      <div class="terms">
+        <span><b>To:</b> Muster Handel GmbH（示例客户）</span><span><b>Attn:</b> Herr Müller</span>
+        <span><b>Port of Loading:</b> Ningbo, China</span><span><b>Port of Destination:</b> Hamburg, Germany</span>
+        <span><b>Trade Terms:</b> FOB Ningbo</span><span><b>Payment:</b> T/T 30% deposit, 70% against B/L copy</span>
+      </div>
+      <table>
+        <tr><th>No.</th><th>Description</th><th>Spec / Material</th><th class="num">Qty (pcs)</th><th class="num">Unit Price (USD)</th><th class="num">Amount (USD)</th></tr>
+        <tr><td>1</td><td>Foldable Storage Box</td><td>PP, 40L, Grey</td><td class="num">1,000</td><td class="num">2.85</td><td class="num">2,850.00</td></tr>
+        <tr><td>2</td><td>Vacuum Storage Bag Set</td><td>PA+PE, 6pcs/set</td><td class="num">2,000</td><td class="num">1.92</td><td class="num">3,840.00</td></tr>
+        <tr><td>3</td><td>Desktop Organizer</td><td>Bamboo, 3-tier</td><td class="num">800</td><td class="num">4.60</td><td class="num">3,680.00</td></tr>
+        <tr class="total-row"><td colspan="5">TOTAL (FOB NINGBO)</td><td class="num">10,370.00</td></tr>
+      </table>
+      <p class="note"><b>Remarks:</b><br>· 报价含出口纸箱包装，不含零售彩盒（彩盒加收 8%，MOQ 1,000）<br>· 交期：定金到账后 25 天内出运<br>· 本报价基于当前原材料价格，有效期后需重新确认<br>· 认证状态：CE 已齐，欧盟包装法规符合声明可随货提供</p>
+      <div class="sign"><div class="box">For and on behalf of<br>×× TRADING CO., LTD.</div><div class="box" style="text-align:right">Confirmed by<br>Muster Handel GmbH</div></div>
+    </div>
+    <div class="tip">💡 <b>模板设计要点：</b>客户抬头 / 有效期 / 价格条款三件套放最显眼——外贸老手看报价单，先看这三处。</div>
+  </div>
+
+  <div class="page">
+    <div class="paper">
+      <div class="ph">
+        <div class="co">×× TRADING CO., LTD.<small>ADD: ×× City, China &nbsp;|&nbsp; TEL: +86-×××-×××××××× &nbsp;|&nbsp; EMAIL: sales@example.com</small></div>
+        <div class="doc"><b>PROFORMA INVOICE</b><br>No.: PI-2026-0458<br>Date: 2026-09-04</div>
+      </div>
+      <div class="terms">
+        <span><b>Buyer:</b> Muster Handel GmbH（示例客户）</span><span><b>Seller:</b> ×× TRADING CO., LTD.</span>
+        <span><b>Shipment:</b> Within 25 days after deposit</span><span><b>Payment:</b> T/T 30% / 70%</span>
+        <span><b>Incoterms:</b> FOB Ningbo (Incoterms 2020)</span><span><b>Bank Info:</b> ×× Bank, A/C NO. ××××</span>
+      </div>
+      <table>
+        <tr><th>Item</th><th>Product</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Amount (USD)</th></tr>
+        <tr><td>1</td><td>Foldable Storage Box (PP, 40L)</td><td class="num">1,000</td><td class="num">2.85</td><td class="num">2,850.00</td></tr>
+        <tr><td>2</td><td>Vacuum Storage Bag Set (6pcs)</td><td class="num">2,000</td><td class="num">1.92</td><td class="num">3,840.00</td></tr>
+        <tr><td>3</td><td>Desktop Organizer (Bamboo)</td><td class="num">800</td><td class="num">4.60</td><td class="num">3,680.00</td></tr>
+        <tr class="total-row"><td colspan="4">TOTAL AMOUNT</td><td class="num">USD 10,370.00</td></tr>
+      </table>
+      <p class="note"><b>Notes:</b><br>· Please arrange 30% deposit (USD 3,111.00) to the above account and send bank slip.<br>· 余额见提单副本后 5 个工作日内付清。<br>· 本 PI 一经买方确认即作为合同附件生效。</p>
+      <div class="sign"><div class="box">Authorized Signature<br>(Seller)</div><div class="box" style="text-align:right">Accepted & Confirmed<br>(Buyer)</div></div>
+    </div>
+    <div class="tip">💡 <b>模板设计要点：</b>PI 的本质是"半个合同"——金额、付款、交期、生效条件四要素必须无歧义，避免后续扯皮。</div>
+  </div>
+
+  <div class="page">
+    <div class="paper">
+      <div class="ph">
+        <div class="co">ORDER TRACKER<div class="doc" style="text-align:left"></div></div>
+        <div class="doc"><b>订单跟踪表</b><br>Sheet: 2026-09 · 共 4 单在途</div>
+      </div>
+      <table>
+        <tr><th>订单号</th><th>客户</th><th>状态</th><th>生产</th><th>验货</th><th>出运</th><th>收尾款</th><th>风险</th></tr>
+        <tr><td>SO-260912</td><td>A 客户</td><td>生产中</td><td>60%</td><td>—</td><td>9/28 ETD</td><td>见 B/L</td><td style="color:#b07b2a">⚠ 材料涨价</td></tr>
+        <tr><td>SO-260915</td><td>C 客户</td><td>待出运</td><td>100%</td><td>✓ 已过</td><td>9/08 ETD</td><td>9/10 催</td><td>—</td></tr>
+        <tr><td>SO-260918</td><td>E 客户</td><td>返单确认</td><td>排产中</td><td>—</td><td>10/12 ETD</td><td>30% 已收</td><td style="color:#b07b2a">⚠ 舱位紧张</td></tr>
+        <tr><td>SO-260921</td><td>B 客户</td><td>样品单</td><td>打样中</td><td>—</td><td>快递 DHL</td><td>已付</td><td>—</td></tr>
+      </table>
+      <p class="note"><b>使用说明：</b>每单七格——从下单到收尾款全程可视。任何一格亮黄，当天必须有动作；两个黄，升级到主管。<br>表格内置条件格式与到期提醒，"忘记跟进"这件事，交给表，不靠人记。</p>
+    </div>
+    <div class="tip">💡 <b>模板设计要点：</b>跟踪表的价值不在"记录"，在于让风险自己跳出来。</div>
+  </div>
+
+  <p class="foot">模板结构演示 · 完整版为 Excel / Word 可编辑文件，含自动合计与打印排版</p>
+
+<script>
+function pg(i) {
+  document.querySelectorAll('.tab').forEach(function (t, j) { t.classList.toggle('on', i === j); });
+  document.querySelectorAll('.page').forEach(function (p, j) { p.classList.toggle('on', i === j); });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍳 朝食记 — 私房菜谱 &amp; 智能购物清单</title>
+<style>
+:root{
+  --primary:#FF7B54; --primary-light:#FFB26B; --primary-dark:#E25E3E;
+  --accent:#FFD56F; --accent-light:#FFECA1;
+  --bg-warm:#FFF9F0; --bg-card:#FFFFFF;
+  --text-primary:#5C3A21; --text-secondary:#7A5C43; --text-muted:#A38771;
+  --border:#5C3A21;
+  --shadow:4px 4px 0px var(--border);
+  --shadow-sm:2px 2px 0px var(--border);
+  --shadow-hover:6px 6px 0px var(--border);
+  --radius-sm:12px; --radius-md:16px; --radius-lg:20px;
+  --tag-main:#E25E3E; --tag-side:#45B69C; --tag-sauce:#9B59B6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg-warm);color:var(--text-primary);min-height:100vh;position:relative;overflow-x:hidden}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);opacity:.35;z-index:-1}
+.blob-1{width:400px;height:400px;background:var(--accent);top:-100px;right:-100px}
+.blob-2{width:300px;height:300px;background:var(--primary-light);bottom:-80px;left:-80px}
+.blob-3{width:200px;height:200px;background:#FFDAB9;top:40%;left:60%}
+
+.demo-banner{background:#FFF3D6;color:#7A5C43;font-size:13px;padding:9px 16px;display:flex;gap:12px;align-items:center;border-bottom:2px solid #F5E1B8;position:relative;z-index:5}
+.demo-banner button{margin-left:auto;border:0;background:rgba(122,92,67,.12);border-radius:999px;width:22px;height:22px;cursor:pointer;color:#7A5C43;font-size:12px;line-height:1}
+
+.app{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+
+/* 顶部 */
+.header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.logo{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800}
+.family{margin-left:auto;display:flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--border);border-radius:999px;padding:5px 12px;box-shadow:var(--shadow-sm)}
+.family .fname{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.family .mem{width:26px;height:26px;border-radius:50%;background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:14px;border:1.5px solid var(--border)}
+
+.card{background:var(--bg-card);border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+.section-title{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.section-desc{font-size:13px;color:var(--text-muted);margin-bottom:16px}
+
+/* 输入区 */
+.input-row{display:flex;gap:10px}
+.dish-input{flex:1;border:2px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;font-family:inherit;background:#FFFDF8;outline:none}
+.dish-input:focus{background:#fff}
+.add-btn{border:2px solid var(--border);background:var(--primary);color:#fff;font-size:18px;font-weight:800;width:46px;border-radius:var(--radius-sm);cursor:pointer;box-shadow:var(--shadow-sm);transition:.15s}
+.add-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow)}
+.add-btn:active{transform:translate(1px,1px);box-shadow:none}
+
+.dish-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.dish-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);border:2px solid var(--border);border-radius:999px;padding:5px 8px 5px 12px;font-size:13px;font-weight:700}
+.dish-tag button{border:0;background:rgba(92,58,33,.14);width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:11px;color:var(--text-primary);line-height:1}
+
+.menu{margin-top:16px}
+.menu-title{font-size:14px;font-weight:800;margin-bottom:10px;color:var(--text-secondary)}
+.cat-name{font-size:13px;font-weight:700;color:var(--text-muted);margin:12px 0 8px}
+.quick-list{display:flex;flex-wrap:wrap;gap:8px}
+.qdish{border:2px solid var(--border);background:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-sm);transition:.13s;font-family:inherit;color:var(--text-primary)}
+.qdish:hover{background:var(--accent-light);transform:translate(-1px,-1px);box-shadow:var(--shadow)}
+.qdish.on{background:var(--primary);color:#fff}
+
+.add-recipe-btn{margin-top:14px;width:100%;border:2px dashed var(--border);background:transparent;border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:700;color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:.15s}
+.add-recipe-btn:hover{background:var(--accent-light)}
+
+.go-btn{margin-top:16px;width:100%;border:2px solid var(--border);background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:16px;font-weight:800;padding:14px;border-radius:var(--radius-md);cursor:pointer;box-shadow:var(--shadow);transition:.15s;font-family:inherit}
+.go-btn:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-hover)}
+.go-btn:disabled{background:#E8DDD0;color:#B7A695;box-shadow:var(--shadow-sm);cursor:not-allowed;transform:none}
+
+/* 做菜动画 */
+.cook{text-align:center;padding:30px 0 10px}
+.pot{font-size:56px;animation:bob 1s ease-in-out infinite;display:inline-block}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.steam{font-size:22px;color:var(--text-muted);animation:rise 1.4s ease-in-out infinite;opacity:0}
+.steam-1{animation-delay:0s}.steam-2{animation-delay:.4s}.steam-3{animation-delay:.8s}
+@keyframes rise{0%{opacity:0;transform:translateY(6px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-14px)}}
+.cook h3{margin-top:12px;font-size:16px}
+.cook p{font-size:13px;color:var(--text-muted);margin-top:6px}
+
+/* 结果：每道菜的食材 */
+.dish-card{background:#fff;border:2px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:16px 18px;margin-bottom:12px}
+.dish-card h4{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ing-groups{display:flex;flex-direction:column;gap:6px}
+.ing-line{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px}
+.ing-line .lab{color:var(--text-muted);font-weight:700;min-width:34px}
+.ing{border:1.5px solid var(--border);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;background:#FFFDF8}
+.ing.main{background:#FFE4D6}
+.ing.side{background:#DDF3EC}
+.ing.sauce{background:#F0E3F8}
+
+/* 购物清单 */
+.shop-list{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.shop-item{display:flex;align-items:center;gap:10px;border:2px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;background:#FFFDF8}
+.shop-item .nm{font-size:14px;font-weight:700}
+.shop-item .amt{font-size:12px;color:var(--text-muted);margin-left:auto}
+.shop-item .ck{width:20px;height:20px;accent-color:var(--primary);cursor:pointer;flex:none}
+.shop-item.pantry{opacity:.55;background:#F3EFE8}
+.shop-item.pantry .nm{text-decoration:line-through}
+.pantry-btn{border:1.5px solid var(--border);background:#fff;border-radius:999px;font-size:11px;padding:2px 9px;cursor:pointer;font-family:inherit;color:var(--text-secondary);white-space:nowrap}
+.pantry-btn.on{background:var(--accent);font-weight:700}
+.shop-actions{display:flex;gap:10px;flex-wrap:wrap}
+.act-btn{flex:1;min-width:130px;border:2px solid var(--border);border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm);transition:.15s;font-family:inherit;background:#fff;color:var(--text-primary)}
+.act-btn:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow)}
+.act-btn.primary{background:var(--primary);color:#fff}
+
+.market{margin-top:16px;text-align:center}
+.market p{font-size:13px;color:var(--text-secondary);font-weight:700;margin-bottom:10px}
+.market-links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.market-links a{border:2px solid var(--border);border-radius:999px;padding:7px 16px;font-size:13px;font-weight:700;text-decoration:none;color:var(--text-primary);background:#fff;box-shadow:var(--shadow-sm);transition:.13s}
+.market-links a:hover{background:var(--accent-light);transform:translate(-1px,-1px);box-shadow:var(--shadow)}
+.tip{font-size:11px;color:var(--text-muted);margin-top:10px}
+
+/* 模态框 */
+.overlay{position:fixed;inset:0;background:rgba(92,58,33,.4);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.overlay.on{display:flex}
+.modal{background:#fff;border:2px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-hover);width:480px;max-width:96vw;max-height:88vh;overflow:auto;padding:20px}
+.modal h3{font-size:16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.modal h3 button{border:0;background:rgba(92,58,33,.1);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:12px;color:var(--text-primary)}
+.f-label{font-size:12px;font-weight:800;color:var(--text-secondary);margin:12px 0 6px}
+.f-input{width:100%;border:2px solid var(--border);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;background:#FFFDF8;outline:none}
+.ing-row{display:flex;gap:8px;margin-bottom:6px}
+.ing-row .f-input:nth-child(1){flex:1.4}
+.ing-row .f-input:nth-child(2){flex:1}
+.row-add{border:0;background:none;color:var(--primary);font-weight:800;font-size:12px;cursor:pointer;padding:4px 0;font-family:inherit}
+.modal-ft{display:flex;gap:10px;margin-top:18px}
+.modal-ft button{flex:1;border:2px solid var(--border);border-radius:var(--radius-sm);padding:11px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-sm)}
+.m-cancel{background:#fff;color:var(--text-secondary)}
+.m-save{background:var(--primary);color:#fff}
+.del-btn{background:#fff;color:#E25E3E}
+
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--text-primary);color:#FFF9F0;font-size:13px;padding:10px 20px;border-radius:999px;opacity:0;transition:.25s;z-index:99;pointer-events:none;border:2px solid var(--border)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.footer{text-align:center;font-size:12px;color:var(--text-muted);margin-top:26px}
+@media (max-width:560px){.modal{width:100%}.input-row{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  🍳 网页演示版 · 选菜、生成清单、家里有标记都可直接用；真实版为云端家庭空间，家人实时同步、邀请码加入
+  <button onclick="this.parentNode.remove()" title="知道了">✕</button>
+</div>
+
+<div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div>
+
+<div class="app">
+  <div class="header">
+    <div class="logo"><span>🍳</span>朝食记</div>
+    <div class="family" title="演示家庭空间">
+      <span class="fname">我们的小厨房</span>
+      <span class="mem" title="妈妈">👩</span>
+      <span class="mem" title="爸爸">👨</span>
+      <span class="mem" title="我">🧑</span>
+    </div>
+  </div>
+
+  <!-- 选菜 -->
+  <section class="card" id="sec-input">
+    <h2 class="section-title"><span>📝</span>今天想吃什么？</h2>
+    <p class="section-desc">从家庭菜单选菜，或自己录入新菜，一键生成购物清单～</p>
+
+    <div class="input-row">
+      <input type="text" class="dish-input" id="dish-input" placeholder="比如：红烧排骨、番茄炒蛋、酸辣土豆丝" autocomplete="off">
+      <button class="add-btn" id="btn-add" title="添加菜品">＋</button>
+    </div>
+    <div class="dish-tags" id="dish-tags"></div>
+
+    <div class="menu" id="menu"></div>
+
+    <button class="add-recipe-btn" id="btn-recipe">✏️ 录入新菜（存到"我的私房菜"）</button>
+    <button class="go-btn" id="btn-go" disabled>🛒 生成购物清单</button>
+  </section>
+
+  <!-- 拆解中 -->
+  <section class="card cook" id="sec-cooking" style="display:none">
+    <div>
+      <span class="pot">🍲</span>
+      <span class="steam steam-1">˜</span><span class="steam steam-2">˜</span><span class="steam steam-3">˜</span>
+    </div>
+    <h3>正在拆解食材…</h3>
+    <p id="cook-dish"></p>
+  </section>
+
+  <!-- 结果 -->
+  <section id="sec-result" style="display:none">
+    <div id="dish-cards"></div>
+    <div class="card" id="shop-card">
+      <h2 class="section-title"><span>🛒</span>购物清单</h2>
+      <p class="section-desc">已帮你合并相同食材、去掉家里已有的，按"荤 · 素 · 主食 · 调料"排好</p>
+      <div class="shop-list" id="shop-list"></div>
+      <div class="shop-actions">
+        <button class="act-btn primary" id="btn-copy">📋 复制清单</button>
+        <button class="act-btn" id="btn-share">💬 分享给家人</button>
+      </div>
+      <div class="market">
+        <p>📍 复制清单后，去买菜吧～</p>
+        <div class="market-links">
+          <a href="https://www.100.me/" target="_blank" rel="noopener">🥬 叮咚买菜</a>
+          <a href="https://www.meituan.com/" target="_blank" rel="noopener">🐘 美团</a>
+          <a href="https://www.freshhema.com/" target="_blank" rel="noopener">🦛 盒马</a>
+          <a href="https://daojia.jd.com/" target="_blank" rel="noopener">🔴 京东到家</a>
+        </div>
+        <p class="tip">💡 演示环境不自动跳转复制，真实版点击即复制清单</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="footer">✨ 朝食记 · 私房菜谱 &amp; 智能购物清单（演示版）</p>
+</div>
+
+<!-- 录入新菜 -->
+<div class="overlay" id="ov-recipe">
+  <div class="modal">
+    <h3>✏️ 录入新菜 <button id="rc-close">✕</button></h3>
+    <div class="f-label">🍽️ 菜名</div>
+    <input class="f-input" id="rc-name" placeholder="比如：红烧肉" autocomplete="off">
+    <div class="f-label">🥩 主料</div>
+    <div id="rc-main"></div><button class="row-add" id="rc-add-main">＋ 添加主料</button>
+    <div class="f-label">🥬 辅料</div>
+    <div id="rc-side"></div><button class="row-add" id="rc-add-side">＋ 添加辅料</button>
+    <div class="f-label">🧂 调料</div>
+    <div id="rc-sauce"></div><button class="row-add" id="rc-add-sauce">＋ 添加调料</button>
+    <div class="modal-ft">
+      <button class="m-cancel" id="rc-cancel">取消</button>
+      <button class="m-save" id="rc-save">💾 保存菜谱</button>
+    </div>
+  </div>
+</div>
+
+<!-- 查看菜谱 -->
+<div class="overlay" id="ov-view">
+  <div class="modal">
+    <h3><span id="vv-title">📖 菜谱</span> <button id="vv-close">✕</button></h3>
+    <div id="vv-body"></div>
+    <div class="modal-ft">
+      <button class="m-cancel del-btn" id="vv-del">🗑️ 删除</button>
+      <button class="m-save" id="vv-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 菜谱库（演示数据，全部虚构通用家常菜） ============ */
+var RECIPE_DB = {
+  '拍黄瓜':{main:[['黄瓜','2根']],side:[['蒜','4瓣'],['花生碎','1小把']],sauce:[['香醋','2勺'],['生抽','1勺'],['香油','几滴']]},
+  '凉拌木耳':{main:[['干木耳','1小把']],side:[['小米椒','2个'],['香菜','少许'],['蒜','3瓣']],sauce:[['香醋','2勺'],['生抽','1勺'],['糖','半勺']]},
+  '白灼虾':{main:[['鲜虾','500g']],side:[['姜','3片'],['葱','2根']],sauce:[['蒸鱼豉油','2勺']]},
+  '番茄炒蛋':{main:[['番茄','2个'],['鸡蛋','3个']],side:[['小葱','1根']],sauce:[['盐','适量'],['糖','半勺']]},
+  '红烧排骨':{main:[['猪肋排','600g']],side:[['姜','4片'],['八角','2个'],['冰糖','6粒']],sauce:[['生抽','2勺'],['老抽','半勺'],['料酒','1勺']]},
+  '鱼香肉丝':{main:[['猪里脊','300g'],['胡萝卜','半根'],['青椒','1个'],['木耳','1小把']],side:[['葱姜蒜','适量']],sauce:[['豆瓣酱','1勺'],['香醋','2勺'],['糖','1勺'],['生抽','1勺']]},
+  '可乐鸡翅':{main:[['鸡翅中','8个']],side:[['姜','3片'],['葱','1根']],sauce:[['可乐','1罐'],['生抽','2勺'],['老抽','半勺']]},
+  '清蒸鲈鱼':{main:[['鲈鱼','1条']],side:[['姜','1块'],['葱','2根'],['红椒丝','少许']],sauce:[['蒸鱼豉油','3勺'],['料酒','1勺']]},
+  '蒜蓉西兰花':{main:[['西兰花','1颗']],side:[['蒜','5瓣']],sauce:[['盐','适量'],['蚝油','1勺']]},
+  '麻婆豆腐':{main:[['嫩豆腐','1盒'],['猪肉末','100g']],side:[['蒜苗','2根'],['姜蒜末','适量']],sauce:[['豆瓣酱','1勺'],['花椒粉','少许'],['生抽','1勺']]},
+  '青椒土豆丝':{main:[['土豆','2个'],['青椒','1个']],side:[['蒜','3瓣'],['干辣椒','3个']],sauce:[['香醋','1勺'],['盐','适量']]},
+  '番茄蛋汤':{main:[['番茄','1个'],['鸡蛋','2个']],side:[['小葱','1根']],sauce:[['香油','几滴'],['盐','适量']]},
+  '紫菜虾滑汤':{main:[['虾滑','200g'],['紫菜','1小块']],side:[['鸡蛋','1个'],['香菜','少许']],sauce:[['白胡椒粉','少许'],['盐','适量']]},
+  '玉米排骨汤':{main:[['猪肋排','400g'],['甜玉米','2根']],side:[['胡萝卜','1根'],['姜','3片']],sauce:[['盐','适量']]},
+  '葱油饼':{main:[['面粉','300g']],side:[['小葱','3根']],sauce:[['食用油','适量'],['盐','少许']]},
+  '八宝饭':{main:[['糯米','300g'],['豆沙','150g']],side:[['红枣','6颗'],['葡萄干','1小把'],['莲子','1小把']],sauce:[['猪油','1勺'],['糖','2勺']]},
+  '手工水饺':{main:[['饺子皮','40张'],['猪肉馅','400g'],['白菜','半颗']],side:[['葱姜','适量']],sauce:[['生抽','1勺'],['香油','1勺'],['盐','适量']]}
+};
+
+var MENU = [
+  {cat:'🧊 常做冷菜', dishes:['拍黄瓜','凉拌木耳','白灼虾']},
+  {cat:'🔥 常做热菜', dishes:['番茄炒蛋','红烧排骨','鱼香肉丝','可乐鸡翅','清蒸鲈鱼','蒜蓉西兰花','麻婆豆腐','青椒土豆丝']},
+  {cat:'🍲 汤羹', dishes:['番茄蛋汤','紫菜虾滑汤','玉米排骨汤']},
+  {cat:'🥟 点心', dishes:['葱油饼','八宝饭','手工水饺']}
+];
+
+/* ============ 状态 ============ */
+var LS_KEY = 'chaozhao-demo-v1';
+var state = {picked:[], custom:[], pantry:[]};
+try{ var saved = JSON.parse(localStorage.getItem(LS_KEY)||'{}'); if(saved.custom) state.custom=saved.custom; if(saved.pantry) state.pantry=saved.pantry; }catch(e){}
+function persist(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({custom:state.custom, pantry:state.pantry})) }catch(e){} }
+
+function $(s){return document.querySelector(s)}
+function $$(s){return [].slice.call(document.querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._tm);t._tm=setTimeout(function(){t.classList.remove('on')},2200)}
+function allRecipes(){ var db={}; Object.keys(RECIPE_DB).forEach(function(k){db[k]=RECIPE_DB[k]}); state.custom.forEach(function(r){db[r.name]=r}); return db }
+
+/* ============ 菜单渲染 ============ */
+function renderMenu(){
+  var html = MENU.map(function(g){
+    return '<div class="cat-name">'+g.cat+'</div><div class="quick-list">'+
+      g.dishes.map(function(d){ return btn(d) }).join('')+'</div>';
+  }).join('');
+  if(state.custom.length){
+    html += '<div class="cat-name">✨ 我的私房菜</div><div class="quick-list">'+
+      state.custom.map(function(r){ return btn(r.name, true) }).join('')+'</div>';
+  }
+  $('#menu').innerHTML = '<div class="menu-title">📖 家庭私房菜单</div>'+html;
+  $$('#menu .qdish').forEach(function(b){
+    b.onclick = function(){ toggleDish(b.dataset.d) };
+    if(b.dataset.view){
+      b.oncontextmenu = function(e){ e.preventDefault(); viewRecipe(b.dataset.d) };
+      var v = document.createElement('button');
+      v.className='row-add'; v.textContent='查看'; v.style.margin='0 0 0 6px';
+      v.onclick=function(e){e.stopPropagation();viewRecipe(b.dataset.d)};
+      b.parentNode.insertBefore(v, b.nextSibling);
+    }
+  });
+}
+function btn(name, isCustom){
+  var on = state.picked.indexOf(name)!==-1 ? ' on':'';
+  return '<button class="qdish'+on+'" data-d="'+esc(name)+'" data-view="'+(isCustom?'1':'')+'">'+esc(name)+'</button>';
+}
+function toggleDish(name){
+  var i = state.picked.indexOf(name);
+  if(i===-1) state.picked.push(name); else state.picked.splice(i,1);
+  renderMenu(); renderTags();
+}
+function renderTags(){
+  $('#dish-tags').innerHTML = state.picked.map(function(d){
+    return '<span class="dish-tag">'+esc(d)+'<button data-rm="'+esc(d)+'">✕</button></span>';
+  }).join('');
+  $$('#dish-tags button').forEach(function(b){ b.onclick=function(){ toggleDish(b.dataset.rm) } });
+  $('#btn-go').disabled = state.picked.length===0;
+}
+
+/* 手动输入 */
+$('#btn-add').onclick = addFromInput;
+$('#dish-input').addEventListener('keydown', function(e){ if(e.key==='Enter') addFromInput() });
+function addFromInput(){
+  var v = $('#dish-input').value.trim();
+  if(!v) return;
+  v.split(/[、,，\s]+/).forEach(function(d){
+    d=d.trim(); if(d && state.picked.indexOf(d)===-1) state.picked.push(d);
+  });
+  $('#dish-input').value='';
+  renderMenu(); renderTags();
+}
+
+/* ============ 录入新菜 ============ */
+$('#btn-recipe').onclick = function(){
+  $('#rc-main').innerHTML = ingRow(); $('#rc-side').innerHTML = ingRow(); $('#rc-sauce').innerHTML = ingRow();
+  $('#rc-name').value='';
+  $('#ov-recipe').classList.add('on');
+};
+function ingRow(){ return '<div class="ing-row"><input class="f-input i-nm" placeholder="食材名"><input class="f-input i-amt" placeholder="用量（可选）"></div>' }
+$('#rc-add-main').onclick = function(){ $('#rc-main').insertAdjacentHTML('beforeend', ingRow()) };
+$('#rc-add-side').onclick = function(){ $('#rc-side').insertAdjacentHTML('beforeend', ingRow()) };
+$('#rc-add-sauce').onclick = function(){ $('#rc-sauce').insertAdjacentHTML('beforeend', ingRow()) };
+$('#rc-close').onclick = $('#rc-cancel').onclick = function(){ $('#ov-recipe').classList.remove('on') };
+$('#rc-save').onclick = function(){
+  var name = $('#rc-name').value.trim();
+  if(!name){ toast('先给这道菜起个名字～'); return }
+  function collect(sel){
+    var out=[];
+    $$(sel+' .ing-row').forEach(function(r){
+      var n=r.querySelector('.i-nm').value.trim(), a=r.querySelector('.i-amt').value.trim();
+      if(n) out.push([n, a||'适量']);
+    });
+    return out;
+  }
+  var r = {name:name, main:collect('#rc-main'), side:collect('#rc-side'), sauce:collect('#rc-sauce')};
+  if(!r.main.length){ toast('至少写一样主料哦'); return }
+  var i = state.custom.map(function(x){return x.name}).indexOf(name);
+  if(i!==-1) state.custom[i]=r; else state.custom.push(r);
+  persist(); $('#ov-recipe').classList.remove('on');
+  renderMenu(); toast('「'+name+'」已存入我的私房菜 ✅');
+};
+
+/* 查看菜谱 */
+function viewRecipe(name){
+  var db = allRecipes(); var r = db[name];
+  if(!r) return;
+  $('#vv-title').textContent = '📖 '+name;
+  $('#vv-body').innerHTML = ['main','side','sauce'].map(function(k){
+    var lab = {main:'主料',side:'辅料',sauce:'调料'}[k];
+    if(!r[k]||!r[k].length) return '';
+    return '<div class="f-label">'+lab+'</div><div class="ing-groups">'+r[k].map(function(x){
+      return '<span class="ing '+k+'">'+esc(x[0])+'（'+esc(x[1])+'）</span>';
+    }).join('')+'</div>';
+  }).join('');
+  $('#vv-del').style.display = state.custom.map(function(x){return x.name}).indexOf(name)!==-1 ? '' : 'none';
+  $('#vv-del').dataset.name = name;
+  $('#ov-view').classList.add('on');
+}
+$('#vv-close').onclick = $('#vv-ok').onclick = function(){ $('#ov-view').classList.remove('on') };
+$('#vv-del').onclick = function(){
+  var name = $('#vv-del').dataset.name;
+  state.custom = state.custom.filter(function(x){return x.name!==name});
+  state.picked = state.picked.filter(function(d){return d!==name});
+  persist(); renderMenu(); renderTags(); $('#ov-view').classList.remove('on');
+  toast('已删除「'+name+'」');
+};
+
+/* ============ 生成清单 ============ */
+$('#btn-go').onclick = function(){
+  var db = allRecipes();
+  var missing = state.picked.filter(function(d){ return !db[d] });
+  if(missing.length){
+    toast('「'+missing[0]+'」还没录入食材，试试 ✏️ 录入新菜');
+    return;
+  }
+  $('#sec-input').style.display='none';
+  $('#sec-result').style.display='none';
+  $('#sec-cooking').style.display='block';
+  var i=0;
+  var tm = setInterval(function(){
+    if(i>=state.picked.length){
+      clearInterval(tm);
+      $('#sec-cooking').style.display='none';
+      showResult(db);
+      return;
+    }
+    $('#cook-dish').textContent = '拆解中：'+state.picked[i];
+    i++;
+  }, 500);
+};
+
+function showResult(db){
+  var cards = state.picked.map(function(name){
+    var r = db[name];
+    function group(k){
+      if(!r[k]||!r[k].length) return '';
+      return '<div class="ing-line"><span class="lab">'+({main:'主料',side:'辅料',sauce:'调料'})[k]+'</span>'+
+        r[k].map(function(x){return '<span class="ing '+k+'">'+esc(x[0])+' '+esc(x[1])+'</span>'}).join('')+'</div>';
+    }
+    return '<div class="dish-card"><h4>🍳 '+esc(name)+'</h4><div class="ing-groups">'+group('main')+group('side')+group('sauce')+'</div></div>';
+  }).join('');
+  $('#dish-cards').innerHTML = cards;
+
+  /* 合并去重 */
+  var merged = {};
+  state.picked.forEach(function(name){
+    ['main','side','sauce'].forEach(function(k){
+      (db[name][k]||[]).forEach(function(x){
+        var key = x[0];
+        if(!merged[key]) merged[key] = {name:key, amounts:[], cat:k};
+        if(merged[key].amounts.indexOf(x[1])===-1) merged[key].amounts.push(x[1]);
+      });
+    });
+  });
+  var order = {main:0, side:1, sauce:2};
+  var items = Object.keys(merged).map(function(k){return merged[k]})
+    .sort(function(a,b){ return order[a.cat]-order[b.cat] || a.name.localeCompare(b.name,'zh') });
+  renderShop(items);
+  $('#sec-result').style.display='block';
+  window.__shopItems = items;
+}
+
+function renderShop(items){
+  var catLab = {main:'荤素食材', side:'配菜', sauce:'调料'};
+  $('#shop-list').innerHTML = items.map(function(it, idx){
+    var inPantry = state.pantry.indexOf(it.name)!==-1;
+    return '<div class="shop-item'+(inPantry?' pantry':'')+'">'+
+      '<input type="checkbox" class="ck" data-ck="'+esc(it.name)+'"'+(inPantry?' checked':'')+'>'+
+      '<span class="nm">'+esc(it.name)+'</span>'+
+      '<span class="amt">'+esc(it.amounts.join(' / '))+' · '+catLab[it.cat]+'</span>'+
+      '<button class="pantry-btn'+(inPantry?' on':'')+'" data-py="'+esc(it.name)+'">'+(inPantry?'✓ 家里有':'家里有？')+'</button>'+
+      '</div>';
+  }).join('');
+  $$('#shop-list .ck').forEach(function(c){
+    c.onchange = function(){ c.parentNode.classList.toggle('pantry', c.checked) };
+  });
+  $$('#shop-list .pantry-btn').forEach(function(b){
+    b.onclick = function(){
+      var n = b.dataset.py, i = state.pantry.indexOf(n);
+      if(i===-1) state.pantry.push(n); else state.pantry.splice(i,1);
+      persist(); renderShop(window.__shopItems);
+    };
+  });
+}
+
+/* 复制 / 分享 */
+function shopText(){
+  return '🛒 购物清单（'+ (new Date()).toLocaleDateString() +'）\n\n' +
+    (window.__shopItems||[]).filter(function(it){return state.pantry.indexOf(it.name)===-1})
+    .map(function(it){ return '□ '+it.name+'（'+it.amounts.join('/')+'）' }).join('\n') +
+    '\n\n—— 来自 🍳 朝食记';
+}
+function copyText(t, msg){
+  function fb(){
+    var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast(msg) }catch(e){ toast('复制失败，请手动复制') }
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){toast(msg)}, fb);
+  } else fb();
+}
+$('#btn-copy').onclick = function(){ copyText(shopText(),'清单已复制，直接去 App 搜索下单 🛒') };
+$('#btn-share').onclick = function(){
+  copyText('👨‍👩‍👧 我们的小厨房 · 今日菜单：'+state.picked.join('、')+'\n\n'+shopText(),'已生成分享内容，粘贴给家人即可 💬');
+};
+
+/* 回到选菜 */
+(function(){
+  var back = document.createElement('button');
+  back.className='add-recipe-btn'; back.textContent='← 回去再改改菜单';
+  back.onclick=function(){ $('#sec-result').style.display='none'; $('#sec-input').style.display='block' };
+  $('#dish-cards').parentNode.insertBefore(back, $('#shop-card'));
+})();
+
+renderMenu(); renderTags();
+</script>
+</body>
+</html>

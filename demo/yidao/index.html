@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>易道 · AI修炼</title>
+<style>
+/* ===== 易道 · AI修炼 ===== */
+/* 东方禅意 · 高级感 */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=ZCOOL+XiaoWei&display=swap');
+
+:root {
+  --bg-deep: #0d1117;
+  --bg-card: #151b23;
+  --bg-elevated: #1c2430;
+  --gold: #c9a96e;
+  --gold-light: #e8d5a3;
+  --gold-dim: #8b7340;
+  --ink: #2a2a2a;
+  --moon-white: #d6e4e9;
+  --cinnabar: #c45a5a;
+  --jade: #5a9e8f;
+  --text-primary: #e8e4df;
+  --text-secondary: #9ca3af;
+  --text-dim: #5c6370;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ===== Header ===== */
+.app-header {
+  text-align: center;
+  padding: 20px 20px 10px;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 2em;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 20px rgba(201,169,110,0.3);
+}
+
+.tagline {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  letter-spacing: 0.3em;
+  margin-top: 2px;
+}
+
+/* ===== Main Content ===== */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 16px;
+  scrollbar-width: none;
+}
+
+.main-content::-webkit-scrollbar {
+  display: none;
+}
+
+.page {
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+
+.page.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-inner {
+  padding: 10px 0;
+}
+
+/* ===== Bottom Navigation ===== */
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0 20px;
+  background: linear-gradient(to top, var(--bg-deep) 60%, transparent);
+  border-top: 1px solid rgba(201,169,110,0.1);
+  flex-shrink: 0;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 4px 12px;
+}
+
+.nav-item.active {
+  color: var(--gold);
+}
+
+.nav-item:hover {
+  color: var(--gold-light);
+}
+
+.nav-icon {
+  font-size: 1.3em;
+  font-weight: 700;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.nav-item.active .nav-icon {
+  background: rgba(201,169,110,0.15);
+  box-shadow: 0 0 12px rgba(201,169,110,0.2);
+}
+
+.nav-label {
+  font-size: 0.7em;
+  letter-spacing: 0.05em;
+}
+
+/* ===== Common Elements ===== */
+.zen-text {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+.loading-text {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 60px 0;
+  font-size: 0.95em;
+}
+
+h2 {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 1.5em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+h3 {
+  font-size: 1.1em;
+  color: var(--gold-dim);
+  margin: 20px 0 10px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== 每日一卦 ===== */
+.daily-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(201,169,110,0.15);
+  border-radius: var(--radius);
+  padding: 30px 24px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.daily-date {
+  font-size: 0.8em;
+  color: var(--text-dim);
+  letter-spacing: 0.2em;
+  margin-bottom: 20px;
+}
+
+.hexagram-display {
+  margin: 20px 0;
+}
+
+.hexagram-svg {
+  width: 120px;
+  height: 160px;
+}
+
+.hexagram-line {
+  transition: all 0.5s ease;
+}
+
+.hexagram-line.yang {
+  fill: var(--gold);
+}
+
+.hexagram-line.yin {
+  fill: var(--gold);
+}
+
+.daily-name {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 2.2em;
+  color: var(--gold-light);
+  margin: 15px 0 5px;
+  text-shadow: 0 0 30px rgba(201,169,110,0.2);
+}
+
+.daily-gua-ci {
+  font-size: 1.05em;
+  color: var(--text-primary);
+  margin: 10px 0;
+  padding: 0 10px;
+  line-height: 2;
+}
+
+.daily-explain {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  margin: 15px 0;
+  padding: 15px;
+  background: rgba(201,169,110,0.05);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--gold-dim);
+  text-align: left;
+}
+
+.daily-insight {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(90,158,143,0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(90,158,143,0.2);
+}
+
+.daily-insight-title {
+  font-size: 0.85em;
+  color: var(--jade);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.daily-insight-text {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+/* 每日测验 */
+.daily-quiz {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(201,169,110,0.1);
+}
+
+.quiz-question {
+  font-size: 0.95em;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quiz-option {
+  background: var(--bg-elevated);
+  border: 1px solid rgba(201,169,110,0.1);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  font-size: 0.9em;
+}
+
+.quiz-option:hover {
+  border-color: var(--gold-dim);
+  background: rgba(201,169,110,0.08);
+}
+
+.quiz-option.correct {
+  border-color: var(--jade);
+  background: rgba(90,158,143,0.15);
+  color: var(--jade);
+}
+
+.quiz-option.wrong {
+  border-color: var(--cinnabar);
+  background: rg196,90,90,0.1);
+  color: var(--cinnabar);
+}
+
+.daily-complete {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(201,169,110,0.08);
+  border-radius: var(--radius-sm);
+  text-align: center;
+  color: var(--gold);
+  font-size: 0.9em;
+}
+
+/* ===== 起卦问事 ===== */
+.divine-intro {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.divine-input-area {
+  margin-bottom: 20px;
+}
+
+.divine-input-area textarea {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid rgba(201,169,110,0.2);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95em;
+  resize: none;
+  transition: var(--transition);
+}
+
+.divine-input-area textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(201,169,110,0.1);
+}
+
+.divine-input-area textarea::placeholder {
+  color: var(--text-dim);
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-deep);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.1em;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(201,169,110,0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 1.3em;
+}
+
+/* 起卦动画 */
+.divine-animation {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.coin-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.coin {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  color: var(--bg-deep);
+  font-weight: 900;
+  animation: coinFlip 0.6s ease infinite;
+  box-shadow: 0 4px 15px rgba(201,169,110,0.4);
+}
+
+.coin:nth-child(2) { animation-delay: 0.2s; }
+.coin:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes coinFlip {
+  0%, 100% { transform: rotateY(0deg) scale(1); }
+  50% { transform: rotateY(180deg) scale(0.8); }
+}
+
+.divine-status {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-top: 15px;
+}
+
+/* 起卦结果 */
+.divine-result {
+  background: var(--bg-card);
+  border: 1px solid rgba(201,169,110,0.15);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.divine-question-echo {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(201,169,110,0.1);
+}
+
+/* 吉凶标签 */
+.divine-tone {
+  text-align: center;
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--gold-light);
+  margin-bottom: 16px;
+  padding: 10px;
+  background: rgba(201,169,110,0.08);
+  border-radius: var(--radius-sm);
+}
+
+/* 主回答 */
+.divine-answer-section {
+  margin-bottom: 20px;
+}
+
+.divine-main-answer {
+  font-size: 1em;
+  color: var(--text-primary);
+  line-height: 2;
+  padding: 16px;
+  background: rgba(90,158,143,0.06);
+  border-left: 3px solid var(--jade);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+/* 行动建议 */
+.divine-actions-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: rgba(201,169,110,0.05);
+  border-radius: var(--radius-sm);
+}
+
+.divine-actions-title {
+  font-size: 0.95em;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.divine-actions-list {
+  list-style: none;
+  padding: 0;
+}
+
+.divine-actions-list li {
+  position: relative;
+  padding: 8px 0 8px 20px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.divine-actions-list li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: var(--gold-dim);
+  font-weight: bold;
+}
+
+/* 趋势 */
+.divine-trend-section {
+  margin: 16px 0;
+  padding: 14px 16px;
+  background: rgba(201,169,110,0.04);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(201,169,110,0.1);
+}
+
+.divine-trend-title {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--gold-dim);
+  margin-bottom: 8px;
+}
+
+.divine-trend-section p {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* 卦象详情（折叠） */
+.divine-details {
+  margin-top: 20px;
+  border-top: 1px solid rgba(201,169,110,0.1);
+  padding-top: 16px;
+}
+
+.divine-details summary {
+  font-size: 0.85em;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: var(--transition);
+}
+
+.divine-details summary:hover {
+  color: var(--gold-dim);
+}
+
+.divine-details-body {
+  padding: 16px 0;
+}
+
+.divine-mini-hexagram {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.divine-mini-hexagram .hexagram-svg {
+  width: 60px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.divine-mini-name {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 1.1em;
+  color: var(--gold);
+}
+
+.divine-details-text {
+  font-size: 0.85em;
+  color: var(--text-dim);
+  line-height: 1.8;
+  margin: 8px 0 16px;
+  padding-left: 72px;
+}
+
+/* 起卦按钮旋转动画 */
+.spinning {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  line-height: 2;
+}
+
+/* ===== 修炼场 ===== */
+.practice-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.practice-progress {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: var(--gold-dim);
+}
+
+.practice-modes {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 10px 8px;
+  background: var(--bg-card);
+  border: 1px solid rgba(201,169,110,0.15);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.mode-btn.active {
+  background: rgba(201,169,110,0.1);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.practice-area {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 30px 20px;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.practice-card {
+  width: 100%;
+  text-align: center;
+}
+
+.practice-card .hexagram-svg {
+  width: 100px;
+  height: 140px;
+  margin: 15px 0;
+}
+
+.practice-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.practice-option {
+  padding: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid rgba(201,169,110,0.1);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.practice-option:hover {
+  border-color: var(--gold-dim);
+}
+
+.practice-option.correct {
+  border-color: var(--jade);
+  background: rgba(90,158,143,0.15);
+}
+
+.practice-option.wrong {
+  border-color: var(--cinnabar);
+  background: rgba(196,90,90,0.1);
+}
+
+.practice-feedback {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.practice-feedback.success {
+  background: rgba(90,158,143,0.1);
+  color: var(--jade);
+}
+
+.practice-feedback.fail {
+  background: rgba(196,90,90,0.08);
+  color: var(--cinnabar);
+}
+
+.practice-next {
+  margin-top: 15px;
+  padding: 10px 24px;
+  background: rgba(201,169,110,0.15);
+  border: 1px solid var(--gold-dim);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.practice-next:hover {
+  background: rgba(201,169,110,0.25);
+}
+
+/* ===== 我的修炼 ===== */
+.profile-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 1.8em;
+  color: var(--bg-deep);
+  margin: 0 auto 12px;
+  box-shadow: 0 4px 20px rgba(201,169,110,0.3);
+}
+
+.rank-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 16px;
+  background: rgba(201,169,110,0.1);
+  border: 1px solid var(--gold-dim);
+  border-radius: 20px;
+  font-size: 0.85em;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(201,169,110,0.1);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 1.8em;
+  color: var(--gold-light);
+}
+
+.stat-name {
+  font-size: 0.75em;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 0.1em;
+}
+
+.journey-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  p: 20px;
+}
+
+.journey-log {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.journey-item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(201,169,110,0.05);
+  font-size: 0.85em;
+}
+
+.journey-item-date {
+  color: var(--text-dim);
+  font-size: 0.8em;
+}
+
+.journey-item-text {
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+/* ===== 学习卡片 ===== */
+.learn-card {
+  text-align: center;
+  width: 100%;
+}
+
+.learn-badge, .quiz-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+}
+
+.learn-badge {
+  background: rgba(90,158,143,0.12);
+  color: var(--jade);
+  border: 1px solid rgba(90,158,143,0.3);
+}
+
+.quiz-badge {
+  background: rgba(201,169,110,0.1);
+  color: var(--gold);
+  border: 1px solid rgba(201,169,110,0.3);
+}
+
+.learn-hexagram {
+  margin: 16px 0;
+}
+
+.learn-hexagram .hexagram-svg {
+  width: 120px;
+  height: 160px;
+}
+
+.learn-name {
+  font-family: 'ZCOOL XiaoWei', serif;
+  font-size: 1.8em;
+  color: var(--gold-light);
+}
+
+.learn-guaci {
+  font-size: 0.95em;
+  color: var(--text-primary);
+  margin: 8px 0;
+  line-height: 1.8;
+}
+
+.learn-explain {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  text-align: left;
+  margin: 16px 0;
+  padding: 14px;
+  background: rgba(201,169,110,0.05);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--gold-dim);
+  line-height: 1.9;
+}
+
+.learn-insight {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  text-align: left;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: rgba(90,158,143,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(90,158,143,0.15);
+  line-height: 1.8;
+}
+
+.learn-tip {
+  font-size: 0.85em;
+  color: var(--text-dim);
+  text-align: left;
+  margin: 16px 0;
+  padding: 12px 14px;
+  background: rgba(201,169,110,0.04);
+  border-radius: var(--radius-sm);
+  line-height: 1.8;
+}
+
+.learn-tip strong {
+  color: var(--gold-dim);
+}
+
+/* 故事区块 */
+.learn-story {
+  margin: 16px 0;
+  padding: 16px;
+  background: rgba(201,169,110,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(201,169,110,0.12);
+  text-align: left;
+  line-height: 2;
+}
+
+.learn-story-title {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+
+.learn-story p {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+/* 入门引导 */
+.intro-section {
+  text-align: left;
+  margin: 18px 0;
+  padding: 0 4px;
+}
+
+.intro-text {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  line-height: 1.9;
+  margin: 8px 0;
+}
+
+.intro-lines {
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.intro-line-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+}
+
+.intro-line-item span {
+  font-size: 0.88em;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.btn-learn-done {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--bg-deep);
+  font-family: inherit;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  letter-spacing: 0.1em;
+}
+
+.btn-learn-done:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(201,169,110,0.3);
+}
+
+/* 答错反馈 */
+.quiz-feedback {
+  margin-top: 16px;
+  padding: 14px;
+  background: rgba(196,90,90,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(196,90,90,0.15);
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.8;
+}
+
+.quiz-feedback small {
+  color: var(--text-dim);
+  font-size: 0.85em;
+}
+
+/* ===== Responsive ===== */
+@media (min-width: 768px) {
+  #app {
+    max-width: 420px;
+    border-left: 1px solid rgba(201,169,110,0.05);
+    border-right: 1px solid rgba(201,169,110,0.05);
+  }
+}
+
+/* ===== Scrollbar (for desktop) ===== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 2px;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 顶部标题 -->
+  <header class="app-header">
+    <h1 class="logo">易道</h1>
+    <p class="tagline">AI修炼 · 从心开始</p>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="main-content">
+    <!-- 每日一卦 -->
+    <section id="page-daily" class="page active">
+      <div class="page-inner" id="daily-content">
+        <p class="loading-text">正在为你准备今日之卦...</p>
+      </div>
+    </section>
+
+    <!-- 起卦问事 -->
+    <section id="page-divine" class="page">
+      <div class="page-inner">
+        <div class="divine-intro">
+          <h2>起卦问事</h2>
+          <p class="zen-text">心诚则灵，静心凝神，将你的问题交付天地</p>
+        </div>
+        <div class="divine-input-area">
+          <textarea id="divine-question" placeholder="请输入你想问的事情..." rows="3"></textarea>
+          <button id="btn-divine" class="btn-primary">
+            <span class="btn-icon">☯</span> 起卦
+          </button>
+        </div>
+        <div id="divine-result" class="divine-result hidden"></div>
+      </div>
+    </section>
+
+    <!-- 修炼场 -->
+    <section id="page-practice" class="page">
+      <div class="page-inner">
+        <div class="practice-header">
+          <h2>修炼场</h2>
+          <p class="zen-text">日拱一卒，功不唐捐</p>
+          <div class="practice-progress">
+            <span id="mastered-count">0</span> / 64 卦已掌握
+          </div>
+        </div>
+        <div class="practice-modes">
+          <button class="mode-btn active" data-mode="recognize">看图猜名</button>
+          <button class="mode-btn" data-mode="draw">看名画卦</button>
+          <button class="mode-btn" data-mode="fill">填空卦辞</button>
+        </div>
+        <div id="practice-area" class="practice-area">
+          <p class="zen-text">选择模式开始修炼</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的修炼 -->
+    <section id="page-profile" class="page">
+      <div class="page-inner">
+        <div class="profile-header">
+          <div class="avatar">道</div>
+          <h2>我的修炼之路</h2>
+          <div class="rank-badge" id="rank-badge">初学</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-days">0</div>
+            <div class="stat-name">修炼天数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-hexagrams">0</div>
+            <div class="stat-name">已掌握卦</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-divinations">0</div>
+            <div class="stat-name">起卦次数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-streak">0</div>
+            <div class="stat-name">连续修炼</div>
+          </div>
+        </div>
+        <div class="journey-section">
+          <h3>修炼日志</h3>
+          <div id="journey-log" class="journey-log">
+            <p class="zen-text">开始你的第一次修炼吧</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部导航 -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="daily">
+      <span class="nav-icon">卦</span>
+      <span class="nav-label">每日一卦</span>
+    </button>
+    <button class="nav-item" data-page="divine">
+      <span class="nav-icon">占</span>
+      <span class="nav-label">起卦问事</span>
+    </button>
+    <button class="nav-item" data-page="practice">
+      <span class="nav-icon">练</span>
+      <span class="nav-label">修炼场</span>
+    </button>
+    <button class="nav-item" data-page="profile">
+      <span class="nav-icon">我</span>
+      <span class="nav-label">我的修炼</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ===== 易道 · AI修炼 ===== */
+/* hexagrams.js — 64卦完整数据 */
+/* lines 数组：从下到上 6 爻，1=阳爻(—)，0=阴爻(- -) */
+
+const HEXAGRAMS = [
+  {
+    id: 1, name: '乾', fullName: '乾为天', pinyin: 'qián',
+    lines: [1, 1, 1, 1, 1, 1],
+    symbol: '☰☰', element: '天', nature: '刚健',
+    guaCi: '乾：元，亨，利，贞。',
+    explain: '乾卦象征天，是纯阳之卦，代表至刚至健、生生不息的创造力量。元亨利贞为"四德"：元始亨通、利于守正。它告诉我们——天行健，君子以自强不息。',
+    insight: '今日宜进取、宜开创。你拥有强大的能量，但切记刚而不折、动而有度。真正的强者懂得在恰当的时机潜藏与显现。',
+    yaoCi: [
+      '初九：潜龙勿用。（时机未到，宜潜藏蓄力）',
+      '九二：见龙在田，利见大人。（崭露头角，遇贵人）',
+      '九三：君子终日乾乾，夕惕若厉，无咎。（勤勉警惕，方能无过）',
+      '九四：或跃在渊，无咎。（审时度势，进退有据）',
+      '九五：飞龙在天，利见大人。（鼎盛之时，大展宏图）',
+      '上九：亢龙有悔。（物极必反，盛极当戒骄）'
+    ],
+    story: '乾卦讲的是一条龙的一生。起初它潜伏在深渊（潜龙勿用），默默积蓄力量；后来崭露头角出现在田野（见龙在田）；经过日夜不懈的努力，终于飞上了天空（飞龙在天），成就巅峰。但故事的结局是警告——飞得太高、太骄傲的龙，最终会后悔（亢龙有悔）。这其实就是每个人的人生轨迹：蛰伏→成长→巅峰→要懂得适可而止。',
+    fortune: {
+      overall: '大吉之卦。诸事顺遂，但需以正道而行，戒骄戒躁。如日中天之时，更要警惕"亢龙有悔"。',
+      career: '事业正处上升期，大展拳脚的好时机。宜主动出击、勇于担当，会得贵人相助。但忌锋芒太露、独断专行。',
+      love: '阳气过盛，感情上宜主动而不宜强势。男方占之主动权在握，女方占之需对方收敛。真诚相待方能长久。',
+      decision: '可以大胆推进，但要守正持中。重大决策宜在"九五"之位时果断，切忌在"上九"时贪进。'
+    }
+  },
+  {
+    id: 2, name: '坤', fullName: '坤为地', pinyin: 'kūn',
+    lines: [0, 0, 0, 0, 0, 0],
+    symbol: '☷☷', element: '地', nature: '柔顺',
+    guaCi: '坤：元，亨，利牝马之贞。君子有攸往，先迷后得主，利。',
+    explain: '坤卦象征地，是纯阴之卦，代表柔顺、包容、承载万物的德性。大地厚德载物，以柔顺配合天的刚健。它告诉我们——地势坤，君子以厚德载物。',
+    insight: '今日宜守、宜承、宜厚积。不必事事抢先，顺势而为反而成事。包容与坚持，是你今日最大的力量。',
+    yaoCi: [
+      '初六：履霜，坚冰至。（见微知著，防患未然）',
+      '六二：直，方，大，不习无不利。（正直方正，自然顺遂）',
+      '六三：含章可贞，或从王事，无成有终。（含蓄守正，善始善终）',
+      '六四：括囊，无咎无誉。（谨慎收敛，明哲保身）',
+      '六五：黄裳，元吉。（守中居正，大吉）',
+      '上六：龙战于野，其血玄黄。（阴极生变，物极必反）'
+    ],
+    story: '传说大禹治水时，面对滔天洪水，他没有像父亲鲧那样硬堵，而是顺应水性、因势利导，花了十三年疏通九州河道。三过家门而不入，以无比的耐心和包容完成了不可能的任务。这就是坤卦的智慧——不跟天斗、不跟地争，用柔顺和坚持去承载一切，最终成就比"硬刚"更伟大的事业。',
+    fortune: {
+      overall: '吉卦，主柔顺守成。宜配合他人、顺应大势，不宜强出头。先迷后得，耐心终有回报。',
+      career: '宜辅佐、宜配合，做好本分自有收获。不是主导的时机，但踏实积累会赢得信任。切忌争强好胜。',
+      love: '以柔克刚，包容体贴是关键。感情需要耐心经营，不急不躁，顺其自然反而水到渠成。',
+      decision: '宜follow不宜lead，跟随靠谱的人或趋势。重大决定不妨多听多看，厚积薄发。'
+    }
+  },
+  {
+    id: 3, name: '屯', fullName: '水雷屯', pinyin: 'zhūn',
+    lines: [1, 0, 0, 0, 1, 0],
+    symbol: '☵☳', element: '水雷', nature: '艰难初创',
+    guaCi: '屯：元，亨，利，贞。勿用有攸往，利建侯。',
+    explain: '屯卦象征初生之艰难，如草木破土、万物始生，充满希望却也步履维艰。它告诉我们——万事开头难，此时宜稳扎稳打、广结善缘，不可贸然冒进。',
+    insight: '今日身处起步阶段，困难是正常的。不要急于求成，先建立根基、寻找帮手。守得云开见月明。',
+    yaoCi: [
+      '初九：磐桓，利居贞，利建侯。（徘徊守正，宜立根基）',
+      '六二：屯如邅如，乘马班如……女子贞不字，十年乃字。（艰难曲折，耐心终成）',
+      '六三：即鹿无虞，惟入于林中。（无向导而妄进，宜止）',
+      '六四：乘马班如，求婚媾，往吉。（主动求合作，吉）',
+      '九五：屯其膏，小贞吉，大贞凶。（恩泽难施，宜小不宜大）',
+      '上六：乘马班如，泣血涟如。（进退维谷，需另谋出路）'
+    ],
+    story: '周武王起兵伐纣之前，其实经历了漫长的艰难筹备期。父亲周文王被囚七年，他独自扛起大旗，四处招贤纳士、积蓄力量。那时候商朝势力庞大，周国弱小得像刚破土的嫩芽。但武王没有急于求成，而是一步步建立根基、团结盟友，最终才有了牧野之战的一举成功。万事开头难，熬过去就是春天。',
+    fortune: {
+      overall: '先难后顺之卦。眼守正待时，广纳贤助，终能亨通。忌急躁冒进。',
+      career: '正值艰难起步期，困难重重但前景光明。宜打基础、找伙伴、积资源，不宜盲目扩张。',
+      love: '感情初期多有波折阻碍，需耐心和真诚。"十年乃字"——好事多磨，坚持者得。',
+      decision: '不宜大动作，宜稳守。重大决策需准备充分、寻求外援，时机未到不可强行。'
+    }
+  },
+  {
+    id: 4, name: '蒙', fullName: '山水蒙', pinyin: 'méng',
+    lines: [0, 1, 0, 0, 0, 1],
+    symbol: '☶☵', element: '山水', nature: '蒙昧启迪',
+    guaCi: '蒙：亨。匪我求童蒙，童蒙求我。初筮告，再三渎，渎则不告。利贞。',
+    explain: '蒙卦象征蒙昧未开、需要教化启迪的状态，如山下流出的泉水尚未成形。它告诉我们——求学问道贵在诚心与主动，且要专一，三心二意则难有所得。',
+    insight: '今日宜学习、宜请教。承认自己的不足并非软弱，而是成长的开始。带着诚心去求教，答案自会显现。',
+    yaoCi: [
+      '初六：发蒙，利用刑人……（启蒙需立规矩）',
+      '九二：包蒙吉，纳妇吉，子克家。（包容教化，吉）',
+      '六三：勿用取女……（行为不当，宜止）',
+      '六四：困蒙，吝。（闭塞不学，有憾）',
+      '六五：童蒙，吉。（虚心受教，大吉）',
+      '上九：击蒙，不利为寇，利御寇。（严教有度，防过犹不及）'
+    ],
+    story: '孔子收徒有个著名规矩："不愤不启，不悱不发"——你不是真心想学、不是憋到难受想问，我就不教你。有个学生反复问同一个问题，孔子说"再三渎，渎则不告"——问一次我认真答，问三遍说明你没用心，我就不回答了。蒙卦告诉我们：学习这件事，老师再好也没用，关键是你自己要有那份诚心和专注。',
+    fortune: {
+      overall: '启蒙求知之卦。亨通的关键在于谦虚求教、专心致志。宜学习、宜被指点，忌自以为是。',
+      career: '处于学习成长阶段，宜虚心求教、拜师学艺。承认不懂、主动请教者必有进益。',
+      love: '感情中宜真诚单纯，忌玩弄心机。年轻或初涉感情者尤需用心学习经营之道。',
+      decision: '遇事不明时多请教明白人，但要专一听取、果断执行，切忌问东问西、犹豫反复。'
+    }
+  },
+  {
+    id: 5, name: '需', fullName: '水天需', pinyin: 'xū',
+    lines: [1, 1, 1, 0, 1, 0],
+    symbol: '☵☰', element: '水天', nature: '等待时机',
+    guaCi: '需：有孚，光亨，贞吉。利涉大川。',
+    explain: '需卦象征等待，如天上有云、待时降雨。它告诉我们——前方有险，但只要心怀诚信、耐心等待时机，必能亨通。等待不是消极，而是积蓄力量、静候良机。',
+    insight: '今日宜等待、宜养精蓄锐。心急吃不了热豆腐，越是关键时刻越要沉得住气。时机一到，自然水到渠成。',
+    yaoCi: [
+      '初九：需于郊，利用恒，无咎。（远离风险地等待）',
+      '九二：需于沙，小有言，终吉。（稍近险境，有小议论，终吉）',
+      '九三：需于泥，致寇至。（近险招祸，需谨慎）',
+      '六四：需于血，出自穴。（身处险境，能脱身）',
+      '九五：需于酒食，贞吉。（从容等待，大吉）',
+      '上六：入于穴，有不速之客三人来，敬之终吉。（意外来助，敬待则吉）'
+    ],
+    story: '姜太公钓鱼的故事就是需卦的完美写照。姜子牙72岁了还在渭水边用直钩钓鱼——明摆着不是为了钓鱼，而是在等一个人。别人笑他傻，他不急不躁，就这么等。终于等来了周文王路过，一番交谈后拜他为军师。后来姜太公辅佐武王灭商，封齐建国。等待不是浪费时间，是在等属于你的那个时机。',
+    fortune: {
+      overall: '等待之卦，吉。心怀诚信、耐心守候，时机成熟自能成功。忌急功近利、强行突进。',
+      career: '当前宜静待时机，做好准备而不强出头。条件未成熟时硬上易招损，耐心者得机遇。',
+      love: '感情需要耐心和时间培养，不可操之过急。真诚守候，缘分到时自会开花结果。',
+      decision: '重大决策宜缓不宜急，等待更充分的信息和更好的时机。"需于酒食"——从容准备者最终得吉。'
+    }
+  },
+  {
+    id: 6, name: '讼', fullName: '天水讼', pinyin: 'sòng',
+    lines: [0, 1, 0, 1, 1, 1],
+    symbol: '☰☵', element: '天水', nature: '争讼冲突',
+    guaCi: '讼：有孚，窒惕，中吉，终凶。利见大人，不利涉大川。',
+    explain: '讼卦象征争讼、冲突，天与水背道而行，象征意见相左、争执难免。它告诉我们——争讼即便有理也凶险，宜以和为贵、适可而止，寻求公正的调解者化解纷争。',
+    insight: '今日易有口舌争执，宜忍让、宜退一步。争一时之气往往两败俱伤，得理也要饶人。化解冲突比赢得冲突更智慧。',
+    yaoCi: [
+      '初六：不永所事，小有言，终吉。（不久争，终吉）',
+      '九二：不克讼，归而逋……（争讼失利，退避免灾）',
+      '六三：食旧德，贞厉，终吉。（守旧德，虽危终吉）',
+      '九四：不克讼，复即命，渝安贞，吉。（息讼安分，吉）',
+      '九五：讼，元吉。（公正裁决，大吉）',
+      '上九：或锡之鞶带，终朝三褫之。（争来荣誉难长久）'
+    ],
+    story: '春秋时期，楚国和郑国起了争端。郑国弱小，本想硬刚到底，但子产（郑国名相）说："争到最后两败俱伤，不如找个公正的人来调解。"于是请晋国出面裁决，双方各退一步，反而保住了郑国的利益。讼卦的智慧就是——有理也别争到底，找个靠谱的中间人，适可而止才是真赢家。',
+    fortune: {
+      overall: '争讼之卦，慎。即使有理，缠斗到底也凶。中途和解为吉，宜寻公正者调停，忌冒险硬拼。',
+      career: '易生争执与竞争冲突，宜克制忍让、以和为贵。寻求上级或公正第三方调解，切忌意气用事。',
+      love: '感情中易起争吵摩擦，各执己见。退一步海阔天空，软化态度、坦诚沟通是化解之道。',
+      decision: '不宜冒险、不宜对抗。涉及纠纷时优先和解，借助权威或规则化解，硬碰硬终将受损。'
+    }
+  },
+  {
+    id: 7, name: '师', fullName: '地水师', pinyin: 'shī',
+    lines: [0, 1, 0, 0, 0, 0],
+    symbol: '☷☵', element: '地水', nature: '统兵布阵',
+    guaCi: '师：贞，丈人吉，无咎。',
+    explain: '师卦象征军队、众人，水聚于地下如兵藏于民。它告诉我们——用众之道在于师出有名、纪律严明，更需德高望重的统帅。聚合力量需要正当的目标和优秀的领导。',
+    insight: '今日宜组织、宜带队、宜借众人之力。但带队者须以身作则、赏罚分明。师出有名，方能上下一心。',
+    yaoCi: [
+      '初六：师出以律，否臧凶。（出师讲纪律，否则凶）',
+      '九二：在师中，吉，无咎，王三锡命。（统帅得力，受重用）',
+      '六三：师或舆尸，凶。（指挥失当，凶）',
+      '六四：师左次，无咎。（适时退守，无过）',
+      '六五：田有禽，利执言……（师出有名，任贤将）',
+      '上六：大君有命，开国承家，小人勿用。（论功行赏，远小人）'
+    ],
+    story: '武王伐纣就是师卦的经典案例。周武王出兵前做了三件事：第一，宣布商纣王的十大罪状（师出有名）；第二，任命姜太公为统帅（用人得当）；第三，严明军纪、赏罚分明。结果八百诸侯响应，商朝军队临阵倒戈。反面例子是项羽——虽然勇猛无敌，但赏罚不公、刚愎自用，最终众叛亲离。带队伍，靠的不是武力，是正义和纪律。',
+    fortune: {
+      overall: '用众之卦，需正与德。师出有名、纪律严明、统帅得力则吉。组织协调之事宜，单打独斗不宜。',
+      career: '宜团队作战、宜担当领导，但要服众、要有章法。带好队伍、用对人，则事业可成。',
+      love: '感情中需要主导和经营，但忌专横。以德服人、以诚相待，方能赢得对方真心追随。',
+      decision: '重大行动宜师出有名、组织周密、用人得当。切忌名不正言不顺、临阵指挥混乱。'
+    }
+  },
+  {
+    id: 8, name: '比', fullName: '水地比', pinyin: 'bǐ',
+    lines: [0, 0, 0, 0, 1, 0],
+    symbol: '☵☷', element: '水地', nature: '亲密团结',
+    guaCi: '比：吉。原筮，元永贞，无咎。不宁方来，后夫凶。',
+    explain: '比卦象征亲密、团结、依附，水在地上、紧密相依。它告诉我们——人需要团结互助、亲附贤明。但亲附要趁早、要选对人，犹豫观望、姗姗来迟者将失先机。',
+    insight: '今日宜结盟、宜亲近贵人、宜团队协作。主动去建立真诚的联结，但要选对人、趁早行动。孤军奋战不如众志成城。',
+    yaoCi: [
+      '初六：有孚比之，无咎……（以诚相亲，终吉）',
+      '六二：比之自内，贞吉。（由内而外亲附，吉）',
+      '六三：比之匪人。（亲附错人，憾）',
+      '六四：外比之，贞吉。（亲附贤者，吉）',
+      '九五：显比，王用三驱……吉。（光明正大地团结，吉）',
+      '上六：比之无首，凶。（无人领导或亲附太迟，凶）'
+    ],
+    story: '刘备三顾茅庐就是比卦的故事。刘备为了请诸葛亮出山，不顾身份三次亲自登门拜访。他选对了人（诸葛亮确实是大才），而且趁早行动、态度真诚。后来诸葛亮鞠躬尽瘁辅佐蜀汉，成就了千古佳话。反面例子是那些犹豫观望的诸侯——等到天下大势已定才想站队，结果"后夫凶"，来晚了就没你的位置了。',
+    fortune: {
+      overall: '亲附团结之卦，吉。以诚相待、亲近贤明、及时结盟则大吉。忌犹豫观望、所托非人。',
+      career: '宜建立人脉、寻求合作、亲附贵人。团结协作、抱团取暖是成功关键，趁早行动者得利。',
+      love: '感情和谐亲密之象，宜真诚相依、主动联结。选对人、用真心，感情自然牢固美满。',
+      decision: '宜借力、宜结盟、宜趁早。重大决策应团结可靠伙伴、依附明智之人，切忌孤立和拖延。'
+    }
+  }
+];
+
+/* ===== 后 56 卦基础数据 ===== */
+/* 含卦名、卦象、卦辞、白话解读、今日启示，供每日一卦与练习使用 */
+const HEXAGRAMS_BASIC = [
+  { id: 9, name: '小畜', fullName: '风天小畜', lines: [1,1,1,0,1,1], guaCi: '小畜：亨。密云不雨，自我西郊。', explain: '小畜象征小的积蓄，力量尚弱、暂难成大事，如密云未雨。宜积小成大、耐心蓄养。', insight: '今日宜积累、宜蓄势，时机未到不必强求，小步前进自有所得。' },
+  { id: 10, name: '履', fullName: '天泽履', lines: [1,1,0,1,1,1], guaCi: '履虎尾，不咥人，亨。', explain: '履象征小心行事、循礼而为，如履虎尾而不被咬。谨慎守礼则化险为夷。', insight: '今日行事宜谨慎守礼，如临深渊、如履薄冰，小心者得平安亨通。' },
+  { id: 11, name: '泰', fullName: '地天泰', lines: [1,1,1,0,0,0], guaCi: '泰：小往大来，吉亨。', explain: '泰象征通泰、和谐，天地交感、上下沟通，万物畅达。是大吉大利之卦。', insight: '今日诸事顺遂、上下和睦，是难得的好时机，宜把握良机、积极作为。' },
+  { id: 12, name: '否', fullName: '天地否', lines: [0,0,0,1,1,1], guaCi: '否之匪人，不利君子贞，大往小来。', explain: '否象征闭塞、不通，天地不交、上下隔阂。是逆境之卦，宜守正待变。', insight: '今日易遇阻滞不顺，宜低调守正、静待转机，否极终将泰来。' },
+  { id: 13, name: '同人', fullName: '天火同人', lines: [1,0,1,1,1,1], guaCi: '同人于野，亨。利涉大川，利君子贞。', explain: '同人象征与人和同、团结协作，光明磊落地广结同道。志同道合则无往不利。', insight: '今日宜广交朋友、寻求志同道合者，开诚布公地合作，事半功倍。' },
+  { id: 14, name: '大有', fullName: '火天大有', lines: [1,1,1,1,0,1], guaCi: '大有：元亨。', explain: '大有象征大的收获、富足兴盛，如日丽中天、光照四方。是丰收兴旺之卦。', insight: '今日收获丰盛、运势昌隆，宜把握成果，但富而不骄、盛而能谦更佳。' },
+  { id: 15, name: '谦', fullName: '地山谦', lines: [0,0,1,0,0,0], guaCi: '谦：亨，君子有终。', explain: '谦象征谦虚、谦逊，高山藏于地下。谦谦君子终得善果，是少有的纯吉之卦。', insight: '今日宜谦虚低调，越是有成就越要谦逊。谦受益、满招损，谦者必有好结局。' },
+  { id: 16, name: '豫', fullName: '雷地豫', lines: [0,0,0,1,0,0], guaCi: '豫：利建侯行师。', explain: '豫象征欢乐、顺动、安逸，雷出地奋、万物欢欣。但乐极易生悲，需有度。', insight: '今日心情愉悦、诸事顺动，宜趁势而为，但勿沉溺安逸、乐而忘忧。' },
+  { id: 17, name: '随', fullName: '泽雷随', lines: [1,0,0,1,1,0], guaCi: '随：元亨利贞，无咎。', explain: '随象征随和、顺应、跟随，泽中有雷、动而悦随。顺时应势、择善而从则吉。', insight: '今日宜随顺时势、跟随明智之选，灵活变通而不失原则，自然亨通。' },
+  { id: 18, name: '蛊', fullName: '山风蛊', lines: [0,1,1,1,0,0], guaCi: '蛊：元亨，利涉大川。', explain: '蛊象征整治积弊、革除腐败，如器皿生虫需清理。乱中有治、破而后立。', insight: '今日宜直面并整治长期积累的问题，下决心革除弊端，方能重新出发。' },
+  { id: 19, name: '临', fullName: '地泽临', lines: [1,1,0,0,0,0], guaCi: '临：元亨利贞。至于八月有凶。', explain: '临象征居上临下、监督管理，也指事业渐入佳境。宜把握良机、未雨绸缪。', insight: '今日运势上扬、宜主动出击，但要居安思危，盛极防衰。' },
+  { id: 20, name: '观', fullName: '风地观', lines: [0,0,0,0,1,1], guaCi: '观：盥而不荐，有孚颙若。', explain: '观象征观察、审视、瞻仰，风行地上、周观万物。宜静观其变、明察秋毫。', insight: '今日宜多观察、多思考，看清形势再行动，以静制动、以观待变。' },
+  { id: 21, name: '噬嗑', fullName: '火雷噬嗑', lines: [1,0,0,1,0,1], guaCi: '噬嗑：亨。利用狱。', explain: '噬嗑象征咬合、排除障碍，如口中有物需咬断。果断除障、明断是非则通。', insight: '今日宜果断扫除障碍、明辨是非，遇阻不退、雷厉风行方能畅通。' },
+  { id: 22, name: '贲', fullName: '山火贲', lines: [1,0,1,0,0,1], guaCi: '贲：亨。小利有攸往。', explain: '贲象征文饰、装扮、美化，山下有火、文采焕然。重内涵也重外在之美。', insight: '今日宜注重形象与表达，适度修饰则增色，但勿华而不实、本末倒置。' },
+  { id: 23, name: '剥', fullName: '山地剥', lines: [0,0,0,0,0,1], guaCi: '剥：不利有攸往。', explain: '剥象征剥落、衰败，群阴剥阳、根基动摇。是衰退之卦，宜顺时止行、静待生机。', insight: '今日运势走低、不宜妄动，宜守不宜攻，保存实力、静待转机。' },
+  { id: 24, name: '复', fullName: '地雷复', lines: [1,0,0,0,0,0], guaCi: '复：亨。出入无疾，朋来无咎。', explain: '复象征回归、复苏、一阳来复，如冬至阳生、万物复苏。是转机重生之卦。', insight: '今日迎来转机、否极泰来，宜把握复苏之机，从头再来、重整旗鼓。' },
+  { id: 25, name: '无妄', fullName: '天雷无妄', lines: [1,0,0,1,1,1], guaCi: '无妄：元亨利贞。其匪正有眚。', explain: '无妄象征不妄为、真实无虚，循天理而行。守正则吉，妄动则有灾。', insight: '今日宜真诚守正、顺其自然，不投机、不妄求，本分行事自得吉祥。' },
+  { id: 26, name: '大畜', fullName: '山天大畜', lines: [1,1,1,0,0,1], guaCi: '大畜：利贞，不家食吉，利涉大川。', explain: '大畜象征大的积蓄与涵养，刚健笃实、积聚力量。厚积而后薄发，可成大业。', insight: '今日宜大力积累实力与德能，蓄势待发，时机成熟可成就大事。' },
+  { id: 27, name: '颐', fullName: '山雷颐', lines: [1,0,0,0,0,1], guaCi: '颐：贞吉。观颐，自求口实。', explain: '颐象征颐养、保养，上下颚咀嚼之形。宜谨慎言语饮食、修身养德。', insight: '今日宜养身养德、慎言慎食，注重自我修养，靠正道获取所需。' },
+  { id: 28, name: '大过', fullName: '泽风大过', lines: [0,1,1,1,1,0], guaCi: '大过：栋桡。利有攸往，亨。', explain: '大过象征过度、非常之时，栋梁弯曲、负荷过重。非常时期需非常之举。', insight: '今日或面临超常压力与挑战，宜以非常手段应对，敢于担当、力挽狂澜。' },
+  { id: 29, name: '坎', fullName: '坎为水', lines: [0,1,0,0,1,0], guaCi: '习坎：有孚，维心亨，行有尚。', explain: '坎象征重重险陷、艰难困苦，水流不盈。唯有诚信坚定、持心不乱方能脱险。', insight: '今日或陷困境险阻，宜沉着冷静、坚定信念，险中求稳、稳中求进。' },
+  { id: 30, name: '离', fullName: '离为火', lines: [1,0,1,1,0,1], guaCi: '离：利贞，亨。畜牝牛，吉。', explain: '离象征光明、附丽、依存，火焰明丽。宜光明正大、依附正道，则亨通。', insight: '今日宜光明磊落、依附贤者正道，保持热情但不失柔顺，自得吉祥。' },
+  { id: 31, name: '咸', fullName: '泽山咸', lines: [0,0,1,1,1,0], guaCi: '咸：亨，利贞，取女吉。', explain: '咸象征感应、交感、相互吸引，少男少女相感。心意相通则亨，是恋爱婚姻吉卦。', insight: '今日人际感应良好、易得共鸣，宜以诚感人、真心相待，感情尤吉。' },
+  { id: 32, name: '恒', fullName: '雷风恒', lines: [0,1,1,1,0,0], guaCi: '恒：亨，无咎，利贞，利有攸往。', explain: '恒象征恒久、持之以恒，雷风相伴、长久不变。守常持恒、坚持不懈则成。', insight: '今日宜坚持守恒、贵在持久，不三心二意、不半途而废，恒者必成。' },
+  { id: 33, name: '遁', fullName: '天山遁', lines: [0,0,1,1,1,1], guaCi: '遁：亨，小利贞。', explain: '遁象征退避、隐退，阴长阳消、君子知机而退。适时退避、明哲保身则亨。', insight: '今日宜审时度势、适时退让，不可逞强硬撑，以退为进、保存实力。' },
+  { id: 34, name: '大壮', fullName: '雷天大壮', lines: [1,1,1,1,0,0], guaCi: '大壮：利贞。', explain: '大壮象征强盛、壮大，阳气盛长、雷震于天。力量强盛但需守正，壮而不暴。', insight: '今日气势强盛、能量充沛，宜乘势而上，但忌恃强妄动、用力过猛。' },
+  { id: 35, name: '晋', fullName: '火地晋', lines: [0,0,0,1,0,1], guaCi: '晋：康侯用锡马蕃庶，昼日三接。', explain: '晋象征晋升、上进、前进，明出地上、如日东升。是上升发达之卦。', insight: '今日运势上升、宜积极进取，光明前景在望，把握晋升机遇大有可为。' },
+  { id: 36, name: '明夷', fullName: '地火明夷', lines: [1,0,1,0,0,0], guaCi: '明夷：利艰贞。', explain: '明夷象征光明受损、贤者遭难，日落地中、晦暗当道。宜韬光养晦、守正避祸。', insight: '今日处境晦暗艰难，宜收敛锋芒、低调隐忍，守正待时、保全自身。' },
+  { id: 37, name: '家人', fullName: '风火家人', lines: [1,0,1,0,1,1], guaCi: '家人：利女贞。', explain: '家人象征家庭、内部和睦，各正其位、家道兴旺。治家有道则家齐而后事兴。', insight: '今日宜重视家庭与内部和谐，各尽其责、以情维系，家和则万事兴。' },
+  { id: 38, name: '睽', fullName: '火泽睽', lines: [1,1,0,1,0,1], guaCi: '睽：小事吉。', explain: '睽象征乖离、背离、分歧，火上泽下、相背而行。求同存异、小事可成。', insight: '今日易有分歧矛盾，宜求同存异、小处着手，不强求一致、和而不同。' },
+  { id: 39, name: '蹇', fullName: '水山蹇', lines: [0,0,1,0,1,0], guaCi: '蹇：利西南，不利东北。利见大人，贞吉。', explain: '蹇象征艰难、险阻、跛行，前有险阻、举步维艰。宜止而思变、寻求贵助。', insight: '今日步履维艰、阻碍重重，宜停下反思、另寻出路，借助贵人渡过难关。' },
+  { id: 40, name: '解', fullName: '雷水解', lines: [0,1,0,1,0,0], guaCi: '解：利西南，无所往，其来复吉。有攸往，夙吉。', explain: '解象征解除、缓解、舒解，雷雨大作、险难化解。困境消解、宜把握时机。', insight: '今日困难得以缓解、压力释放，宜趁势解决遗留问题，早行动早受益。' },
+  { id: 41, name: '损', fullName: '山泽损', lines: [1,1,0,0,0,1], guaCi: '损：有孚，元吉，无咎，可贞，利有攸往。', explain: '损象征减损、舍弃，损下益上。适当的舍弃与付出，反而带来更大收获。', insight: '今日宜懂得舍弃与付出，损有余而补不足，先舍后得、以退为进。' },
+  { id: 42, name: '益', fullName: '风雷益', lines: [1,0,0,0,1,1], guaCi: '益：利有攸往，利涉大川。', explain: '益象征增益、获益，损上益下、风雷相助。是受益增长之卦，宜积极作为。', insight: '今日运势增益、利于行动，宜抓住机会、积极进取，付出会有丰厚回报。' },
+  { id: 43, name: '夬', fullName: '泽天夬', lines: [1,1,1,1,1,0], guaCi: '夬：扬于王庭，孚号有厉。', explain: '夬象征决断、决裂、果决，五阳决一阴。宜果断决断、清除小人，但需防险。', insight: '今日宜果断决策、当机立断，清除积弊或了断纠葛，但要光明正大、留有余地。' },
+  { id: 44, name: '姤', fullName: '天风姤', lines: [0,1,1,1,1,1], guaCi: '姤：女壮，勿用取女。', explain: '姤象征相遇、邂逅，一阴始生、阴阳不期而遇。遇合需谨慎，防患于未然。', insight: '今日易有意外相遇或邂逅，宜把握良机但保持警惕，防微杜渐、慎始慎终。' },
+  { id: 45, name: '萃', fullName: '泽地萃', lines: [0,0,0,0,1,0], guaCi: '萃：亨。王假有庙，利见大人，亨利贞。', explain: '萃象征聚集、荟萃，泽上于地、万物聚集。人才物力汇聚，宜团结成事。', insight: '今日宜聚合资源人脉、团结众人，借众人之力办大事，凝聚则强。' },
+  { id: 46, name: '升', fullName: '地风升', lines: [0,1,1,0,0,0], guaCi: '升：元亨，用见大人，勿恤，南征吉。', explain: '升象征上升、晋升、积累上进，木生地中、逐渐成长。循序渐进、积小成大则亨。', insight: '今日运势上升、宜稳步进取，脚踏实地、循序渐进，积累必有提升。' },
+  { id: 47, name: '困', fullName: '泽水困', lines: [0,1,0,1,1,0], guaCi: '困：亨，贞，大人吉，无咎，有言不信。', explain: '困象征困穷、艰难、受阻，泽水枯竭、困顿不堪。处困当守正乐天、坚定信念。', insight: '今日处境困窘、多有不顺，宜守正不屈、坚定内心，少说多做、静待解困。' },
+  { id: 48, name: '井', fullName: '水风井', lines: [0,1,1,0,1,0], guaCi: '井：改邑不改井，无丧无得，往来井井。', explain: '井象征水井、滋养、根本，井养而不穷。守住根本、持续滋养、惠泽于人。', insight: '今日宜固本培元、滋养根基，保持稳定持久的付出，做利人利己之事。' },
+  { id: 49, name: '革', fullName: '泽火革', lines: [1,0,1,1,1,0], guaCi: '革：己日乃孚，元亨利贞，悔亡。', explain: '革象征变革、改革、革新，泽火相息、除旧布新。顺天应人之变革，则大亨。', insight: '今日宜顺势变革、除旧立新，把握时机大胆改变，变得其时则大有可为。' },
+  { id: 50, name: '鼎', fullName: '火风鼎', lines: [0,1,1,1,0,1], guaCi: '鼎：元吉，亨。', explain: '鼎象征鼎新、稳定、变革后的建立，烹饪养贤、革故鼎新。是稳固兴盛之卦。', insight: '今日宜在变革后建立新秩序，稳扎稳打、革故鼎新，成就稳固兴旺之局。' },
+  { id: 51, name: '震', fullName: '震为雷', lines: [1,0,0,1,0,0], guaCi: '震：亨。震来虩虩，笑言哑哑。', explain: '震象征震动、奋起、惊雷，雷声震动、令人警醒。宜在震惊中保持镇定、奋发自省。', insight: '今日或有突发震动惊扰，宜临危不乱、借势奋起，于震动中保持清醒镇定。' },
+  { id: 52, name: '艮', fullName: '艮为山', lines: [0,0,1,0,0,1], guaCi: '艮其背，不获其身，行其庭，不见其人，无咎。', explain: '艮象征止、静止、稳定，两山相重、稳如泰山。当止则止、知止有定则无过。', insight: '今日宜适时停止、安静自守，知道何时该止步是大智慧，静定中蓄养力量。' },
+  { id: 53, name: '渐', fullName: '风山渐', lines: [0,0,1,0,1,1], guaCi: '渐：女归吉，利贞。', explain: '渐象征渐进、循序、循次而进，如鸿雁渐飞。按部就班、循序渐进则吉。', insight: '今日宜循序渐进、稳步推进，不急不躁、按部就班，渐进者行稳致远。' },
+  { id: 54, name: '归妹', fullName: '雷泽归妹', lines: [1,1,0,1,0,0], guaCi: '归妹：征凶，无攸利。', explain: '归妹象征婚嫁、归属，但位置不当、行事失序。宜守正自持、谨慎处理关系。', insight: '今日处理感情或归属之事需格外谨慎，勿冲动行事，守正自持方免悔吝。' },
+  { id: 55, name: '丰', fullName: '雷火丰', lines: [1,0,1,1,0,0], guaCi: '丰：亨，王假之，勿忧，宜日中。', explain: '丰象征丰盛、盛大、丰收，雷电交加、光明盛大。盛极之时宜保持清醒、居安思危。', insight: '今日丰盛兴旺、成果丰硕，宜把握盛时，但盛极而衰，需未雨绸缪、保持谦逊。' },
+  { id: 56, name: '旅', fullName: '火山旅', lines: [0,0,1,1,0,1], guaCi: '旅：小亨，旅贞吉。', explain: '旅象征行旅、漂泊、客居，火在山上、动而不居。在外宜谦和谨慎、随遇而安。', insight: '今日如在旅途、漂泊不定，宜谦和低调、广结善缘，小心谨慎则小有所成。' },
+  { id: 57, name: '巽', fullName: '巽为风', lines: [0,1,1,0,1,1], guaCi: '巽：小亨，利有攸往，利见大人。', explain: '巽象征顺从、谦逊、潜入，风行无阻、无孔不入。柔顺谦逊、顺势而入则利。', insight: '今日宜谦逊柔顺、随风而行，以柔克刚、顺势渗透，潜移默化中达成目标。' },
+  { id: 58, name: '兑', fullName: '兑为泽', lines: [1,1,0,1,1,0], guaCi: '兑：亨，利贞。', explain: '兑象征喜悦、和悦、沟通，两泽相连、和乐融融。以和悦待人、真诚沟通则亨。', insight: '今日宜以和悦之心待人、真诚交流沟通，喜悦感染他人，和气生财、其乐融融。' },
+  { id: 59, name: '涣', fullName: '风水涣', lines: [0,1,0,0,1,1], guaCi: '涣：亨。王假有庙，利涉大川，利贞。', explain: '涣象征涣散、离散、消散，风行水上、涣然冰释。宜化解隔阂、重新凝聚人心。', insight: '今日宜化解涣散与隔阂，消除误会、重聚人心，渡过难关、转危为安。' },
+  { id: 60, name: '节', fullName: '水泽节', lines: [1,1,0,0,1,0], guaCi: '节：亨。苦节不可贞。', explain: '节象征节制、节度、适可而止，泽上有水、贵在有节。适度节制则亨，过苦则反。', insight: '今日宜懂得节制有度，凡事适可而止，量入为出、张弛有度，但勿过分苛刻。' },
+  { id: 61, name: '中孚', fullName: '风泽中孚', lines: [1,1,0,0,1,1], guaCi: '中孚：豚鱼吉，利涉大川，利贞。', explain: '中孚象征诚信、内心真诚，中虚而信、信及豚鱼。以至诚之心待人处事则吉。', insight: '今日宜以诚信为本、真心待人，内心真诚则感人至深，诚者天下无难事。' },
+  { id: 62, name: '小过', fullName: '雷山小过', lines: [0,0,1,1,0,0], guaCi: '小过：亨，利贞。可小事，不可大事。', explain: '小过象征小有超越、稍稍过分，飞鸟遗音。宜做小事、宜稍谦过，不宜行大事。', insight: '今日宜从小处着手、稍作谦让，可成小事不宜大动作，谨小慎微、行稳致远。' },
+  { id: 63, name: '既济', fullName: '水火既济', lines: [1,0,1,0,1,0], guaCi: '既济：亨，小利贞，初吉终乱。', explain: '既济象征成功、已成、阴阳调和，水火相济、事已成就。功成之时尤需防变守成。', insight: '今日事已有成、阶段告捷，宜守成防变、善始善终，成功之时更要警惕松懈。' },
+  { id: 64, name: '未济', fullName: '火水未济', lines: [0,1,0,1,0,1], guaCi: '未济：亨，小狐汔济，濡其尾，无攸利。', explain: '未济象征未完成、将成未成，火水未交。事业未竟、仍需努力，谨慎前行终可成。', insight: '今日事业尚未完成、仍在途中，宜坚持不懈、谨慎收尾，行百里者半九十，慎终如始。' }
+];
+
+/* 合并：前8卦详细 + 后56卦基础，统一补齐字段 */
+HEXAGRAMS_BASIC.forEach(function (h) {
+  HEXAGRAMS.push({
+    id: h.id,
+    name: h.name,
+    fullName: h.fullName,
+    lines: h.lines,
+    guaCi: h.guaCi,
+    explain: h.explain,
+    insight: h.insight,
+    yaoCi: null,        // 基础卦暂无逐爻详解
+    fortune: null       // 基础卦占卜时由通用解读 + AI 补充
+  });
+});
+
+/* 按 id 排序，确保索引顺序正确 */
+HEXAGRAMS.sort(function (a, b) { return a.id - b.id; });
+
+/* ===== 工具函数 ===== */
+
+/* 根据 6 爻数组(下→上)查找对应卦 */
+function findHexagramByLines(lines) {
+  return HEXAGRAMS.find(function (h) {
+    return h.lines.length === lines.length &&
+      h.lines.every(function (v, i) { return v === lines[i]; });
+  }) || null;
+}
+
+/* 根据 id 获取卦 */
+function getHexagramById(id) {
+  return HEXAGRAMS.find(function (h) { return h.id === id; }) || null;
+}
+
+/* 生成卦象 SVG（从下到上绘制 6 爻；阳爻整条，阴爻断开） */
+function renderHexagramSVG(lines, options) {
+  options = options || {};
+  var w = options.width || 120;
+  var h = options.height || 160;
+  var lineH = 14;       // 每爻高度
+  var gap = 12;         // 爻间距
+  var totalH = lines.length * lineH + (lines.length - 1) * gap;
+  var startY = (h - totalH) / 2;
+  var barW = w * 0.8;
+  var barX = (w - barW) / 2;
+  var yinGap = barW * 0.18;  // 阴爻中间断口
+
+  var rects = '';
+  // lines[0] 是初爻(最下)，SVG 中 y 越大越靠下 → 从底部往上画
+  for (var i = 0; i < lines.length; i++) {
+    var y = startY + (lines.length - 1 - i) * (lineH + gap);
+    if (lines[i] === 1) {
+      // 阳爻：一整条
+      rects += '<rect class="hexagram-line yang" x="' + barX + '" y="' + y +
+        '" width="' + barW + '" height="' + lineH + '" rx="2"/>';
+    } else {
+      // 阴爻：两段
+      var segW = (barW - yinGap) / 2;
+      rects += '<rect class="hexagram-line yin" x="' + barX + '" y="' + y +
+        '" width="' + segW + '" height="' + lineH + '" rx="2"/>';
+      rects += '<rect class="hexagram-line yin" x="' + (barX + segW + yinGap) +
+        '" y="' + y + '" width="' + segW + '" height="' + lineH + '" rx="2"/>';
+    }
+  }
+
+  return '<svg class="hexagram-svg" viewBox="0 0 ' + w + ' ' + h +
+    '" xmlns="http://www.w3.org/2000/svg">' + rects + '</svg>';
+}
+
+</script>
+<script>
+/* ===== 易道 · AI修炼 ===== */
+/* sm2.js — SM-2 间隔重复算法 */
+/* 基于 SuperMemo-2，用 localStorage 持久化学习进度 */
+
+var SM2 = (function () {
+  var STORAGE_KEY = 'yidao_sm2_data';
+
+  /* 默认卡片状态 */
+  function defaultCard(hexagramId) {
+    return {
+      id: hexagramId,
+      ef: 2.5,           // 难度因子 (easiness factor)
+      interval: 0,       // 当前间隔天数
+      repetitions: 0,    // 连续正确次数
+      nextReview: 0,     // 下次复习时间戳
+      lastReview: 0      // 上次复习时间戳
+    };
+  }
+
+  /* 从 localStorage 读取全部数据 */
+  function loadAll() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /* 保存全部数据 */
+  function saveAll(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) { /* 静默失败 */ }
+  }
+
+  /* 获取单张卡片状态 */
+  function getCard(hexagramId) {
+    var data = loadAll();
+    return data[hexagramId] || defaultCard(hexagramId);
+  }
+
+  /* SM-2 核心：根据评分更新卡片
+   * quality: 0-5 (0-2=失败, 3=勉强, 4=好, 5=完美)
+   */
+  function review(hexagramId, quality) {
+    var data = loadAll();
+    var card = data[hexagramId] || defaultCard(hexagramId);
+
+    // 更新难度因子
+    card.ef = Math.max(1.3, card.ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+
+    if (quality < 3) {
+      // 回答错误：重置
+      card.repetitions = 0;
+      card.interval = 0;
+    } else {
+      // 回答正确：递增间隔
+      card.repetitions += 1;
+      if (card.repetitions === 1) {
+        card.interval = 1;
+      } else if (card.repetitions === 2) {
+        card.interval = 6;
+      } else {
+        card.interval = Math.round(card.interval * card.ef);
+      }
+    }
+
+    var now = Date.now();
+    card.lastReview = now;
+    card.nextReview = now + card.interval * 24 * 60 * 60 * 1000;
+
+    data[hexagramId] = card;
+    saveAll(data);
+    return card;
+  }
+
+  /* 获取今日需要复习的卦 ID 列表 */
+  function getDueCards() {
+    var data = loadAll();
+    var now = Date.now();
+    var due = [];
+    Object.keys(data).forEach(function (key) {
+      if (data[key].nextReview <= now) {
+        due.push(parseInt(key, 10));
+      }
+    });
+    return due;
+  }
+
+  /* 获取已掌握的卦数（间隔 >= 21天视为掌握） */
+  function getMasteredCount() {
+    var data = loadAll();
+    var count = 0;
+    Object.keys(data).forEach(function (key) {
+      if (data[key].interval >= 21) count++;
+    });
+    return count;
+  }
+
+  /* 获取已学习过的卦数 */
+  function getLearnedCount() {
+    var data = loadAll();
+    return Object.keys(data).length;
+  }
+
+  /* 获取全部学习数据（用于统计） */
+  function getAllData() {
+    return loadAll();
+  }
+
+  /* 清除全部数据（慎用） */
+  function reset() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  return {
+    getCard: getCard,
+    review: review,
+    getDueCards: getDueCards,
+    getMasteredCount: getMasteredCount,
+    getLearnedCount: getLearnedCount,
+    getAllData: getAllData,
+    reset: reset
+  };
+})();
+
+</script>
+<script>
+/* ===== 易道 · AI修炼 ===== */
+/* divination.js — 起卦逻辑（铜钱法）+ 小白友好解读 */
+
+var Divination = (function () {
+
+  /* 铜钱法：每爻掷三枚铜钱 */
+  function throwCoins() {
+    var sum = 0;
+    for (var i = 0; i < 3; i++) {
+      sum += Math.random() < 0.5 ? 3 : 2;
+    }
+    return {
+      sum: sum,
+      value: (sum === 7 || sum === 9) ? 1 : 0,
+      changing: (sum === 6 || sum === 9)
+    };
+  }
+
+  /* 起一卦 */
+  function cast() {
+    var lines = [];
+    var originalLines = [];
+    var changedLines = [];
+    var changingPositions = [];
+
+    for (var i = 0; i < 6; i++) {
+      var yao = throwCoins();
+      lines.push(yao);
+      originalLines.push(yao.value);
+
+      if (yao.changing) {
+        changingPositions.push(i);
+        changedLines.push(yao.value === 1 ? 0 : 1);
+      } else {
+        changedLines.push(yao.value);
+      }
+    }
+
+    var original = findHexagramByLines(originalLines);
+    var changed = changingPositions.length > 0 ? findHexagramByLines(changedLines) : null;
+
+    return {
+      lines: lines,
+      original: original,
+      changed: changed,
+      changingLines: changingPositions
+    };
+  }
+
+  /* ===== 智能问题分析 ===== */
+
+  /* 检测问题类别 */
+  function detectCategory(question) {
+    var q = question.toLowerCase();
+    var careerWords = ['工作', '事业', '赚钱', '收入', '项目', '创业', '生意', '公司', '老板', '同事', '升职', '跳槽', '面试', '客户', '合作', '投资', '副业'];
+    var loveWords = ['感情', '恋爱', '婚姻', '对象', '男朋友', '女朋友', '老公', '老婆', '暧昧', '分手', '复合', '相亲', '喜欢', '爱情', '表白'];
+    var decisionWords = ['要不要', '该不该', '选择', '决定', '纠结', '犹豫', '还是', '怎么选', '哪个好', '值不值'];
+    var healthWords = ['身体', '健康', '生病', '治疗', '恢复', '运动', '睡眠'];
+
+    var scores = { career: 0, love: 0, decision: 0, health: 0 };
+
+    careerWords.forEach(function (w) { if (q.indexOf(w) !== -1) scores.career++; });
+    loveWords.forEach(function (w) { if (q.indexOf(w) !== -1) scores.love++; });
+    decisionWords.forEach(function (w) { if (q.indexOf(w) !== -1) scores.decision++; });
+    healthWords.forEach(function (w) { if (q.indexOf(w) !== -1) scores.health++; });
+
+    var max = Math.max(scores.career, scores.love, scores.decision, scores.health);
+    if (max === 0) return 'general';
+    if (scores.career === max) return 'career';
+    if (scores.love === max) return 'love';
+    if (scores.decision === max) return 'decision';
+    return 'health';
+  }
+
+  /* 根据卦象属性生成吉凶判断 */
+  function getOverallTone(hexagram) {
+    var name = hexagram.name;
+    var goodGua = ['乾', '坤', '泰', '大有', '谦', '豫', '随', '临', '复', '无妄', '大畜', '咸', '恒', '大壮', '晋', '益', '萃', '升', '鼎', '丰', '兑', '中孚', '既济'];
+    var cautionGua = ['屯', '蒙', '需', '讼', '师', '小畜', '否', '剥', '坎', '遁', '明夷', '蹇', '困', '旅', '小过', '未济'];
+
+    if (goodGua.indexOf(name) !== -1) return 'positive';
+    if (cautionGua.indexOf(name) !== -1) return 'cautious';
+    return 'neutral';
+  }
+
+  /* 生成针对性的大白话回答 */
+  function generatePersonalAdvice(question, hexagram, changed, category) {
+    var tone = getOverallTone(hexagram);
+    var insight = hexagram.insight || '';
+    var fortune = hexagram.fortune || null;
+
+    var answer = '';
+    var actions = [];
+
+    // 根据类别 + 卦象生成针对性回答
+    if (category === 'career' && fortune && fortune.career) {
+      answer = fortune.career;
+    } else if (category === 'love' && fortune && fortune.love) {
+      answer = fortune.love;
+    } else if (category === 'decision' && fortune && fortune.decision) {
+      answer = fortune.decision;
+    } else if (fortune && fortune.overall) {
+      answer = fortune.overall;
+    } else {
+      answer = insight;
+    }
+
+    // 生成行动建议
+    if (tone === 'positive') {
+      actions = generatePositiveActions(category);
+    } else if (tone === 'cautious') {
+      actions = generateCautiousActions(category);
+    } else {
+      actions = generateNeutralActions(category);
+    }
+
+    // 如果有变卦，加上趋势提示
+    var trend = '';
+    if (changed) {
+      var changedTone = getOverallTone(changed);
+      if (changedTone === 'positive') {
+        trend = '事情正在往好的方向发展，保持当前的做法，后续会越来越顺。';
+      } else if (changedTone === 'cautious') {
+        trend = '注意，情况可能会有变化。提前做好准备，灵活应对就好。';
+      } else {
+        trend = '局面会有所转变，顺其自然、见机行事即可。';
+      }
+    }
+
+    return {
+      answer: answer,
+      actions: actions,
+      trend: trend,
+      tone: tone
+    };
+  }
+
+  function generatePositiveActions(category) {
+    if (category === 'career') {
+      return [
+        '现在是行动的好时机，有想法就大胆去推进',
+        '多跟靠谱的人交流合作，会有意想不到的收获',
+        '保持自信但别骄傲，稳扎稳打最重要'
+      ];
+    } else if (category === 'love') {
+      return [
+        '主动一点，真诚表达你的心意',
+        '多花时间陪伴和倾听，感情需要用心经营',
+        '相信自己的感觉，顺其自然就好'
+      ];
+    } else if (category === 'decision') {
+      return [
+        '可以放心去做，现在的方向是对的',
+        '相信自己的判断，不要被外界杂音干扰',
+        '行动起来比纠结更重要，做了才知道答案'
+      ];
+    }
+    return [
+      '整体运势不错，适合积极行动',
+      '把握当下的好时机，别犹豫太久',
+      '保持乐观心态，好事自然来'
+    ];
+  }
+
+  function generateCautiousActions(category) {
+    if (category === 'career') {
+      return [
+        '现在不适合冒进，先观察一下形势再说',
+        '把手头的事情做扎实，别急着扩张或跳槽',
+        '遇到困难是暂时的，耐心等待转机'
+      ];
+    } else if (category === 'love') {
+      return [
+        '感情的事急不来，给彼此一些时间和空间',
+        '先把自己的状态调整好，好的感情自然会来',
+        '如果有矛盾，退一步反而能看清全局'
+      ];
+    } else if (category === 'decision') {
+      return [
+        '建议先不要急着做决定，再观望一段时间',
+        '多收集信息、多听听不同的意见再说',
+        '如果心里没底，那就等一等，时机到了自然清晰'
+      ];
+    }
+    return [
+      '最近宜静不宜动，养精蓄锐为主',
+      '遇事多想想再行动，冲动容易出错',
+      '困难是暂时的，保持耐心，转机就在前方'
+    ];
+  }
+
+  function generateNeutralActions(category) {
+    if (category === 'career') {
+      return [
+        '稳步推进就好，不需要特别激进也不必太保守',
+        '注重团队配合，借助他人的力量事半功倍',
+        '做好本分的事，机会来了自然能抓住'
+      ];
+    } else if (category === 'love') {
+      return [
+        '真诚是最好的策略，做真实的自己',
+        '不要想太多，享受当下的相处就好',
+        '感情需要双向奔赴，观察对方的态度也很重要'
+      ];
+    } else if (category === 'decision') {
+      return [
+        '两个选择各有利弊，关键看你更看重什么',
+        '跟着内心走，选了就不要后悔',
+        '没有完美的选择，只有适合你的选择'
+      ];
+    }
+    return [
+      '顺其自然，不必刻意追求什么',
+      '做好眼前的事，结果自然不会差',
+      '保持平常心，好坏都是经历'
+    ];
+  }
+
+  /* ===== 渲染结果（小白友好版） ===== */
+  function renderResult(result, question) {
+    if (!result || !result.original) return '<p>起卦失败，请重试</p>';
+
+    var h = result.original;
+    var category = question ? detectCategory(question) : 'general';
+    var advice = generatePersonalAdvice(question, h, result.changed, category);
+
+    var toneEmoji = advice.tone === 'positive' ? '🌟' : (advice.tone === 'cautious' ? '🛡️' : '☯️');
+    var toneLabel = advice.tone === 'positive' ? '吉 · 适合行动' : (advice.tone === 'cautious' ? '宜守 · 耐心等待' : '平 · 顺其自然');
+
+    var html = '';
+
+    // === 主体：给你的回答 ===
+    html += '<div class="divine-answer-section">';
+    html += '<div class="divine-tone">' + toneEmoji + ' ' + toneLabel + '</div>';
+    html += '<div class="divine-main-answer">' + advice.answer + '</div>';
+    html += '</div>';
+
+    // === 行动建议 ===
+    html += '<div class="divine-actions-section">';
+    html += '<div class="divine-actions-title">🎯 建议你这样做</div>';
+    html += '<ul class="divine-actions-list">';
+    advice.actions.forEach(function (action) {
+      html += '<li>' + action + '</li>';
+    });
+    html += '</ul>';
+    html += '</div>';
+
+    // === 变化趋势（如果有变卦）===
+    if (advice.trend) {
+      html += '<div class="divine-trend-section">';
+      html += '<div class="divine-trend-title">📈 趋势</div>';
+      html += '<p>' + advice.trend + '</p>';
+      html += '</div>';
+    }
+
+    // === 卦象小知识（折叠）===
+    html += '<details class="divine-details">';
+    html += '<summary>📖 想了解卦象含义？点这里展开</summary>';
+    html += '<div class="divine-details-body">';
+    html += '<div class="divine-mini-hexagram">';
+    html += renderHexagramSVG(h.lines, { width: 60, height: 80 });
+    html += '<span class="divine-mini-name">' + h.fullName + '</span>';
+    html += '</div>';
+    html += '<p class="divine-details-text">' + h.explain + '</p>';
+    if (result.changed) {
+      html += '<div class="divine-mini-hexagram">';
+      html += renderHexagramSVG(result.changed.lines, { width: 60, height: 80 });
+      html += '<span class="divine-mini-name">→ ' + result.changed.fullName + '</span>';
+      html += '</div>';
+      html += '<p class="divine-details-text">' + result.changed.explain + '</p>';
+    }
+    html += '</div>';
+    html += '</details>';
+
+    return html;
+  }
+
+  return {
+    cast: cast,
+    renderResult: renderResult
+  };
+})();
+
+</script>
+<script>
+/* ===== 易道 · AI修炼 ===== */
+/* app.js — 主程序 */
+
+(function () {
+  'use strict';
+
+  var STORAGE_PREFIX = 'yidao_';
+
+  /* ===== 工具函数 ===== */
+  function $(sel) { return document.querySelector(sel); }
+  function $$(sel) { return document.querySelectorAll(sel); }
+
+  function getToday() {
+    return new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  }
+
+  function loadJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(STORAGE_PREFIX + key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+
+  function saveJSON(key, value) {
+    try {
+      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+    } catch (e) { /* 静默 */ }
+  }
+
+  /* ===== 用户数据 ===== */
+  var userData = loadJSON('user', {
+    firstDay: getToday(),
+    lastActiveDay: '',
+    streak: 0,
+    totalDivinations: 0,
+    logs: []  // [{date, action, detail}]
+  });
+
+  function saveUserData() { saveJSON('user', userData); }
+
+  function recordActivity(action, detail) {
+    var today = getToday();
+
+    // 更新连续天数
+    if (userData.lastActiveDay !== today) {
+      var yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      if (userData.lastActiveDay === yesterday) {
+        userData.streak += 1;
+      } else if (userData.lastActiveDay !== today) {
+        userData.streak = 1;
+      }
+      userData.lastActiveDay = today;
+    }
+
+    // 添加日志（最多保留 50 条）
+    userData.logs.unshift({ date: today, action: action, detail: detail || '' });
+    if (userData.logs.length > 50) userData.logs.length = 50;
+
+    saveUserData();
+  }
+
+  /* ===== 导航切换 ===== */
+  function initNav() {
+    var navItems = $$('.nav-item');
+    var pages = $$('.page');
+
+    navItems.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.getAttribute('data-page');
+
+        navItems.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        pages.forEach(function (p) { p.classList.remove('active'); });
+        var targetPage = $('#page-' + target);
+        if (targetPage) targetPage.classList.add('active');
+
+        // 切换到对应页面时刷新内容
+        if (target === 'profile') refreshProfile();
+        if (target === 'practice') refreshPractice();
+      });
+    });
+  }
+
+  /* ===== 每日一卦 ===== */
+  function initDaily() {
+    var today = getToday();
+    // 用日期生成固定的卦序号（每天不同，但同一天固定）
+    var seed = today.replace(/-/g, '');
+    var dayIndex = parseInt(seed, 10) % 64;
+    var hexagram = HEXAGRAMS[dayIndex];
+
+    var container = $('#daily-content');
+    if (!container || !hexagram) return;
+
+    var html = '';
+    html += '<div class="daily-card">';
+    html += '<div class="daily-date">' + today + ' · 第 ' + hexagram.id + ' 卦</div>';
+    html += '<div class="daily-hexagram">';
+    html += renderHexagramSVG(hexagram.lines, { width: 120, height: 160 });
+    html += '</div>';
+    html += '<h2 class="daily-name">' + hexagram.fullName + '</h2>';
+    html += '<p class="daily-guaci">' + hexagram.guaCi + '</p>';
+    html += '<div class="daily-explain">' + hexagram.explain + '</div>';
+    html += '<div class="daily-insight">💡 ' + hexagram.insight + '</div>';
+
+    // 如果有爻辞，展示
+    if (hexagram.yaoCi) {
+      html += '<div class="daily-yao">';
+      html += '<h3>六爻详解</h3>';
+      hexagram.yaoCi.forEach(function (yao) {
+        html += '<p class="yao-item">' + yao + '</p>';
+      });
+      html += '</div>';
+    }
+
+    // 小测验
+    html += '<div class="daily-quiz">';
+    html += '<h3>✍️ 小测验</h3>';
+    html += '<p>这一卦的卦名是？</p>';
+    html += '<div class="quiz-options" id="daily-quiz-options"></div>';
+    html += '</div>';
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // 生成测验选项
+    generateDailyQuiz(hexagram);
+  }
+
+  function generateDailyQuiz(correctHexagram) {
+    var optionsContainer = $('#daily-quiz-options');
+    if (!optionsContainer) return;
+
+    // 生成 4 个选项（含正确答案）
+    var options = [correctHexagram];
+    while (options.length < 4) {
+      var rand = HEXAGRAMS[Math.floor(Math.random() * 64)];
+      if (options.indexOf(rand) === -1) options.push(rand);
+    }
+    // 打乱顺序
+    options.sort(function () { return Math.random() - 0.5; });
+
+    var html = '';
+    options.forEach(function (opt) {
+      html += '<button class="quiz-btn" data-id="' + opt.id + '">' + opt.fullName + '</button>';
+    });
+    optionsContainer.innerHTML = html;
+
+    // 绑定点击
+    optionsContainer.querySelectorAll('.quiz-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var chosen = parseInt(btn.getAttribute('data-id'), 10);
+        var isCorrect = chosen === correctHexagram.id;
+
+        // 禁用所有按钮
+        optionsContainer.querySelectorAll('.quiz-btn').forEach(function (b) {
+          b.disabled = true;
+          if (parseInt(b.getAttribute('data-id'), 10) === correctHexagram.id) {
+            b.classList.add('correct');
+          }
+        });
+
+        if (isCorrect) {
+          btn.classList.add('correct');
+          SM2.review(correctHexagram.id, 5);
+          recordActivity('每日一卦', '答对「' + correctHexagram.fullName + '」');
+        } else {
+          btn.classList.add('wrong');
+          SM2.review(correctHexagram.id, 1);
+          recordActivity('每日一卦', '答错「' + correctHexagram.fullName + '」');
+        }
+      });
+    });
+  }
+
+  /* ===== 起卦问事 ===== */
+  function initDivine() {
+    var btn = $('#btn-divine');
+    var textarea = $('#divine-question');
+    var resultDiv = $('#divine-result');
+    if (!btn || !textarea || !resultDiv) return;
+
+    btn.addEventListener('click', function () {
+      var question = textarea.value.trim();
+      if (!question) {
+        textarea.setAttribute('placeholder', '请先输入你的问题哦～');
+        textarea.focus();
+        return;
+      }
+
+      // 起卦动画
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-icon spinning">☯</span> 起卦中...';
+      resultDiv.classList.add('hidden');
+
+      setTimeout(function () {
+        var result = Divination.cast();
+        var html = '';
+        html += '<div class="divine-question-echo">🙏 你问的是：' + question + '</div>';
+        html += Divination.renderResult(result, question);
+
+        resultDiv.innerHTML = html;
+        resultDiv.classList.remove('hidden');
+
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-icon">☯</span> 再起一卦';
+
+        // 记录
+        userData.totalDivinations += 1;
+        recordActivity('起卦', '问「' + question.slice(0, 20) + '」得「' +
+          (result.original ? result.original.fullName : '?') + '」');
+      }, 1200);
+    });
+  }
+
+  /* ===== 修炼场 ===== */
+  var currentMode = 'recognize';
+  var currentQuiz = null;
+  var learnQueue = [];  // 按卦序学习的队列
+
+  function initPractice() {
+    var modeBtns = $$('.mode-btn');
+    modeBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        modeBtns.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        currentMode = btn.getAttribute('data-mode');
+        startPracticeRound();
+      });
+    });
+  }
+
+  function refreshPractice() {
+    var masteredEl = $('#mastered-count');
+    if (masteredEl) masteredEl.textContent = SM2.getMasteredCount();
+  }
+
+  /* 获取下一个要学/复习的卦 */
+  function getNextHexagram() {
+    // 1. 优先复习到期的卦
+    var dueIds = SM2.getDueCards();
+    if (dueIds.length > 0) {
+      var hex = getHexagramById(dueIds[Math.floor(Math.random() * dueIds.length)]);
+      return { hexagram: hex, isNew: false };
+    }
+
+    // 2. 否则按顺序学新卦
+    var allData = SM2.getAllData();
+    for (var i = 0; i < 64; i++) {
+      var id = HEXAGRAMS[i].id;
+      if (!allData[id]) {
+        return { hexagram: HEXAGRAMS[i], isNew: true };
+      }
+    }
+
+    // 3. 全部学完了，随机复习
+    var hex = HEXAGRAMS[Math.floor(Math.random() * 64)];
+    return { hexagram: hex, isNew: false };
+  }
+
+  function startPracticeRound() {
+    var area = $('#practice-area');
+    if (!area) return;
+
+    var next = getNextHexagram();
+    var hexagram = next.hexagram;
+    if (!hexagram) return;
+
+    currentQuiz = hexagram;
+
+    // 如果是新卦，先进入"学习"模式
+    if (next.isNew) {
+      showLearnCard(area, hexagram);
+    } else {
+      showQuizCard(area, hexagram);
+    }
+  }
+
+  /* ===== 入门引导（第一次进修炼场时展示）===== */
+  function showIntroGuide(area, nextHexagram) {
+    var html = '';
+    html += '<div class="learn-card">';
+    html += '<div class="learn-badge">🎓 入门第一课</div>';
+    html += '<h2 class="learn-name">读懂卦象，只需30秒</h2>';
+
+    html += '<div class="intro-section">';
+    html += '<p class="intro-text">易经的卦象由6条横线组成，从下往上读。横线只有两种：</p>';
+    html += '<div class="intro-lines">';
+    html += '<div class="intro-line-item">';
+    html += '<svg viewBox="0 0 80 14" width="80" height="14"><rect x="0" y="0" width="80" height="14" rx="2" fill="#c9a96e"/></svg>';
+    html += '<span><strong>阳爻</strong>（一整条线）= 阳、刚、动、天</span>';
+    html += '</div>';
+    html += '<div class="intro-line-item">';
+    html += '<svg viewBox="0 0 80 14" width="80" height="14"><rect x="0" y="0" width="33" height="14" rx="2" fill="#c9a96e"/><rect x="47" y="0" width="33" height="14" rx="2" fill="#c9a96e"/></svg>';
+    html += '<span><strong>阴爻</strong>（断开的线）= 阴、柔、静、地</span>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div class="intro-section">';
+    html += '<p class="intro-text"><strong>为什么是这个形状？</strong></p>';
+    html += '<p class="intro-text">古人用蓍草（一种植物）占卜，数出奇数放一根完整的草→阳爻，偶数分两段→阴爻。最朴素的道理：天是完整统一的（一整条），地是有缝隙、能接纳万物的（断开）。</p>';
+    html += '</div>';
+
+    html += '<div class="intro-section">';
+    html += '<p class="intro-text"><strong>怎么组成一个卦？</strong></p>';
+    html += '<p class="intro-text">6条线叠在一起就是一个卦。下面3条叫"下卦"，上面3条叫"上卦"。不同的阴阳组合 = 不同的卦象 = 不同的含义。一共64种组合，就是易经的64卦。</p>';
+    html += '</div>';
+
+    html += '<div class="intro-section">';
+    html += '<p class="intro-text">接下来，福宝带你一个一个认识它们 👇</p>';
+    html += '</div>';
+
+    html += '<button class="btn-learn-done">明白了，开始学第一卦 →</button>';
+    html += '</div>';
+
+    area.innerHTML = html;
+
+    area.querySelector('.btn-learn-done').addEventListener('click', function () {
+      saveJSON('seen_intro', true);
+      showLearnCard(area, nextHexagram);
+    });
+  }
+
+  /* ===== 学习卡片（先学后练）===== */
+  function showLearnCard(area, hexagram) {
+    var html = '';
+    html += '<div class="learn-card">';
+    html += '<div class="learn-badge">📚 学新卦</div>';
+    html += '<div class="learn-hexagram">';
+    html += renderHexagramSVG(hexagram.lines, { width: 120, height: 160 });
+    html += '</div>';
+    html += '<h2 class="learn-name">' + hexagram.fullName + '</h2>';
+    html += '<p class="learn-guaci">' + hexagram.guaCi + '</p>';
+    html += '<div class="learn-explain">' + hexagram.explain + '</div>';
+
+    // 故事（如果有）
+    if (hexagram.story) {
+      html += '<div class="learn-story">';
+      html += '<div class="learn-story-title">🎬 经典故事</div>';
+      html += '<p>' + hexagram.story + '</p>';
+      html += '</div>';
+    }
+
+    html += '<div class="learn-insight">💡 ' + hexagram.insight + '</div>';
+
+    // 记忆小技巧
+    html += '<div class="learn-tip">';
+    html += '<strong>记忆技巧：</strong>看卦象——';
+    var yangCount = hexagram.lines.filter(function (l) { return l === 1; }).length;
+    var yinCount = 6 - yangCount;
+    if (yangCount === 6) {
+      html += '全是整条横线（阳爻），纯阳之卦，代表天、刚健。';
+    } else if (yinCount === 6) {
+      html += '全是断开的横线（阴爻），纯阴之卦，代表地、柔顺。';
+    } else {
+      html += '有 ' + yangCount + ' 条整线（阳）和 ' + yinCount + ' 条断线（阴），';
+      html += '上卦（上三爻）+ 下卦（下三爻）组合成「' + hexagram.fullName + '」。';
+    }
+    html += '</div>';
+
+    html += '<button class="btn-learn-done">记住了，考考我 →</button>';
+    html += '</div>';
+
+    area.innerHTML = html;
+
+    // 绑定"记住了"按钮
+    area.querySelector('.btn-learn-done').addEventListener('click', function () {
+      showQuizCard(area, hexagram);
+    });
+  }
+
+  /* ===== 测验卡片 ===== */
+  function showQuizCard(area, hexagram) {
+    var html = '';
+    html += '<div class="quiz-badge">✍️ 测一测</div>';
+
+    if (currentMode === 'recognize') {
+      html += '<div class="practice-question">';
+      html += renderHexagramSVG(hexagram.lines, { width: 120, height: 160 });
+      html += '<p>这是哪一卦？</p>';
+      html += '</div>';
+      html += '<div class="practice-options">' + generatePracticeOptions(hexagram, 'fullName') + '</div>';
+    } else if (currentMode === 'draw') {
+      html += '<div class="practice-question">';
+      html += '<h2 class="practice-name">' + hexagram.fullName + '</h2>';
+      html += '<p>请选出对应的卦象</p>';
+      html += '</div>';
+      html += '<div class="practice-options svg-options">' + generateSVGOptions(hexagram) + '</div>';
+    } else {
+      html += '<div class="practice-question">';
+      html += '<p class="fill-prompt">' + hexagram.fullName + '的卦辞是？</p>';
+      html += '</div>';
+      html += '<div class="practice-options">' + generatePracticeOptions(hexagram, 'guaCi') + '</div>';
+    }
+
+    area.innerHTML = html;
+    bindPracticeEvents(area, hexagram);
+  }
+
+  function generatePracticeOptions(correct, field) {
+    var options = [correct];
+    while (options.length < 4) {
+      var rand = HEXAGRAMS[Math.floor(Math.random() * 64)];
+      if (options.indexOf(rand) === -1) options.push(rand);
+    }
+    options.sort(function () { return Math.random() - 0.5; });
+
+    return options.map(function (opt) {
+      var text = field === 'guaCi' ? opt.guaCi.slice(0, 30) : opt[field];
+      return '<button class="practice-btn" data-id="' + opt.id + '">' + text + '</button>';
+    }).join('');
+  }
+
+  function generateSVGOptions(correct) {
+    var options = [correct];
+    while (options.length < 4) {
+      var rand = HEXAGRAMS[Math.floor(Math.random() * 64)];
+      if (options.indexOf(rand) === -1) options.push(rand);
+    }
+    options.sort(function () { return Math.random() - 0.5; });
+
+    return options.map(function (opt) {
+      return '<button class="practice-btn svg-btn" data-id="' + opt.id + '">' +
+        renderHexagramSVG(opt.lines, { width: 60, height: 80 }) + '</button>';
+    }).join('');
+  }
+
+  function bindPracticeEvents(area, correct) {
+    area.querySelectorAll('.practice-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var chosen = parseInt(btn.getAttribute('data-id'), 10);
+        var isCorrect = chosen === correct.id;
+
+        area.querySelectorAll('.practice-btn').forEach(function (b) {
+          b.disabled = true;
+          if (parseInt(b.getAttribute('data-id'), 10) === correct.id) {
+            b.classList.add('correct');
+          }
+        });
+
+        if (isCorrect) {
+          btn.classList.add('correct');
+          SM2.review(correct.id, 4);
+          recordActivity('修炼', '学会「' + correct.fullName + '」');
+        } else {
+          btn.classList.add('wrong');
+          SM2.review(correct.id, 1);
+          // 答错了，显示正确答案的解释
+          var feedback = document.createElement('div');
+          feedback.className = 'quiz-feedback';
+          feedback.innerHTML = '正确答案是「' + correct.fullName + '」<br><small>' + correct.explain + '</small>';
+          area.appendChild(feedback);
+        }
+
+        // 2秒后下一题
+        setTimeout(function () {
+          startPracticeRound();
+          refreshPractice();
+        }, isCorrect ? 1200 : 2500);
+      });
+    });
+  }
+
+  /* ===== 我的修炼（个人中心） ===== */
+  function refreshProfile() {
+    // 修炼天数
+    var firstDay = new Date(userData.firstDay);
+    var today = new Date(getToday());
+    var days = Math.max(1, Math.ceil((today - firstDay) / 86400000) + 1);
+
+    var statDays = $('#stat-days');
+    var statHexagrams = $('#stat-hexagrams');
+    var statDivinations = $('#stat-divinations');
+    var statStreak = $('#stat-streak');
+    var rankBadge = $('#rank-badge');
+    var journeyLog = $('#journey-log');
+
+    if (statDays) statDays.textContent = days;
+    if (statHexagrams) statHexagrams.textContent = SM2.getMasteredCount();
+    if (statDivinations) statDivinations.textContent = userData.totalDivinations;
+    if (statStreak) statStreak.textContent = userData.streak;
+
+    // 段位计算
+    var mastered = SM2.getMasteredCount();
+    var rank = '初学';
+    if (mastered >= 64) rank = '大成 🏆';
+    else if (mastered >= 48) rank = '通达';
+    else if (mastered >= 32) rank = '明悟';
+    else if (mastered >= 16) rank = '入门';
+    else if (mastered >= 8) rank = '启蒙';
+    if (rankBadge) rankBadge.textContent = rank;
+
+    // 修炼日志
+    if (journeyLog) {
+      if (userData.logs.length === 0) {
+        journeyLog.innerHTML = '<p class="zen-text">开始你的第一次修炼吧</p>';
+      } else {
+        var logHtml = userData.logs.slice(0, 20).map(function (log) {
+          return '<div class="log-item"><span class="log-date">' + log.date +
+            '</span><span class="log-action">' + log.action +
+            '</span><span class="log-detail">' + log.detail + '</span></div>';
+        }).join('');
+        journeyLog.innerHTML = logHtml;
+      }
+    }
+  }
+
+  /* ===== 启动 ===== */
+  function init() {
+    initNav();
+    initDaily();
+    initDivine();
+    initPractice();
+    refreshPractice();
+    refreshProfile();
+  }
+
+  // DOM 就绪后启动
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+</body>
+</html>

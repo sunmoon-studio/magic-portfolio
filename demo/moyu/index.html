@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>摸鱼神器 · 老板键演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  .demo-banner { position: relative; background: #e7eff9; border-bottom: 1px solid #d5e2f0; color: #4a6b8f; font-size: 12.5px; padding: 8px 40px 8px 16px; text-align: center; letter-spacing: .5px; }
+  .demo-banner button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #4a6b8f; opacity: .55; cursor: pointer; font-size: 14px; padding: 4px 8px; line-height: 1; }
+  .demo-banner button:hover { opacity: 1; }
+  /* ===== 摸鱼模式 ===== */
+  #fish { background: #f2f6fb; min-height: 100vh; padding: 20px 18px 90px; }
+  .fhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .fhead h1 { font-size: 20px; color: #2d4a6b; font-family: 'Noto Serif SC', serif; }
+  .fhead .clock { font-size: 13px; color: #6e86a3; }
+  .card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(45,74,107,.08); }
+  .card h3 { font-size: 14px; color: #2d4a6b; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: #5d7288; line-height: 1.7; }
+  .pond { text-align: center; padding: 22px 10px; }
+  .pond .fishes { font-size: 34px; letter-spacing: 10px; }
+  .pond .fishes span { display: inline-block; animation: swim 2.4s ease-in-out infinite; }
+  .pond .fishes span:nth-child(2) { animation-delay: .4s; }
+  .pond .fishes span:nth-child(3) { animation-delay: .9s; }
+  @keyframes swim { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
+  .pond p { font-size: 13px; color: #6e86a3; margin-top: 10px; }
+  .countdown { font-size: 13px; color: #5d7288; line-height: 2; }
+  .countdown b { color: #2d4a6b; font-size: 17px; }
+  .btnbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,.95); border-top: 1px solid #dfe8f2; padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 10px; align-items: center; justify-content: center; }
+  .bossbtn { background: #c0392b; color: #fff; border: none; border-radius: 999px; padding: 11px 26px; font-size: 15px; cursor: pointer; font-weight: 600; box-shadow: 0 3px 10px rgba(192,57,43,.35); }
+  .hint { font-size: 12px; color: #8fa2b8; }
+  /* ===== 工作模式（伪装） ===== */
+  #work { display: none; background: #1e1e1e; min-height: 100vh; padding: 0; color: #d4d4d4; font-family: Consolas, Menlo, monospace; font-size: 13px; }
+  .wbar { background: #323233; color: #ccc; padding: 8px 14px; font-size: 12px; display: flex; gap: 14px; }
+  .wbar .f { color: #858585; }
+  .wbody { display: flex; }
+  .wnum { padding: 12px 10px; color: #858585; text-align: right; user-select: none; min-width: 44px; line-height: 1.65; }
+  .wcode { padding: 12px 14px; line-height: 1.65; white-space: pre; }
+  .kw { color: #569cd6; } .st { color: #ce9178; } .cm { color: #6a9955; } .fn { color: #dcdcaa; }
+  .wstatus { position: fixed; bottom: 0; left: 0; right: 0; background: #007acc; color: #fff; font-size: 12px; padding: 4px 12px; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<!-- 演示版标识 -->
+<div class="demo-banner" id="demoBanner">
+  <span>🐟 网页演示版 · 摸鱼计时、老板键伪装等功能可完整体验</span>
+  <button onclick="document.getElementById('demoBanner').remove()" title="知道了">✕</button>
+</div>
+
+<div id="fish">
+  <div class="fhead">
+    <h1>🐟 摸鱼中 · 请保持淡定</h1>
+    <div class="clock" id="clock"></div>
+  </div>
+
+  <div class="card pond">
+    <div class="fishes"><span>🐟</span><span>🐠</span><span>🐟</span></div>
+    <p>鱼塘运转正常，水质良好，今日投喂已达标。</p>
+  </div>
+
+  <div class="card">
+    <h3>⏰ 距离下班</h3>
+    <div class="countdown" id="cd">计算中…</div>
+  </div>
+
+  <div class="card">
+    <h3>📰 今日摸鱼小知识</h3>
+    <p id="tip">加载中…</p>
+  </div>
+
+  <div class="card">
+    <h3>🎮 一句话摸鱼哲学</h3>
+    <p>工作是为了生活，但生活不是为了工作。真正的高手，是能把节奏握在自己手里的人——该冲的时候全力以赴，该歇的时候心安理得。</p>
+  </div>
+
+  <div class="btnbar">
+    <button class="bossbtn" onclick="switchMode()">🔴 老板键（或按 Esc）</button>
+    <span class="hint">一键切换 · 演示用途，纯属娱乐</span>
+  </div>
+</div>
+
+<div id="work">
+  <div class="wbar"><span>文件(F)</span><span>编辑(E)</span><span>查看(V)</span><span>转到(G)</span><span>运行(R)</span></div>
+  <div class="wbody">
+    <div class="wnum" id="wnum"></div>
+    <div class="wcode" id="wcode"></div>
+  </div>
+  <div class="wstatus"><span>正在分析: quarterly_report_final_v3.py</span><span id="wstat">行 1, 列 1</span></div>
+</div>
+
+<script>
+// 时钟 & 下班倒计时（以 18:00 为目标）
+function tick() {
+  var n = new Date();
+  var hh = ('0' + n.getHours()).slice(-2), mm = ('0' + n.getMinutes()).slice(-2), ss = ('0' + n.getSeconds()).slice(-2);
+  document.getElementById('clock').textContent = '现在时间 ' + hh + ':' + mm + ':' + ss;
+  var end = new Date(n); end.setHours(18, 0, 0, 0);
+  var left = end - n;
+  if (left < 0) { document.getElementById('cd').innerHTML = '<b>已经下班啦！</b>今天辛苦了，好好休息。'; return; }
+  var h = Math.floor(left / 3600000), m = Math.floor(left % 3600000 / 60000), s = Math.floor(left % 60000 / 1000);
+  document.getElementById('cd').innerHTML = '还有 <b>' + h + '</b> 小时 <b>' + m + '</b> 分 <b>' + s + '</b> 秒';
+}
+setInterval(tick, 1000); tick();
+
+var TIPS = [
+  '章鱼有三颗心脏，两颗负责给鳃供血——所以它们激动的时候真的会"心跳加速"。',
+  '树懒一周只上一次厕所，是动物界最懂"能拖就拖"的选手。',
+  '海獭睡觉时会手拉手，防止漂散——团队协作的最早实践者。',
+  '猫每天睡 16 个小时，剩下 8 小时里有一半在思考去哪里睡。',
+  '程序员界流传一句话：代码写得好，下班回家早。',
+  '人的注意力集中上限约 90 分钟，之后必然走神——摸鱼不是懒，是生理规律。',
+  '世界上跑得第二快的动物是"叉角羚"，它靠的不是爆发力，是懂得分配体力。'
+];
+document.getElementById('tip').textContent = TIPS[Math.floor(Math.random() * TIPS.length)];
+
+// 模式切换
+var mode = 'fish';
+function switchMode() {
+  mode = mode === 'fish' ? 'work' : 'fish';
+  document.getElementById('fish').style.display = mode === 'fish' ? 'block' : 'none';
+  document.getElementById('work').style.display = mode === 'work' ? 'block' : 'none';
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') switchMode(); });
+
+// 伪装工作界面：看起来很努力的代码
+var LINES = [
+  '<span class="cm"># Q3 供应链数据分析 · 自动化报表脚本</span>',
+  '<span class="kw">import</span> pandas <span class="kw">as</span> pd',
+  '<span class="kw">from</span> utils.db <span class="kw">import</span> load_orders, load_skus',
+  '',
+  '<span class="kw">def</span> <span class="fn">build_quarterly_report</span>(quarter=<span class="st">\'Q3\'</span>):',
+  '    <span class="cm"># 1. 拉取订单与 SKU 主数据</span>',
+  '    orders = load_orders(quarter)',
+  '    skus = load_skus(active_only=<span class="kw">True</span>)',
+  '',
+  '    <span class="cm"># 2. 合并口径，剔除测试单</span>',
+  '    df = orders.merge(skus, on=<span class="st">\'sku_id\'</span>, how=<span class="st">\'left\'</span>)',
+  '    df = df[df[<span class="st">\'is_test\'</span>] == <span class="kw">False</span>]',
+  '',
+  '    <span class="cm"># 3. 按品类汇总销售额与毛利</span>',
+  '    summary = (df.groupby(<span class="st">\'category\'</span>)',
+  '                 .agg(gmv=(<span class="st">\'amount\'</span>, <span class="st">\'sum\'</span>),',
+  '                      profit=(<span class="st">\'margin\'</span>, <span class="st">\'mean\'</span>))',
+  '                 .sort_values(<span class="st">\'gmv\'</span>, ascending=<span class="kw">False</span>))',
+  '',
+  '    <span class="cm"># 4. 导出给财务复核</span>',
+  '    summary.to_excel(<span class="st">\'reports/q3_summary.xlsx\'</span>)',
+  '    <span class="kw">return</span> summary',
+  '',
+  '<span class="kw">if</span> __name__ == <span class="st">\'__main__\'</span>:',
+  '    report = build_quarterly_report()',
+  '    <span class="fn">print</span>(<span class="st">\'✓ 报表已生成，共 %d 个品类\'</span> % len(report))'
+];
+var wnum = document.getElementById('wnum'), wcode = document.getElementById('wcode');
+LINES.forEach(function (l, i) {
+  wnum.innerHTML += (i + 1) + '<br>';
+  wcode.innerHTML += (l || '&nbsp;') + '<br>';
+});
+document.getElementById('wcode').addEventListener('mousemove', function (e) {
+  var rect = this.getBoundingClientRect();
+  var line = Math.floor((e.clientY - rect.top) / 21.5) + 1;
+  document.getElementById('wstat').textContent = '行 ' + Math.max(1, line) + ', 列 ' + Math.max(1, Math.floor((e.clientX - rect.left) / 7.8));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Parisienne&display=swap" rel="stylesheet">
+  <style>
+    body { padding: 40px; background: #0d1318; color: #E8E6E3; }
+    .test1 { font-family: 'Parisienne', cursive; font-size: 26px; margin: 20px 0; }
+    .test2 { font-family: 'Parisienne'; font-size: 26px; margin: 20px 0; }
+    .test3 { font-family: Parisienne, cursive; font-size: 26px; margin: 20px 0; }
+    .fallback { font-family: cursive; font-size: 26px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h2>Parisienne 字体测试</h2>
+  <p class="test1">测试1: font-family: 'Parisienne', cursive; — Magic</p>
+  <p class="test2">测试2: font-family: 'Parisienne'; — Magic</p>
+  <p class="test3">测试3: font-family: Parisienne, cursive; — Magic</p>
+  <p class="fallback">备用: font-family: cursive; — Magic</p>
+</body>
+</html>

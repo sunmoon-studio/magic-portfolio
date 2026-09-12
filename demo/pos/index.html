@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面馆 POS · 点单演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f7f4ee; color: #3b352c; padding: 20px 16px 40px; max-width: 860px; margin: 0 auto; font-size: 14px; }
+  h1, h2, h3 { font-family: 'Noto Serif SC', 'Songti SC', serif; }
+  .head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .head h1 { font-size: 21px; }
+  .badge { font-size: 11px; background: #ece5d6; color: #8a7455; border-radius: 4px; padding: 3px 8px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { border: 1px solid #ddd5c4; background: #fff; border-radius: 999px; padding: 7px 16px; font-size: 13.5px; cursor: pointer; color: #6b6250; }
+  .tab.on { background: #8f4f2f; border-color: #8f4f2f; color: #fff; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 60px; }
+  .dish { background: #fff; border: 1px solid #eae3d4; border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all .12s; }
+  .dish:hover { border-color: #c49a6c; }
+  .dish h3 { font-size: 15px; }
+  .dish .en { font-size: 11px; color: #ab9f8c; margin: 2px 0 6px; font-style: italic; }
+  .dish .row { display: flex; justify-content: space-between; align-items: center; }
+  .dish .price { color: #8f4f2f; font-weight: 700; font-size: 16px; }
+  .dish .add { width: 26px; height: 26px; border-radius: 50%; border: none; background: #8f4f2f; color: #fff; font-size: 17px; cursor: pointer; line-height: 1; }
+  .dish .tag { display: inline-block; font-size: 10.5px; background: #f6ecdc; color: #a06b3a; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  /* 购物车 */
+  .cart { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e5dcc9; box-shadow: 0 -4px 20px rgba(90,70,40,.08); padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); }
+  .cartin { max-width: 828px; margin: 0 auto; }
+  .cartop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12.5px; color: #8b8170; }
+  .cartop b { color: #8f4f2f; }
+  .cartbot { display: flex; gap: 10px; align-items: center; }
+  .cartlist { flex: 1; font-size: 13px; line-height: 1.9; max-height: 84px; overflow-y: auto; }
+  .cartlist .x { cursor: pointer; color: #c0392b; margin-left: 8px; font-weight: bold; }
+  .total { font-size: 19px; font-weight: 700; color: #8f4f2f; white-space: nowrap; }
+  .order { background: #8f4f2f; color: #fff; border: none; border-radius: 999px; padding: 11px 26px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+  .order:disabled { background: #c6bba8; cursor: default; }
+  .empty { color: #b3a891; font-size: 13px; }
+  /* 出票弹层 */
+  .mask { display: none; position: fixed; inset: 0; background: rgba(59,53,44,.5); z-index: 9; align-items: center; justify-content: center; padding: 20px; }
+  .mask.on { display: flex; }
+  .ticket { background: #fffdf8; border-radius: 10px; padding: 22px 26px; max-width: 340px; width: 100%; font-family: 'Courier New', monospace; position: relative; }
+  .ticket h3 { text-align: center; font-size: 16px; letter-spacing: 4px; margin-bottom: 4px; }
+  .ticket .tno { text-align: center; font-size: 12px; color: #ab9f8c; margin-bottom: 12px; }
+  .ticket .line { border-top: 1px dashed #d8cbb4; margin: 8px 0; }
+  .ticket .trow { display: flex; justify-content: space-between; font-size: 13px; padding: 2px 0; }
+  .ticket .tt { font-size: 15px; font-weight: bold; margin-top: 6px; }
+  .ticket .ok { text-align: center; color: #2f6e3f; font-size: 13px; margin-top: 12px; }
+  .ticket .close { position: absolute; top: 8px; right: 12px; cursor: pointer; color: #ab9f8c; background: none; border: none; font-size: 16px; }
+  .foot { text-align: center; color: #b3a891; font-size: 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <h1>🍜 面馆 POS · 点单演示</h1>
+    <span class="badge">演示数据 · 后厨/台桌/账目模块未在此展示</span>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="cart">
+    <div class="cartin">
+      <div class="cartop"><span id="cnt">已点 0 道</span><span>桌号：<b>3 号桌</b></span></div>
+      <div class="cartbot">
+        <div class="cartlist" id="cartlist"><span class="empty">还没点单，看看想吃哪碗面~</span></div>
+        <span class="total" id="total">$0</span>
+        <button class="order" id="orderBtn" disabled onclick="placeOrder()">下单</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mask" id="mask" onclick="if(event.target===this)this.classList.remove('on')">
+    <div class="ticket">
+      <button class="close" onclick="document.getElementById('mask').classList.remove('on')">✕</button>
+      <h3>后 厨 出 票</h3>
+      <div class="tno" id="tno"></div>
+      <div class="line"></div>
+      <div id="tbody"></div>
+      <div class="line"></div>
+      <div class="trow tt"><span>合计 TOTAL</span><span id="ttotal"></span></div>
+      <div class="ok">✓ 已发送至后厨显示屏（演示）</div>
+    </div>
+  </div>
+
+  <p class="foot">静态演示版 · 点单 / 购物车 / 出票流程为本地模拟，不连接任何后端</p>
+
+<script>
+var MENU = [
+  { cat: '招牌面类', en: 'Signature Noodles', items: [
+    { n: '红烧牛肉面', e: 'Braised Beef Noodle', p: 12, hot: true },
+    { n: '葱油拌面', e: 'Scallion Oil Noodle', p: 7 },
+    { n: '酸汤肥牛面', e: 'Sour Soup Beef Noodle', p: 13, hot: true },
+    { n: '雪菜肉丝面', e: 'Pickled Veg & Pork', p: 10 },
+    { n: '番茄鸡蛋面', e: 'Tomato & Egg Noodle', p: 9 },
+    { n: '重庆小面', e: 'Chongqing Spicy Noodle', p: 8 } ] },
+  { cat: '浇头小食', en: 'Toppings & Snacks', items: [
+    { n: '卤蛋', e: 'Marinated Egg', p: 2 },
+    { n: '大排', e: 'Pork Cutlet', p: 4, hot: true },
+    { n: '素鸡', e: 'Veg Chicken', p: 2 },
+    { n: '凉拌黄瓜', e: 'Cucumber Salad', p: 3 },
+    { n: '炸春卷', e: 'Spring Roll', p: 4 } ] },
+  { cat: '饮品', en: 'Drinks', items: [
+    { n: '酸梅汤', e: 'Sour Plum Drink', p: 3 },
+    { n: '冰豆浆', e: 'Iced Soy Milk', p: 2 },
+    { n: '青岛啤酒', e: 'Tsingtao Beer', p: 5 },
+    { n: '王老吉', e: 'Herbal Tea', p: 3 } ] }
+];
+
+var curCat = 0;
+var cart = {};  // name -> {n, e, p, q}
+
+var tabsEl = document.getElementById('tabs');
+MENU.forEach(function (c, i) {
+  var t = document.createElement('button');
+  t.className = 'tab' + (i === 0 ? ' on' : '');
+  t.textContent = c.cat + ' ' + c.en;
+  t.onclick = function () {
+    curCat = i;
+    tabsEl.querySelectorAll('.tab').forEach(function (x, j) { x.classList.toggle('on', i === j); });
+    renderMenu();
+  };
+  tabsEl.appendChild(t);
+});
+
+function renderMenu() {
+  var g = document.getElementById('grid');
+  g.innerHTML = '';
+  MENU[curCat].items.forEach(function (d) {
+    var el = document.createElement('div');
+    el.className = 'dish';
+    el.innerHTML = '<h3>' + d.n + (d.hot ? '<span class="tag">招牌</span>' : '') + '</h3><div class="en">' + d.e + '</div>' +
+      '<div class="row"><span class="price">$' + d.p + '</span><button class="add">+</button></div>';
+    el.querySelector('.add').onclick = function (ev) { ev.stopPropagation(); addToCart(d); };
+    el.onclick = function () { addToCart(d); };
+    g.appendChild(el);
+  });
+}
+function addToCart(d) {
+  if (!cart[d.n]) cart[d.n] = { n: d.n, e: d.e, p: d.p, q: 0 };
+  cart[d.n].q++;
+  renderCart();
+}
+function removeFromCart(name) {
+  if (cart[name]) { cart[name].q--; if (cart[name].q <= 0) delete cart[name]; }
+  renderCart();
+}
+function renderCart() {
+  var list = document.getElementById('cartlist');
+  var names = Object.keys(cart);
+  var count = 0, sum = 0;
+  names.forEach(function (k) { count += cart[k].q; sum += cart[k].q * cart[k].p; });
+  document.getElementById('cnt').textContent = '已点 ' + count + ' 道';
+  document.getElementById('total').textContent = '$' + sum;
+  document.getElementById('orderBtn').disabled = count === 0;
+  if (!names.length) { list.innerHTML = '<span class="empty">还没点单，看看想吃哪碗面~</span>'; return; }
+  list.innerHTML = names.map(function (k) {
+    var c = cart[k];
+    return '<span>' + c.n + ' × ' + c.q + '（$' + c.q * c.p + '）<span class="x" onclick="removeFromCart(\'' + k + '\')">✕</span></span>';
+  }).join('　');
+}
+function placeOrder() {
+  var names = Object.keys(cart);
+  var sum = 0;
+  names.forEach(function (k) { sum += cart[k].q * cart[k].p; });
+  document.getElementById('tno').textContent = '单号 NO. ' + String(Math.floor(1000 + Math.random() * 9000)) + ' · 3 号桌';
+  document.getElementById('tbody').innerHTML = names.map(function (k) {
+    var c = cart[k];
+    return '<div class="trow"><span>' + c.n + ' ' + c.e + ' x' + c.q + '</span><span>$' + c.q * c.p + '</span></div>';
+  }).join('');
+  document.getElementById('ttotal').textContent = '$' + sum;
+  document.getElementById('mask').classList.add('on');
+  cart = {};
+  renderCart();
+}
+renderMenu();
+renderCart();
+</script>
+</body>
+</html>

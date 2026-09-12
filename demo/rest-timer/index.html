@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="静刻">
+    <meta name="theme-color" content="#8b6f7e">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="apple-touch-icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+    <title>✦ 静刻 — 工作休息计时器</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --mint: #b09aaa;
+            --mint-dark: #8b6f7e;
+            --mint-light: #f4eff2;
+            --apricot: #d4b5a0;
+            --apricot-dark: #c9976e;
+            --apricot-light: #faf5f0;
+            --cream: #faf8f6;
+            --rose: #c97b84;
+            --lavender: #a68bb5;
+            --sky: #b5a0c4;
+            --gold: #c9a96e;
+            --gold-light: #f5eeda;
+            --text-primary: #2d2926;
+            --text-secondary: #7a6e6a;
+            --text-light: #a89e99;
+            --card-shadow: 0 8px 32px rgba(45, 41, 38, 0.06);
+            --card-radius: 16px;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(180deg, #faf8f6 0%, #f5f0ed 50%, #f0ebe8 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            letter-spacing: 0.3px;
+        }
+
+        /* Flowing ambient background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 20% 50%, rgba(139, 111, 126, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(201, 123, 132, 0.04) 0%, transparent 50%);
+            animation: ambient-drift 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes ambient-drift {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(2%, -2%) rotate(1deg);
+            }
+
+            66% {
+                transform: translate(-1%, 1%) rotate(-0.5deg);
+            }
+        }
+
+        /* ============ Falling Cherry Blossom Petals ============ */
+        .petal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .petal {
+            position: absolute;
+            top: -30px;
+            animation: petal-fall linear infinite;
+        }
+
+        /* Petal shape 1: teardrop */
+        .petal-shape-1 {
+            width: 12px;
+            height: 16px;
+            border-radius: 50% 0 50% 50%;
+        }
+
+        /* Petal shape 2: round */
+        .petal-shape-2 {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Petal shape 3: elongated */
+        .petal-shape-3 {
+            width: 8px;
+            height: 18px;
+            border-radius: 50%;
+        }
+
+        @keyframes petal-fall {
+            0% {
+                transform: translateY(-30px) rotate(0deg) translateX(0);
+                opacity: 0;
+            }
+
+            8% {
+                opacity: 0.7;
+            }
+
+            25% {
+                transform: translateY(25vh) rotate(120deg) translateX(40px);
+            }
+
+            50% {
+                transform: translateY(50vh) rotate(240deg) translateX(-20px);
+                opacity: 0.6;
+            }
+
+            75% {
+                transform: translateY(75vh) rotate(360deg) translateX(30px);
+            }
+
+            92% {
+                opacity: 0.4;
+            }
+
+            100% {
+                transform: translateY(105vh) rotate(480deg) translateX(-10px);
+                opacity: 0;
+            }
+        }
+
+        /* ============ Card Entrance Animations ============ */
+        @keyframes card-enter {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ============ Main Layout ============ */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 30px 20px 40px;
+        }
+
+        /* ============ Header ============ */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header-icon {
+            font-size: 36px;
+            letter-spacing: 4px;
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+        }
+
+        .header h1 {
+            font-family: 'Noto Serif SC', 'Noto Sans SC', serif;
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 10px 0 6px;
+            letter-spacing: 3px;
+        }
+
+        .header .greeting {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 30px;
+            right: 20px;
+            background: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .settings-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ============ Status Badge ============ */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .status-dot.resting {
+            background: var(--apricot-dark);
+        }
+
+        .status-dot.off {
+            background: var(--text-light);
+            animation: none;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ============ Timer Card ============ */
+        .timer-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 36px 28px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(139, 111, 126, 0.06);
+            animation: card-enter 0.6s ease backwards;
+        }
+
+        .timer-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--mint-dark), var(--gold), var(--rose));
+        }
+
+        .timer-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .timer-display {
+            font-size: 72px;
+            font-weight: 700;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--mint-dark), #6b5770);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-display.resting {
+            background: linear-gradient(135deg, var(--gold), var(--rose));
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .timer-sub {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Progress ring */
+        .progress-ring-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 12px rgba(139, 111, 126, 0.2));
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: #f0f0f0;
+            stroke-width: 6;
+        }
+
+        .progress-ring-fill {
+            fill: none;
+            stroke: url(#gradient);
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .timer-inside-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        /* ============ Info Cards Grid ============ */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(139, 111, 126, 0.06);
+            animation: card-enter 0.6s ease backwards;
+        }
+
+        .info-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .info-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .info-card .card-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .info-card .card-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        /* ============ Progress Dots ============ */
+        .progress-section {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 22px 24px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            border: 1px solid rgba(139, 111, 126, 0.06);
+            animation: card-enter 0.6s ease 0.3s backwards;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+        }
+
+        .progress-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .progress-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            min-width: 36px;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .progress-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .progress-dot.done {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+        }
+
+        .progress-dot.current {
+            background: linear-gradient(135deg, var(--mint-dark), #6b5770);
+            color: white;
+            animation: breathe 3s ease-in-out infinite;
+            box-shadow: 0 4px 12px rgba(139, 111, 126, 0.35);
+        }
+
+        .progress-dot.upcoming {
+            background: #f5f5f5;
+            color: var(--text-light);
+        }
+
+        /* ============ Last Message Card ============ */
+        .message-card {
+            background: linear-gradient(135deg, var(--mint-light), var(--apricot-light));
+            border-radius: var(--card-radius);
+            padding: 22px 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(139, 111, 126, 0.08);
+            animation: card-enter 0.6s ease 0.4s backwards;
+        }
+
+        .message-card .card-title {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .message-card .card-content {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
+        /* ============ Daily Affirmation Card ============ */
+        .affirmation-card {
+            background: linear-gradient(135deg, #f8f3ef, #f3eef5, #efe9ec);
+            border-radius: var(--card-radius);
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(139, 111, 126, 0.1);
+            animation: card-enter 0.6s ease 0.5s backwards;
+        }
+
+        .affirmation-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .affirmation-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .affirmation-card .card-title {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .affirmation-card .affirmation-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 2;
+            color: var(--mint-dark);
+        }
+
+        .affirmation-card .refresh-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+            opacity: 0.3;
+            transition: all 0.4s;
+            color: var(--text-light);
+        }
+
+        .affirmation-card .refresh-btn:hover {
+            opacity: 0.7;
+            transform: rotate(180deg);
+        }
+
+        /* Rest overlay attraction quote */
+        .rest-message-item.attraction {
+            background: linear-gradient(135deg, #f8f3ef, #f3eef5);
+            border: 1px solid rgba(139, 111, 126, 0.15);
+        }
+
+        /* ============ Rest Overlay ============ */
+        .rest-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(250, 248, 246, 0.97), rgba(243, 238, 245, 0.97));
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(16px);
+            animation: fadeIn 0.6s ease;
+        }
+
+        .rest-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .rest-content {
+            text-align: center;
+            padding: 40px;
+            max-width: 500px;
+            animation: slideUp 0.6s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .rest-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        .rest-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 28px;
+            color: var(--text-primary);
+            letter-spacing: 3px;
+        }
+
+        .rest-message-item {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 22px;
+            margin-bottom: 14px;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.6;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            animation: slideUp 0.6s ease backwards;
+        }
+
+        .rest-message-item:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .rest-message-item:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .rest-message-item:nth-child(4) {
+            animation-delay: 0.45s;
+        }
+
+        .rest-timer-display {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), var(--rose));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 24px 0 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .rest-timer-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .rest-done-btn {
+            background: linear-gradient(135deg, var(--mint-dark), #6b5770);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(139, 111, 126, 0.25);
+            letter-spacing: 1px;
+        }
+
+        .rest-done-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(139, 111, 126, 0.35);
+        }
+
+        /* ============ Settings Panel ============ */
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+            backdrop-filter: blur(4px);
+            overflow-y: auto;
+        }
+
+        .settings-overlay.active {
+            display: flex;
+        }
+
+        .settings-panel {
+            background: var(--cream);
+            border-radius: 24px;
+            padding: 32px;
+            width: 90%;
+            max-width: 560px;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            animation: slideUp 0.4s ease;
+            margin-bottom: 40px;
+        }
+
+        .settings-panel h2 {
+            font-size: 22px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .settings-section h3 {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .setting-row label {
+            font-size: 14px;
+            min-width: 110px;
+            color: var(--text-primary);
+        }
+
+        .setting-row input[type="time"],
+        .setting-row input[type="number"] {
+            padding: 10px 14px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .setting-row input:focus {
+            border-color: var(--mint-dark);
+        }
+
+        .setting-row input[type="number"] {
+            width: 80px;
+        }
+
+        .setting-unit {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Messages editor */
+        .msg-category {
+            margin-bottom: 18px;
+        }
+
+        .msg-category-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .msg-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .msg-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .msg-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .msg-item input:focus {
+            border-color: var(--mint-dark);
+        }
+
+        .msg-item .delete-msg {
+            background: none;
+            border: none;
+            color: var(--rose);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .msg-item .delete-msg:hover {
+            background: #fff0f0;
+        }
+
+        .add-msg-btn {
+            background: var(--mint-light);
+            border: 2px dashed var(--mint);
+            color: var(--mint-dark);
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .add-msg-btn:hover {
+            background: var(--mint);
+            color: white;
+            border-color: var(--mint);
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: linear-gradient(135deg, var(--mint-dark), #6b5770);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(139, 111, 126, 0.25);
+            letter-spacing: 1px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-cancel {
+            background: white;
+            border: 2px solid #eee;
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .btn-cancel:hover {
+            border-color: var(--text-light);
+        }
+
+        .btn-reset {
+            background: none;
+            border: none;
+            color: var(--rose);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            padding: 8px 0;
+            transition: opacity 0.2s;
+        }
+
+        .btn-reset:hover {
+            opacity: 0.7;
+        }
+
+        /* ============ Off-Work State ============ */
+        .off-work-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 40px 28px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .off-work-card .off-icon {
+            font-size: 56px;
+            margin-bottom: 12px;
+        }
+
+        .off-work-card h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+
+        .off-work-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* ============ Toast Notification ============ */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: white;
+            padding: 14px 28px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.4s ease;
+            z-index: 3000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* ============ Install Banner ============ */
+        .install-banner {
+            background: linear-gradient(135deg, var(--mint-light), #f0f0ff);
+            border-radius: var(--card-radius);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 14px;
+            box-shadow: var(--card-shadow);
+            border: 1px dashed var(--mint);
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .install-banner .install-text {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .install-banner .install-text strong {
+            color: var(--mint-dark);
+        }
+
+        .install-btn {
+            background: linear-gradient(135deg, var(--mint), var(--mint-dark));
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .install-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .install-dismiss {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        .install-dismiss:hover {
+            opacity: 0.8;
+        }
+
+        /* ============ Responsive ============ */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 20px 14px;
+            }
+
+            .timer-display {
+                font-size: 56px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-panel {
+                padding: 22px;
+                width: 95%;
+            }
+        }
+
+        /* ============ Demo Banner ============ */
+        .demo-banner {
+            position: relative;
+            background: linear-gradient(135deg, rgba(139, 111, 126, 0.08), rgba(201, 169, 110, 0.06));
+            border-bottom: 1px solid rgba(139, 111, 126, 0.12);
+            color: #8b6f7e;
+            font-size: 12.5px;
+            padding: 8px 36px 8px 16px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            z-index: 5;
+        }
+        .demo-banner button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #a89e99;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            line-height: 1;
+        }
+        .demo-banner button:hover { color: #8b6f7e; }
+    </style>
+</head>
+
+<body>
+
+    <!-- 演示版标识（原激活遮罩已移除：作品集站内演示无需激活码） -->
+    <div class="demo-banner" id="demoBanner">
+        <span>🌿 网页演示版 · 体验完整功能，正式应用版支持系统级后台提醒</span>
+        <button onclick="document.getElementById('demoBanner').remove()" title="知道了">✕</button>
+    </div>
+
+    <!-- Petals Container -->
+    <div class="petal-container" id="petalContainer"></div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Main App -->
+    <div class="app-container">
+        <button class="settings-btn" onclick="openSettings()" title="设置">⚙️</button>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">✦</div>
+            <h1>静刻</h1>
+            <p class="greeting" id="greeting">优雅从容，掌控节奏</p>
+        </div>
+
+        <!-- Install Banner -->
+        <div class="install-banner" id="installBanner">
+            <div class="install-text">📲 <strong>添加到主屏幕</strong>，像 App 一样使用，后台也能提醒你~</div>
+            <button class="install-btn" id="installBtn" onclick="installPWA()">安装</button>
+            <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+        </div>
+
+        <!-- Status -->
+        <div style="text-align: center;">
+            <div class="status-badge">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">加载中...</span>
+            </div>
+        </div>
+
+        <!-- Working State Content -->
+        <div id="workingContent">
+            <!-- Timer -->
+            <div class="timer-card">
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="200" height="200" viewBox="0 0 200 200">
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="var(--mint-dark)" />
+                                <stop offset="100%" stop-color="var(--gold)" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring-bg" cx="100" cy="100" r="88" />
+                        <circle class="progress-ring-fill" id="progressRing" cx="100" cy="100" r="88"
+                            stroke-dasharray="553" stroke-dashoffset="0" />
+                    </svg>
+                    <div class="timer-inside-ring">
+                        <div class="timer-label" id="timerLabel">距离休息还有</div>
+                        <div class="timer-display" id="timerDisplay">45:00</div>
+                    </div>
+                </div>
+                <div class="timer-sub" id="timerSub">第 1 轮 · 上午</div>
+            </div>
+
+            <!-- Info Grid -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">📅 当前时段</div>
+                    <div class="card-value" id="periodInfo">上午</div>
+                </div>
+                <div class="info-card">
+                    <div class="card-title">🎯 今日完成</div>
+                    <div class="card-value" id="completedInfo">0 / 8 轮</div>
+                </div>
+            </div>
+
+            <!-- Progress Dots -->
+            <div class="progress-section">
+                <div class="progress-title">📊 今日进度</div>
+                <div class="progress-row">
+                    <span class="progress-label">上午</span>
+                    <div class="progress-dots" id="amDots"></div>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">下午</span>
+                    <div class="progress-dots" id="pmDots"></div>
+                </div>
+            </div>
+
+            <!-- Daily Affirmation -->
+            <div class="affirmation-card">
+                <div class="card-title">✨ 今日吸引力语录</div>
+                <div class="affirmation-text" id="dailyAffirmation">美好的事物正在排队来见我。</div>
+                <button class="refresh-btn" onclick="refreshAffirmation()" title="换一句">🔄</button>
+            </div>
+
+            <!-- Last Message -->
+            <div class="message-card" id="messageCard" style="display: none;">
+                <div class="card-title">💬 上次休息时的鼓励</div>
+                <div class="card-content" id="lastMessage"></div>
+            </div>
+        </div>
+
+        <!-- Off-Work State Content -->
+        <div id="offWorkContent" style="display: none;">
+            <div class="off-work-card">
+                <div class="off-icon" id="offWorkIcon">🌙</div>
+                <h2 id="offWorkTitle">工作时间尚未开始</h2>
+                <p id="offWorkDesc">暂时休息，养精蓄锐<br>工作时间到了会自动开始提醒你</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rest Overlay -->
+    <div class="rest-overlay" id="restOverlay">
+        <div class="rest-content">
+            <div class="rest-icon">✦</div>
+            <div class="rest-title">休憩片刻</div>
+            <div id="restMessages"></div>
+            <div class="rest-timer-display" id="restTimerDisplay">07:00</div>
+            <div class="rest-timer-label">休息倒计时</div>
+            <button class="rest-done-btn" onclick="endRest()">◎ 开始下一轮专注</button>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
+        <div class="settings-panel" onclick="event.stopPropagation()">
+            <h2>⚙️ 设置</h2>
+
+            <div class="settings-section">
+                <h3>🕐 工作时间</h3>
+                <div class="setting-row">
+                    <label>上午开始</label>
+                    <input type="time" id="setAmStart" value="09:00">
+                </div>
+                <div class="setting-row">
+                    <label>上午结束</label>
+                    <input type="time" id="setAmEnd" value="11:30">
+                </div>
+                <div class="setting-row">
+                    <label>下午开始</label>
+                    <input type="time" id="setPmStart" value="13:00">
+                </div>
+                <div class="setting-row">
+                    <label>下午结束</label>
+                    <input type="time" id="setPmEnd" value="17:30">
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>⏱️ 时长设置</h3>
+                <div class="setting-row">
+                    <label>工作时长</label>
+                    <input type="number" id="setWorkMin" value="45" min="1" max="120">
+                    <span class="setting-unit">分钟</span>
+                </div>
+                <div class="setting-row">
+                    <label>休息时长</label>
+                    <input type="number" id="setRestMin" value="7" min="1" max="30">
+                    <span class="setting-unit">分钟</span>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>💬 提醒话语（点击可编辑）</h3>
+
+                <div class="msg-category">
+                    <div class="msg-category-title">
+                        <span>🥤 喝水 & 活动提醒</span>
+                    </div>
+                    <div class="msg-list" id="msgListDrink"></div>
+                    <button class="add-msg-btn" onclick="addMessage('drink')">+ 添加一条</button>
+                </div>
+
+                <div class="msg-category">
+                    <div class="msg-category-title">
+                        <span>👀 护眼 & 放松提醒</span>
+                    </div>
+                    <div class="msg-list" id="msgListEye"></div>
+                    <button class="add-msg-btn" onclick="addMessage('eye')">+ 添加一条</button>
+                </div>
+
+                <div class="msg-category">
+                    <div class="msg-category-title">
+                        <span>💖 "夸夸你" 鼓励话语</span>
+                    </div>
+                    <div class="msg-list" id="msgListCheer"></div>
+                    <button class="add-msg-btn" onclick="addMessage('cheer')">+ 添加一条</button>
+                </div>
+
+                <div class="msg-category">
+                    <div class="msg-category-title">
+                        <span>✨ 吸引力 & 显化语录</span>
+                    </div>
+                    <div class="msg-list" id="msgListAttraction"></div>
+                    <button class="add-msg-btn" onclick="addMessage('attraction')">+ 添加一条</button>
+                </div>
+
+                <button class="btn-reset" onclick="resetMessages()">🔄 恢复默认话语</button>
+            </div>
+
+            <div class="settings-actions">
+                <button class="btn-cancel" onclick="closeSettings()">取消</button>
+                <button class="btn-save" onclick="saveSettings()">💾 保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== Default Data ====================
+        const DEFAULT_MESSAGES = {
+            drink: [
+                "💧 去倒杯温水吧，让身体补充一下水分~",
+                "🥤 喝口水润润嗓子，你的身体会感谢你的！",
+                "🍵 泡杯花茶犒劳一下自己吧~",
+                "💧 站起来接杯水，顺便活动一下腿脚~",
+                "🥛 来一杯温水，给身体充充电~",
+                "💧 别忘了喝水哟，水灵灵的你需要水灵灵的补给！",
+                "🧃 休息一下，喝点水果茶也不错呀~",
+                "💧 你已经连续工作好久了，喝口水放松一下~"
+            ],
+            eye: [
+                "🌿 看看窗外的绿色植物，让眼睛放松 20 秒~",
+                "🌅 望向远处，让疲惫的眼睛休息一会儿~",
+                "🧘 闭上眼睛，做三次深呼吸，感受此刻的宁静~",
+                "🌸 起来伸个懒腰，转转脖子，活动一下肩膀~",
+                "🪟 看看窗外的天空，深呼吸，重新充满能量~",
+                "👁️ 眨眨眼睛，转转眼球，给眼部做个小按摩~",
+                "🌳 把目光移向远处，让眼部肌肉放松下来~",
+                "🦋 站起来走两步，简单拉伸一下，身体会更舒服~"
+            ],
+            cheer: [
+                "⭐ 你今天也在努力发光呢，真的很棒！",
+                "🌟 认真工作的你，是最闪亮的存在！",
+                "🎉 又完成了一段高效工作，给自己鼓鼓掌~",
+                "💪 你的专注力太强了，连空气都为你加油！",
+                "🏆 坚持就是胜利，你已经比昨天更优秀了！",
+                "🌻 你的每一分努力，都在悄悄开花结果~",
+                "✨ 世界因为有你的认真而变得更美好！",
+                "🎯 目标在一点一点接近，你的努力不会白费！",
+                "💐 辛苦了！你值得所有的美好和温柔~",
+                "🌈 再坚持一下下，美好的事情正在路上！",
+                "🧡 你不仅很能干，还特别让人安心！",
+                "🌺 忙碌的你也别忘了——你真的很了不起！",
+                "🦄 像你这样又努力又认真的人，运气一定不会差！",
+                "🍀 今天的你也值得被好好夸一夸~",
+                "💎 你的价值不是用忙碌衡量的，但你忙起来真的超帅！",
+                "🌙 累了就歇一歇，你已经做得足够好了~"
+            ],
+            attraction: [
+                "🌟 我值得拥有这个世界上一切美好的事物。",
+                "✨ 我是被宇宙偏爱的人，好运会主动找到我。",
+                "🌈 我天生就配得上丰盛和喜悦。",
+                "💫 我不需要证明自己，我本身就是奇迹。",
+                "⭐ 我允许自己闪闪发光，毫无保留。",
+                "💰 金钱是能量，它轻松自在地流向我。",
+                "🧲 我是一块吸金石，财富从四面八方向我涌来。",
+                "💸 我越放松，钱越多。",
+                "🌻 赚钱对我来说是轻松且愉快的事。",
+                "💖 我值得被温柔以待，我吸引真诚的爱。",
+                "🌸 爱从不缺席，它一直在向我走来。",
+                "🍀 好事正在发生，即使我还看不见。",
+                "🎯 我是幸运的，到处都是为我准备的惊喜。",
+                "⏳ 一切都在最好的时机发生。",
+                "🌅 我相信：该来的都会来，而且会超出预期。",
+                "☀️ 今天一定会有好事发生在我身上。",
+                "🎰 我的运气好到不可思议。",
+                "🔮 所有的困难都是在为更大的好运做铺垫。",
+                "🧘 我放下焦虑，一切都在按最好的剧本进行。",
+                "🕊️ 我不需要掌控一切，我只需要信任。",
+                "🌙 今天的我，已经足够好了。",
+                "🦋 我选择平静，平静选择了我。",
+                "🚀 成功是我的常态，失败只是路过的风景。",
+                "🔑 机会总是在不经意间向我敞开大门。",
+                "💎 我的才华正在被看见，被欣赏，被需要。",
+                "🧡 我把热爱变成事业，把事业变成使命。",
+                "🌱 我相信我走的每一步，都在靠近梦想。",
+                "💪 我拥有把想法变成现实的超能力。",
+                "🌿 我的身体充满活力，每一个细胞都在闪耀。",
+                "🌞 我散发着健康的光芒，感染身边的每一个人。",
+                "🙏 感谢今天发生的一切，无论好坏都是礼物。",
+                "💝 我带着满满的感恩入睡，明天会更好。",
+                "🌠 宇宙在我睡着的时候，也在为我安排好事。",
+                "🪄 我的潜意识正在吸引美好的明天。",
+                "🌺 美好的事物正在排队来见我。",
+                "🦄 像我这样又努力又认真的人，运气一定不会差！",
+                "🏆 我正在创造一份让自己骄傲的事业。",
+                "💐 我配得上爱、富足与幸福。",
+                "🌊 我放下执念，允许生活自然流动。",
+                "🎇 担心是多余的，美好自会安排。"
+            ]
+        };
+
+        const DEFAULT_SETTINGS = {
+            amStart: '09:00', amEnd: '11:30',
+            pmStart: '13:00', pmEnd: '17:30',
+            workMin: 45, restMin: 7
+        };
+
+        // ==================== State ====================
+        let settings = { ...DEFAULT_SETTINGS };
+        let messages = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+        let state = {
+            mode: 'idle',          // 'working', 'resting', 'idle'
+            currentRound: 0,
+            completedRounds: 0,
+            totalAmRounds: 0,
+            totalPmRounds: 0,
+            remainingSeconds: 0,
+            restRemainingSeconds: 0,
+            period: 'off',         // 'am', 'pm', 'lunch', 'off'
+            lastMessages: null
+        };
+
+        let timerInterval = null;
+        let lastNotifSoundTime = 0;
+
+        // ==================== Activation System (演示版已移除激活码，函数保留为空实现以兼容旧引用) ====================
+        const ACT_SALT = 'JingKe2026Elegant';
+
+        function actHash(str) {
+            let h = 0;
+            for (let i = 0; i < str.length; i++) {
+                const c = str.charCodeAt(i);
+                h = ((h << 5) - h) + c;
+                h = h & h;
+            }
+            return Math.abs(h);
+        }
+
+        function validateCode(code) {
+            // 演示版：不再校验激活码格式，直接通过
+            return typeof code === 'string' && code.length > 0;
+        }
+
+        function getDeviceId() {
+            const parts = [
+                navigator.userAgent,
+                screen.width + 'x' + screen.height,
+                Intl.DateTimeFormat().resolvedOptions().timeZone,
+                navigator.language,
+                navigator.hardwareConcurrency || 'na'
+            ];
+            return actHash(parts.join('|')).toString(36);
+        }
+
+        function checkActivation() {
+            // 演示版：始终视为已激活
+            return true;
+        }
+
+        function activateApp() {
+            // 演示版：直接进入应用，不再需要激活码
+            try { localStorage.removeItem('jkActivation'); } catch (e) {}
+            const ov = document.getElementById('activationOverlay');
+            if (ov) ov.classList.add('hidden');
+            init();
+        }
+
+        // ==================== Init ====================
+        function init() {
+            loadFromStorage();
+            calculateRounds();
+            createPetals();
+            requestNotificationPermission();
+            updateGreeting();
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        function loadFromStorage() {
+            try {
+                const saved = localStorage.getItem('workBuddySettings');
+                if (saved) settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+                const savedMsg = localStorage.getItem('workBuddyMessages');
+                if (savedMsg) messages = JSON.parse(savedMsg);
+            } catch (e) { }
+        }
+
+        function saveToStorage() {
+            try {
+                localStorage.setItem('workBuddySettings', JSON.stringify(settings));
+                localStorage.setItem('workBuddyMessages', JSON.stringify(messages));
+            } catch (e) { }
+        }
+
+        function calculateRounds() {
+            const amMinutes = timeToMinutes(settings.amEnd) - timeToMinutes(settings.amStart);
+            const pmMinutes = timeToMinutes(settings.pmEnd) - timeToMinutes(settings.pmStart);
+            const cycleMinutes = settings.workMin + settings.restMin;
+            state.totalAmRounds = Math.floor(amMinutes / cycleMinutes);
+            if (amMinutes % cycleMinutes >= settings.workMin) state.totalAmRounds++;
+            state.totalPmRounds = Math.floor(pmMinutes / cycleMinutes);
+            if (pmMinutes % cycleMinutes >= settings.workMin) state.totalPmRounds++;
+            // Cap at reasonable max
+            state.totalAmRounds = Math.min(state.totalAmRounds, 10);
+            state.totalPmRounds = Math.min(state.totalPmRounds, 10);
+            renderProgressDots();
+        }
+
+        // ==================== Time Helpers ====================
+        function timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function getCurrentMinutes() {
+            const now = new Date();
+            return now.getHours() * 60 + now.getMinutes();
+        }
+
+        function getCurrentPeriod() {
+            const m = getCurrentMinutes();
+            const amS = timeToMinutes(settings.amStart);
+            const amE = timeToMinutes(settings.amEnd);
+            const pmS = timeToMinutes(settings.pmStart);
+            const pmE = timeToMinutes(settings.pmEnd);
+
+            if (m >= amS && m < amE) return 'am';
+            if (m >= amE && m < pmS) return 'lunch';
+            if (m >= pmS && m < pmE) return 'pm';
+            return 'off';
+        }
+
+        function formatTime(s) {
+            const mm = Math.floor(s / 60);
+            const ss = s % 60;
+            return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+        }
+
+        // ==================== Core Tick ====================
+        // Get current time in total seconds since midnight
+        function getCurrentSeconds() {
+            const now = new Date();
+            return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+        }
+
+        function tick() {
+            const period = getCurrentPeriod();
+            const prevPeriod = state.period;
+            state.period = period;
+
+            // Period just changed
+            if (period !== prevPeriod) {
+                if (period === 'am' || period === 'pm') {
+                    syncWork(period);
+                } else {
+                    goIdle(period);
+                }
+                return;
+            }
+
+            // Sync from real clock every tick (prevents drift!)
+            if (state.mode === 'working' || state.mode === 'resting') {
+                if (period === 'am' || period === 'pm') {
+                    syncWork(period);
+                } else {
+                    goIdle(period);
+                }
+            } else {
+                updateIdleUI(period);
+            }
+        }
+
+        // Track whether rest overlay is already showing to avoid re-triggering
+        let restShownForRound = -1;
+        let restReminderInterval = null;  // Repeated reminder every 30s
+
+        function syncWork(period) {
+            const nowSec = getCurrentSeconds();
+            let periodStartSec;
+            let totalRounds;
+            if (period === 'am') {
+                periodStartSec = timeToMinutes(settings.amStart) * 60;
+                totalRounds = state.totalAmRounds;
+            } else {
+                periodStartSec = timeToMinutes(settings.pmStart) * 60;
+                totalRounds = state.totalPmRounds;
+            }
+
+            const elapsed = nowSec - periodStartSec; // seconds since period start
+            const cycleSec = (settings.workMin + settings.restMin) * 60;
+            const roundInPeriod = Math.floor(elapsed / cycleSec);
+            const posInCycle = elapsed % cycleSec;
+            const workSec = settings.workMin * 60;
+
+            if (roundInPeriod >= totalRounds) {
+                state.mode = 'idle';
+                goIdle(period);
+                return;
+            }
+
+            const amRounds = period === 'pm' ? state.totalAmRounds : 0;
+            state.currentRound = amRounds + roundInPeriod + 1;
+            state.completedRounds = amRounds + roundInPeriod;
+
+            if (posInCycle < workSec) {
+                // In working phase
+                state.mode = 'working';
+                state.remainingSeconds = workSec - posInCycle;
+                if (state.remainingSeconds <= 0) state.remainingSeconds = 1;
+                restShownForRound = -1; // reset for this round
+
+                // Auto-dismiss rest overlay if it was showing
+                const restOverlay = document.getElementById('restOverlay');
+                if (restOverlay.classList.contains('active')) {
+                    restOverlay.classList.remove('active');
+                    stopTitleFlash();
+                    stopRestReminder();
+                    showToast('✨ 休息结束，开始新一轮专注');
+                }
+            } else {
+                // In rest phase
+                state.mode = 'resting';
+                state.restRemainingSeconds = cycleSec - posInCycle;
+                if (state.restRemainingSeconds <= 0) state.restRemainingSeconds = 1;
+
+                // Only show rest overlay + play sound ONCE per round
+                const globalRound = amRounds + roundInPeriod;
+                if (restShownForRound !== globalRound) {
+                    restShownForRound = globalRound;
+                    showRestMessages();
+                    playNotificationSound();
+                    sendSystemNotification();
+                    startRestReminder();  // Start repeated reminders
+                }
+            }
+
+            document.getElementById('workingContent').style.display = 'block';
+            document.getElementById('offWorkContent').style.display = 'none';
+            updateWorkUI();
+            if (state.mode === 'resting') updateRestUI();
+            renderProgressDots();
+        }
+
+        // Legacy alias for overrides
+        function startWork(period) { syncWork(period); }
+
+        function startRest() {
+            state.mode = 'resting';
+            state.restRemainingSeconds = settings.restMin * 60;
+            state.completedRounds = state.currentRound;
+            showRestMessages();
+            playNotificationSound();
+            sendSystemNotification();
+            renderProgressDots();
+        }
+
+        function showRestMessages() {
+            const drink = randomPick(messages.drink);
+            const eye = randomPick(messages.eye);
+            const cheer = randomPick(messages.cheer);
+            const attraction = randomPick(messages.attraction);
+
+            state.lastMessages = { drink, eye, cheer, attraction };
+
+            const container = document.getElementById('restMessages');
+            container.innerHTML = `
+        <div class="rest-message-item attraction" style="font-size:18px; line-height:1.8; margin: 24px 0;">${attraction}</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:8px;">♡ 记得喝水 · 远眺放松眼睛</div>
+    `;
+
+            document.getElementById('restOverlay').classList.add('active');
+
+            // Show last message card
+            document.getElementById('lastMessage').innerHTML = attraction;
+            document.getElementById('messageCard').style.display = 'block';
+
+            // Update daily affirmation
+            document.getElementById('dailyAffirmation').textContent = attraction;
+
+            // Try to grab user attention
+            startTitleFlash();
+            try { window.focus(); } catch (e) { }
+        }
+
+        function endRest() {
+            document.getElementById('restOverlay').classList.remove('active');
+            // Reset rest tracking so syncWork recalculates from real clock
+            state.mode = 'working';
+            state.restRemainingSeconds = 0;
+            // Let the next tick() -> syncWork() figure out the correct state
+            stopTitleFlash();
+            stopRestReminder();
+        }
+
+        function goIdle(period) {
+            if (state.mode === 'resting') return;
+            state.mode = 'idle';
+            document.getElementById('restOverlay').classList.remove('active');
+            document.getElementById('workingContent').style.display = 'none';
+            document.getElementById('offWorkContent').style.display = 'block';
+            updateIdleUI(period);
+        }
+
+        // ==================== UI Updates ====================
+        function updateWorkUI() {
+            const totalRounds = state.totalAmRounds + state.totalPmRounds;
+            const isResting = state.mode === 'resting';
+
+            // Status
+            const dot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            dot.className = 'status-dot' + (isResting ? ' resting' : '');
+            statusText.textContent = isResting
+                ? `☕ 休息中（第 ${state.currentRound} 轮）`
+                : `🟢 专注工作中（第 ${state.currentRound} 轮）`;
+
+            // Timer
+            const display = document.getElementById('timerDisplay');
+            const label = document.getElementById('timerLabel');
+            display.textContent = formatTime(state.remainingSeconds);
+            display.className = 'timer-display' + (isResting ? ' resting' : '');
+            label.textContent = isResting ? '休息剩余' : '距离休息还有';
+
+            // Progress ring
+            const totalSec = settings.workMin * 60;
+            const progress = isResting ? 0 : (1 - state.remainingSeconds / totalSec);
+            const circumference = 2 * Math.PI * 88;
+            const offset = circumference * (1 - progress);
+            document.getElementById('progressRing').style.strokeDashoffset = offset;
+
+            // Sub text
+            const periodName = state.period === 'am' ? '上午' : '下午';
+            document.getElementById('timerSub').textContent = `第 ${state.currentRound} 轮 · ${periodName}`;
+
+            // Info cards
+            document.getElementById('periodInfo').textContent =
+                state.period === 'am' ? '☀️ 上午' : '🌤️ 下午';
+            document.getElementById('completedInfo').textContent =
+                `${state.completedRounds} / ${totalRounds} 轮`;
+        }
+
+        function updateRestUI() {
+            document.getElementById('restTimerDisplay').textContent =
+                formatTime(state.restRemainingSeconds);
+        }
+
+        function updateIdleUI(period) {
+            const dot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            dot.className = 'status-dot off';
+
+            const icon = document.getElementById('offWorkIcon');
+            const title = document.getElementById('offWorkTitle');
+            const desc = document.getElementById('offWorkDesc');
+
+            if (period === 'lunch') {
+                statusText.textContent = '🍚 午休时间';
+                icon.textContent = '🍱';
+                title.textContent = '午休时光';
+                desc.innerHTML = '享受你的午餐，适当休息<br>下午工作时间到了会自动提醒你';
+            } else if (period === 'off') {
+                const now = getCurrentMinutes();
+                const amStart = timeToMinutes(settings.amStart);
+                if (now < amStart) {
+                    statusText.textContent = '🌅 尚未开始';
+                    icon.textContent = '🌅';
+                    title.textContent = '工作时间尚未开始';
+                    desc.innerHTML = `充分休息，${settings.amStart} 开始工作<br>到时间了会自动提醒你`;
+                } else {
+                    statusText.textContent = '🌙 已下班';
+                    icon.textContent = '🌙';
+                    title.textContent = '今天辛苦了';
+                    desc.innerHTML = '工作结束，享受属于自己的时光<br>明天见';
+                }
+            }
+
+            document.getElementById('workingContent').style.display = 'none';
+            document.getElementById('offWorkContent').style.display = 'block';
+        }
+
+        function renderProgressDots() {
+            const amDots = document.getElementById('amDots');
+            const pmDots = document.getElementById('pmDots');
+            amDots.innerHTML = '';
+            pmDots.innerHTML = '';
+
+            for (let i = 1; i <= state.totalAmRounds; i++) {
+                amDots.appendChild(createDot(i));
+            }
+            for (let i = 1; i <= state.totalPmRounds; i++) {
+                pmDots.appendChild(createDot(state.totalAmRounds + i));
+            }
+        }
+
+        function createDot(roundNum) {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot';
+            if (roundNum < state.currentRound || roundNum <= state.completedRounds) {
+                dot.className += ' done';
+                dot.textContent = '✅';
+            } else if (roundNum === state.currentRound && (state.mode === 'working' || state.mode === 'resting')) {
+                dot.className += ' current';
+                dot.textContent = roundNum;
+            } else {
+                dot.className += ' upcoming';
+                dot.textContent = roundNum;
+            }
+            return dot;
+        }
+
+        function refreshAffirmation() {
+            const text = randomPick(messages.attraction);
+            document.getElementById('dailyAffirmation').textContent = text;
+        }
+
+        function updateGreeting() {
+            const greetings = [
+                "优雅从容，掌控节奏",
+                "张弛有度，方得长远",
+                "从容不迫，自有力量",
+                "善待自己，才能更好地绽放",
+                "专注当下，从容前行",
+                "内心宁静，方得始终"
+            ];
+            document.getElementById('greeting').textContent = randomPick(greetings);
+            // Set daily affirmation
+            document.getElementById('dailyAffirmation').textContent = randomPick(messages.attraction);
+        }
+
+        // ==================== Notifications ====================
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        function sendSystemNotification() {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const cheer = state.lastMessages ? state.lastMessages.cheer : '休息一下吧';
+                const notif = new Notification('✦ 静刻 · 休憩时刻', {
+                    body: cheer,
+                    icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✦</text></svg>',
+                    tag: 'jingke-rest-reminder',  // Replace previous notification instead of stacking
+                    renotify: true,               // Re-alert even when replacing same tag
+                    requireInteraction: true       // Keep notification visible until user clicks
+                });
+                // Click notification → bring tab to front
+                notif.onclick = function () {
+                    window.focus();
+                    notif.close();
+                };
+            }
+        }
+
+        // ==================== Repeated Rest Reminder ====================
+        let restReminderCount = 0;
+
+        function startRestReminder() {
+            stopRestReminder();
+            restReminderCount = 0;
+            scheduleNextReminder();
+        }
+
+        function scheduleNextReminder() {
+            // Progressive intervals: 10s, 15s, then 20s thereafter
+            let delay;
+            if (restReminderCount === 0) {
+                delay = 10000;   // First reminder after 10 seconds
+            } else if (restReminderCount === 1) {
+                delay = 15000;   // Second reminder after 15 seconds
+            } else {
+                delay = 20000;   // Subsequent reminders every 20 seconds
+            }
+
+            restReminderInterval = setTimeout(() => {
+                if (state.mode === 'resting') {
+                    restReminderCount++;
+                    playNotificationSound();
+                    sendSystemNotification();
+                    try { window.focus(); } catch (e) { }
+                    scheduleNextReminder();  // Schedule next one
+                }
+                // If no longer resting, just stop (don't schedule next)
+            }, delay);
+        }
+
+        function stopRestReminder() {
+            if (restReminderInterval) {
+                clearTimeout(restReminderInterval);
+                restReminderInterval = null;
+            }
+            restReminderCount = 0;
+        }
+
+        function playNotificationSound() {
+            const now = Date.now();
+            if (now - lastNotifSoundTime < 3000) return;
+            lastNotifSoundTime = now;
+
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                // Play a soft chime melody
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.2);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.2 + 0.8);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + i * 0.2);
+                    osc.stop(audioCtx.currentTime + i * 0.2 + 0.8);
+                });
+            } catch (e) { }
+        }
+
+        // ==================== Settings ====================
+        function openSettings() {
+            // Populate fields
+            document.getElementById('setAmStart').value = settings.amStart;
+            document.getElementById('setAmEnd').value = settings.amEnd;
+            document.getElementById('setPmStart').value = settings.pmStart;
+            document.getElementById('setPmEnd').value = settings.pmEnd;
+            document.getElementById('setWorkMin').value = settings.workMin;
+            document.getElementById('setRestMin').value = settings.restMin;
+
+            renderMessageEditor('drink', 'msgListDrink');
+            renderMessageEditor('eye', 'msgListEye');
+            renderMessageEditor('cheer', 'msgListCheer');
+            renderMessageEditor('attraction', 'msgListAttraction');
+
+            document.getElementById('settingsOverlay').classList.add('active');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsOverlay').classList.remove('active');
+        }
+
+        function closeSettingsOutside(e) {
+            if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+        }
+
+        function saveSettings() {
+            settings.amStart = document.getElementById('setAmStart').value;
+            settings.amEnd = document.getElementById('setAmEnd').value;
+            settings.pmStart = document.getElementById('setPmStart').value;
+            settings.pmEnd = document.getElementById('setPmEnd').value;
+            settings.workMin = parseInt(document.getElementById('setWorkMin').value) || 45;
+            settings.restMin = parseInt(document.getElementById('setRestMin').value) || 7;
+
+            // Save messages from editor
+            messages.drink = getMessagesFromEditor('msgListDrink');
+            messages.eye = getMessagesFromEditor('msgListEye');
+            messages.cheer = getMessagesFromEditor('msgListCheer');
+            messages.attraction = getMessagesFromEditor('msgListAttraction');
+
+            // Remove empty messages
+            for (const key of ['drink', 'eye', 'cheer', 'attraction']) {
+                messages[key] = messages[key].filter(m => m.trim() !== '');
+                if (messages[key].length === 0) {
+                    messages[key] = [...DEFAULT_MESSAGES[key]];
+                }
+            }
+
+            saveToStorage();
+            calculateRounds();
+            closeSettings();
+
+            // Re-initialize state
+            state.mode = 'idle';
+            state.period = '';
+            state.completedRounds = 0;
+            state.currentRound = 0;
+            tick();
+
+            showToast('✅ 设置已保存');
+        }
+
+        function resetMessages() {
+            messages = JSON.parse(JSON.stringify(DEFAULT_MESSAGES));
+            renderMessageEditor('drink', 'msgListDrink');
+            renderMessageEditor('eye', 'msgListEye');
+            renderMessageEditor('cheer', 'msgListCheer');
+            renderMessageEditor('attraction', 'msgListAttraction');
+            showToast('🔄 话语已恢复默认');
+        }
+
+        function renderMessageEditor(category, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            messages[category].forEach((msg, idx) => {
+                const div = document.createElement('div');
+                div.className = 'msg-item';
+                div.innerHTML = `
+            <input type="text" value="${escapeHtml(msg)}" data-cat="${category}" data-idx="${idx}">
+            <button class="delete-msg" onclick="deleteMessage('${category}', ${idx})" title="删除">✕</button>
+        `;
+                container.appendChild(div);
+            });
+        }
+
+        function addMessage(category) {
+            const containerId = category === 'drink' ? 'msgListDrink' : category === 'eye' ? 'msgListEye' : category === 'cheer' ? 'msgListCheer' : 'msgListAttraction';
+            // Save current edits from all editors first
+            messages.drink = getMessagesFromEditor('msgListDrink');
+            messages.eye = getMessagesFromEditor('msgListEye');
+            messages.cheer = getMessagesFromEditor('msgListCheer');
+            messages.attraction = getMessagesFromEditor('msgListAttraction');
+            // Add one empty entry
+            messages[category].push('');
+            renderMessageEditor(category, containerId);
+            // Focus the new input
+            const inputs = document.getElementById(containerId).querySelectorAll('input');
+            if (inputs.length) inputs[inputs.length - 1].focus();
+        }
+
+        function deleteMessage(category, idx) {
+            // Get current values from editor
+            const containerId = category === 'drink' ? 'msgListDrink' : category === 'eye' ? 'msgListEye' : category === 'cheer' ? 'msgListCheer' : 'msgListAttraction';
+            const currentMsgs = getMessagesFromEditor(containerId);
+            currentMsgs.splice(idx, 1);
+            messages[category] = currentMsgs;
+            renderMessageEditor(category, containerId);
+        }
+
+        function getMessagesFromEditor(containerId) {
+            const inputs = document.getElementById(containerId).querySelectorAll('input');
+            return Array.from(inputs).map(inp => inp.value);
+        }
+
+        // ==================== Falling Cherry Blossom Petals ====================
+        function createPetals() {
+            const container = document.getElementById('petalContainer');
+            const colors = [
+                '#d4a0aa',   // soft rose
+                '#c9a0b5',   // plum blush
+                '#d4b5a0',   // warm champagne
+                '#c9976e',   // amber gold
+                '#b09aaa',   // lavender plum
+                '#e8c4c4',   // pale sakura
+            ];
+            const shapes = ['petal-shape-1', 'petal-shape-2', 'petal-shape-3'];
+            for (let i = 0; i < 15; i++) {
+                const petal = document.createElement('div');
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                petal.className = 'petal ' + shape;
+                petal.style.left = Math.random() * 100 + '%';
+                petal.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                // Vary size
+                const scale = 0.7 + Math.random() * 0.8;
+                petal.style.transform = `scale(${scale})`;
+                // Timing
+                const duration = 8 + Math.random() * 12;
+                const delay = i < 5 ? (Math.random() * 1) : (Math.random() * 15);
+                petal.style.animationDuration = duration + 's';
+                petal.style.animationDelay = delay + 's';
+                petal.style.opacity = 0.4 + Math.random() * 0.3;
+                container.appendChild(petal);
+            }
+        }
+
+        // ==================== Helpers ====================
+        function randomPick(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // ==================== Title Flash (grab attention) ====================
+        let titleFlashInterval = null;
+        const originalTitle = '✦ 静刻 — 工作休息计时器';
+
+        function startTitleFlash() {
+            if (titleFlashInterval) return;
+            let flip = false;
+            titleFlashInterval = setInterval(() => {
+                document.title = flip ? originalTitle : '🔔 休息时间到！';
+                flip = !flip;
+            }, 500);  // Fast flash for taskbar blinking
+        }
+
+        function stopTitleFlash() {
+            if (titleFlashInterval) {
+                clearInterval(titleFlashInterval);
+                titleFlashInterval = null;
+            }
+            document.title = originalTitle;
+        }
+
+        // ==================== Mobile: Audio Keepalive ====================
+        let silentAudioCtx = null;
+        let keepaliveInterval = null;
+
+        function startAudioKeepalive() {
+            try {
+                if (silentAudioCtx) return;
+                silentAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                // Play a near-silent tick every 25 seconds to keep the browser awake
+                keepaliveInterval = setInterval(() => {
+                    if (state.mode === 'working' || state.mode === 'resting') {
+                        const osc = silentAudioCtx.createOscillator();
+                        const gain = silentAudioCtx.createGain();
+                        gain.gain.value = 0.001; // Nearly silent
+                        osc.connect(gain);
+                        gain.connect(silentAudioCtx.destination);
+                        osc.start();
+                        osc.stop(silentAudioCtx.currentTime + 0.05);
+                    }
+                }, 25000);
+            } catch (e) { }
+        }
+
+        // Start keepalive on first user interaction (required by mobile browsers)
+        document.addEventListener('click', function initAudio() {
+            startAudioKeepalive();
+            document.removeEventListener('click', initAudio);
+        }, { once: true });
+
+        // ==================== Mobile: Vibration ====================
+        function vibrateDevice() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 300]); // Pattern: buzz-pause-buzz-pause-long buzz
+            }
+        }
+
+        // ==================== Mobile: Wake Lock ====================
+        let wakeLock = null;
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator && (state.mode === 'working' || state.mode === 'resting')) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => { wakeLock = null; });
+                }
+            } catch (e) { }
+        }
+
+        async function releaseWakeLock() {
+            if (wakeLock) {
+                try { await wakeLock.release(); } catch (e) { }
+                wakeLock = null;
+            }
+        }
+
+        // Re-acquire wake lock when page becomes visible again
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                requestWakeLock();
+                // Sync timer when returning to page (mobile may have suspended it)
+                tick();
+            }
+        });
+
+        // ==================== PWA: Service Worker & Install ====================
+        let deferredInstallPrompt = null;
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => { });
+        }
+
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredInstallPrompt = e;
+            // Show install banner if not dismissed before
+            if (!localStorage.getItem('workBuddyInstallDismissed')) {
+                document.getElementById('installBanner').classList.add('show');
+            }
+        });
+
+        function installPWA() {
+            if (deferredInstallPrompt) {
+                deferredInstallPrompt.prompt();
+                deferredInstallPrompt.userChoice.then(result => {
+                    if (result.outcome === 'accepted') {
+                        showToast('🎉 安装成功！可以在主屏幕找到我啦~');
+                    }
+                    deferredInstallPrompt = null;
+                    document.getElementById('installBanner').classList.remove('show');
+                });
+            }
+        }
+
+        function dismissInstall() {
+            document.getElementById('installBanner').classList.remove('show');
+            localStorage.setItem('workBuddyInstallDismissed', 'true');
+        }
+
+        // ==================== Override startRest for mobile ====================
+        const _originalStartRest = startRest;
+        startRest = function () {
+            _originalStartRest();
+            vibrateDevice();       // Vibrate phone
+            requestWakeLock();     // Keep screen on during rest
+        };
+
+        // Override startWork for wake lock
+        const _originalStartWork = startWork;
+        startWork = function (period) {
+            _originalStartWork(period);
+            requestWakeLock();     // Keep screen on during work
+        };
+
+        // Override goIdle for wake lock release
+        const _originalGoIdle = goIdle;
+        goIdle = function (period) {
+            _originalGoIdle(period);
+            releaseWakeLock();     // Allow screen to sleep when idle
+        };
+
+        // ==================== Start ====================
+        // 演示版：跳过激活检查，直接进入应用
+        window.addEventListener('load', function () {
+            // 兼容老用户：清掉历史激活信息（演示版不再校验激活码）
+            try { localStorage.removeItem('jkActivation'); } catch (e) {}
+            init();
+        });
+    </script>
+</body>
+
+</html>
