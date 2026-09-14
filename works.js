@@ -8,7 +8,7 @@ const SITES = {
   "real": {
     "key": "real",
     "name": "Magic",
-    "tagline": "把想法，做成能用的作品。",
+    "tagline": "把想法，做成能用的产品。",
     "hero": {
       "eyebrow": "Magic · 作品集"
     },

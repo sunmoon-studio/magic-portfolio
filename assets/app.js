@@ -92,7 +92,7 @@
         '<div class="lock-closed" id="lockClosed">' +
           '<div class="lock-badge" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="15.5" r="1.4" fill="currentColor"/></svg></div>' +
           '<p class="lock-title">查看完整履历</p>' +
-          '<p class="lock-sub">需密码 · 内容已加密，明文不落源码</p>' +
+          '<p class="lock-sub">需密码 · 内容已加密</p>' +
           '<p class="lock-hint" id="lockHint"></p>' +
           '<form class="lock-form" id="lockForm">' +
             '<input class="lock-input" id="resumePass" type="password" placeholder="输入密码" autocomplete="off" />' +
